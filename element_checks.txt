@@ -1,0 +1,142 @@
+1526:      const oneTimeContainer = document.getElementById("one-time-container");
+1527:      const recurringContainer = document.getElementById("recurring-container");
+1541:      const linksContainer = document.getElementById("links-container");
+1542:      document.getElementById("add-link-btn").addEventListener("click", () => {
+1557:      const mediaContainer = document.getElementById("media-container");
+1558:      document.getElementById("add-media-btn").addEventListener("click", () => {
+1573:      const loginSection = document.getElementById("login-section");
+1574:      const uploadSection = document.getElementById("upload-section");
+1575:      const statusDiv = document.getElementById("status");
+1576:      const userStatusDiv = document.getElementById("user-status");
+1577:      const errorMsg = document.getElementById("auth-error-msg");
+1581:      const dashboardSection = document.getElementById("dashboard-section");
+1582:      const dashboardRoleBadge = document.getElementById("dashboard-role-badge");
+1583:      const dashboardTabsRow = document.getElementById("dashboard-tabs-row");
+1585:      const btnTabMyEvents = document.getElementById("btn-tab-my-events");
+1586:      const btnTabAllEvents = document.getElementById("btn-tab-all-events");
+1587:      const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
+1589:      const tabMyEvents = document.getElementById("tab-my-events");
+1590:      const tabAllEvents = document.getElementById("tab-all-events");
+1591:      const tabAllKnowledge = document.getElementById("tab-all-knowledge");
+1593:      const myEventsLoading = document.getElementById("my-events-loading");
+1594:      const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
+1595:      const myEventsTbody = document.getElementById("my-events-tbody");
+1597:      const allEventsLoading = document.getElementById("all-events-loading");
+1598:      const allEventsTableWrapper = document.getElementById("all-events-table-wrapper");
+1599:      const allEventsTbody = document.getElementById("all-events-tbody");
+1601:      const allKnowledgeLoading = document.getElementById("all-knowledge-loading");
+1602:      const allKnowledgeTableWrapper = document.getElementById("all-knowledge-table-wrapper");
+1603:      const allKnowledgeTbody = document.getElementById("all-knowledge-tbody");
+1606:      const myEventsSearch = document.getElementById("my-events-search");
+1607:      const myEventsCategory = document.getElementById("my-events-category");
+1608:      const myEventsExcel = document.getElementById("my-events-excel");
+1609:      const myEventsVenue = document.getElementById("my-events-venue");
+1610:      const myEventsAudience = document.getElementById("my-events-audience");
+1611:      const myEventsType = document.getElementById("my-events-type");
+1612:      const myEventsStartDate = document.getElementById("my-events-start-date");
+1613:      const myEventsEndDate = document.getElementById("my-events-end-date");
+1614:      const myEventsStartTime = document.getElementById("my-events-start-time");
+1615:      const myEventsEndTime = document.getElementById("my-events-end-time");
+1616:      const myEventsContact = document.getElementById("my-events-contact");
+1617:      const myEventsContactPerson = document.getElementById("my-events-contact-person");
+1618:      const myEventsEmail = document.getElementById("my-events-email");
+1619:      const myEventsCost = document.getElementById("my-events-cost");
+1622:      const adminEventsSearch = document.getElementById("admin-events-search");
+1623:      const adminEventsCategory = document.getElementById("admin-events-category");
+1624:      const adminEventsExcel = document.getElementById("admin-events-excel");
+1625:      const adminEventsVenue = document.getElementById("admin-events-venue");
+1626:      const adminEventsAudience = document.getElementById("admin-events-audience");
+1627:      const adminEventsType = document.getElementById("admin-events-type");
+1628:      const adminEventsStartDate = document.getElementById("admin-events-start-date");
+1629:      const adminEventsEndDate = document.getElementById("admin-events-end-date");
+1630:      const adminEventsStartTime = document.getElementById("admin-events-start-time");
+1631:      const adminEventsEndTime = document.getElementById("admin-events-end-time");
+1632:      const adminEventsContact = document.getElementById("admin-events-contact");
+1633:      const adminEventsContactPerson = document.getElementById("admin-events-contact-person");
+1634:      const adminEventsEmail = document.getElementById("admin-events-email");
+1635:      const adminEventsCost = document.getElementById("admin-events-cost");
+1636:      const btnAdminEventsFilter = document.getElementById("btn-admin-events-filter");
+1850:        document.getElementById("submit-event-btn").textContent = "Update Event";
+1851:        document.getElementById("cancel-edit-btn").style.display = "block";
+1854:        document.getElementById("ev-title").value = ev.title || "";
+1855:        document.getElementById("ev-type").value = ev.type || "";
+1856:        document.getElementById("ev-venue").value = ev.venue || "";
+1857:        document.getElementById("ev-cost").value = ev.cost || "";
+1858:        document.getElementById("ev-audience").value = ev.audience || "";
+1860:        if (document.getElementById("ev-contact-person")) {
+1861:          document.getElementById("ev-contact-person").value = ev.contactPerson || "";
+1863:        document.getElementById("ev-email").value = ev.email || "";
+1864:        document.getElementById("ev-desc").value = ev.description || "";
+1865:        document.getElementById("ev-excel-filename").value = ev.excelFilename || "";
+1885:        const oneTimeContainer = document.getElementById("one-time-container");
+1886:        const recurringContainer = document.getElementById("recurring-container");
+1923:          document.getElementById("ev-start-date").value = formatDateToYYYYMMDD(startDateVal);
+1924:          document.getElementById("ev-end-date").value = formatDateToYYYYMMDD(endDateVal);
+1939:        document.getElementById("ev-start-time").value = formatTimeToHHMM(startTimeVal);
+1940:        document.getElementById("ev-end-time").value = formatTimeToHHMM(endTimeVal);
+1946:            document.getElementById("ev-contact-code").value = parts[0];
+1947:            document.getElementById("ev-contact").value = parts.slice(1).join(" ");
+1949:            document.getElementById("ev-contact-code").value = "+91";
+1950:            document.getElementById("ev-contact").value = ev.contact;
+1953:          document.getElementById("ev-contact-code").value = "+91";
+1954:          document.getElementById("ev-contact").value = "";
+1961:            document.getElementById("ev-whatsapp-code").value = parts[0];
+1962:            document.getElementById("ev-whatsapp").value = parts.slice(1).join(" ");
+1964:            document.getElementById("ev-whatsapp-code").value = "+91";
+1965:            document.getElementById("ev-whatsapp").value = ev.whatsapp;
+1968:          document.getElementById("ev-whatsapp-code").value = "+91";
+1969:          document.getElementById("ev-whatsapp").value = "";
+1973:        const linksContainer = document.getElementById("links-container");
+2020:        const submissionSection = document.getElementById("single-event-form");
+2027:        const editingExistingMedia = document.getElementById("editing-existing-media");
+2028:        const existingMediaList = document.getElementById("existing-media-list");
+2063:        const singleEventForm = document.getElementById("single-event-form");
+2066:        document.getElementById("submit-event-btn").textContent = "Submit Event";
+2067:        document.getElementById("cancel-edit-btn").style.display = "none";
+2069:        document.getElementById("editing-existing-media").style.display = "none";
+2070:        document.getElementById("existing-media-list").innerHTML = "";
+2073:        document.getElementById("one-time-container").style.display = "flex";
+2074:        document.getElementById("recurring-container").style.display = "none";
+2075:        document.getElementById("links-container").innerHTML =
+2077:        document.getElementById("media-container").innerHTML =
+2082:      const cancelEditBtn = document.getElementById("cancel-edit-btn");
+2093:      const chkMyEventsAll = document.getElementById("chk-my-events-all");
+2094:      const myEventsBulkBar = document.getElementById("my-events-bulk-bar");
+2095:      const myEventsSelectedCount = document.getElementById("my-events-selected-count");
+2096:      const btnMyEventsBulkDelete = document.getElementById("btn-my-events-bulk-delete");
+2098:      const chkAllEventsAll = document.getElementById("chk-all-events-all");
+2099:      const allEventsBulkBar = document.getElementById("all-events-bulk-bar");
+2100:      const allEventsSelectedCount = document.getElementById("all-events-selected-count");
+2101:      const btnAllEventsBulkDelete = document.getElementById("btn-all-events-bulk-delete");
+3162:          const adminOnlySection = document.getElementById("admin-only-section");
+3206:      document.getElementById("google-login").onclick = () => {
+3241:      document.getElementById("apple-login").onclick = () => {
+3283:      document.getElementById("logout-btn").onclick = window.signOutUser;
+3286:          document.getElementById("myDropdown").classList.toggle("show");
+3301:      document.getElementById("upload-btn").onclick = async () => {
+3302:        const fileInput = document.getElementById("excel-file");
+3391:      const pdfStatusDiv = document.getElementById("pdf-status");
+3392:      document.getElementById("upload-pdf-btn").onclick = async () => {
+3393:        const fileInput = document.getElementById("pdf-file");
+3479:      const singleEventForm = document.getElementById("single-event-form");
+3480:      const singleEventStatus = document.getElementById("single-event-status");
+3555:            const startDt = document.getElementById("ev-start-date").value;
+3556:            const endDt = document.getElementById("ev-end-date").value;
+3585:          let startTime = document.getElementById("ev-start-time").value;
+3586:          let endTime = document.getElementById("ev-end-time").value;
+3611:          const contactValue = document.getElementById("ev-contact-code").value + " " + document.getElementById("ev-contact").value;
+3612:          const whatsappValue = document.getElementById("ev-whatsapp-code").value + " " + document.getElementById("ev-whatsapp").value;
+3617:            title: document.getElementById("ev-title").value,
+3618:            type: document.getElementById("ev-type").value,
+3625:            startDate: scheduleType === "one-time" ? document.getElementById("ev-start-date").value : "",
+3626:            endDate: scheduleType === "one-time" ? document.getElementById("ev-end-date").value : "",
+3630:            venue: document.getElementById("ev-venue").value,
+3631:            cost: document.getElementById("ev-cost").value,
+3632:            audience: document.getElementById("ev-audience").value,
+3633:            contactPerson: document.getElementById("ev-contact-person")
+3634:              ? document.getElementById("ev-contact-person").value
+3638:            email: document.getElementById("ev-email").value,
+3646:            excelFilename: document.getElementById("ev-excel-filename") ? document.getElementById("ev-excel-filename").value.trim() : "",
+3648:            description: document.getElementById("ev-desc").value
+3695:              document.getElementById("links-container").innerHTML =
+3697:              document.getElementById("media-container").innerHTML =

@@ -3207,8 +3207,9 @@
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch((err) => {
+        signInWithRedirect(auth, provider).catch((err) => {
           console.error("Login failed:", err);
+          alert("Login failed: " + err.message + (err.code ? " (Code: " + err.code + ")" : ""));
           const errCode = err.code || "";
           const errMsg = err.message || "";
           if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
@@ -3242,8 +3243,9 @@
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new OAuthProvider("apple.com");
-        signInWithPopup(auth, provider).catch((err) => {
+        signInWithRedirect(auth, provider).catch((err) => {
           console.error("Login failed:", err);
+          alert("Login failed: " + err.message + (err.code ? " (Code: " + err.code + ")" : ""));
           const errCode = err.code || "";
           const errMsg = err.message || "";
           if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
