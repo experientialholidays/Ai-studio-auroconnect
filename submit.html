@@ -392,12 +392,7 @@
         Sign in to upload bulk events to AuroConnect
       </p>
 
-      <!-- Iframe Warning Banner -->
-      <div id="iframe-warning" style="display: none; background: rgba(234, 67, 53, 0.08); border: 1px solid rgba(234, 67, 53, 0.2); color: #ea4335; padding: 0.85rem 1.25rem; border-radius: 8px; font-size: 0.85rem; text-align: left; margin-bottom: 0.5rem; line-height: 1.4; width: 100%; box-sizing: border-box;">
-        ⚠️ <strong>Browser Frame Restriction:</strong><br>
-        Google/Apple login popups are blocked by browser security inside preview frames.<br><br>
-        Please open this page in a <strong>new tab</strong> using the button in the top right of this preview panel, or visit the direct URL to log in successfully.
-      </div>
+
 
       <button class="btn" id="google-login">
         <svg style="width: 18px; height: 18px" viewBox="0 0 48 48">
@@ -438,18 +433,7 @@
 
       <div id="auth-error-msg" style="color: red; font-size: 0.85rem"></div>
 
-      <!-- Development / Preview Bypass Login -->
-      <div id="dev-bypass-container" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border); width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
-        <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; display: block; text-align: center;">⚙️ Recommended Sandbox Login</span>
-        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 0.5rem 0; line-height: 1.4; text-align: center;">
-          Because this application runs in an isolated AI Studio sandbox container, Google and Apple logins are blocked by browser iframe cookies and cross-origin restrictions.
-          <br><br>
-          Please click the green button below to bypass this restriction and log in immediately as <strong>info.experientialholidays@gmail.com</strong> with full admin permissions!
-        </p>
-        <button class="btn" id="dev-bypass-login" style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; max-width: 300px; width: 100%; font-weight: 700; transition: all 0.2s; padding: 0.75rem 1rem;">
-          ⚡ Admin Dev Bypass (Login Instantly)
-        </button>
-      </div>
+
     </div>
 
     <!-- Upload Section -->
@@ -1475,6 +1459,7 @@
         getAuth,
         signInWithPopup,
         signInWithRedirect,
+        getRedirectResult,
         GoogleAuthProvider,
         OAuthProvider,
         onAuthStateChanged,
@@ -1532,13 +1517,7 @@
         ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
         : getFirestore(app);
 
-      // Show warning if in an iframe
-      if (window.self !== window.top) {
-        const iframeWarning = document.getElementById("iframe-warning");
-        if (iframeWarning) {
-          iframeWarning.style.display = "block";
-        }
-      }
+
 
       // Dynamic Fields Handlers
       const scheduleRadios = document.querySelectorAll(
@@ -3217,11 +3196,10 @@
         updateAuthStateUI(user);
       });
 
-      // Developer Bypass Login trigger
-      const devBypassBtn = document.getElementById("dev-bypass-login");
-      if (devBypassBtn) {
-        devBypassBtn.style.display = "none";
-      }
+      getRedirectResult(auth).catch((error) => {
+        console.error("Redirect login error:", error);
+        errorMsg.innerText = "Login failed: " + error.message;
+      });
 
       document.getElementById("google-login").onclick = () => {
         sessionStorage.removeItem("logged_out");
@@ -3231,7 +3209,6 @@
           console.error("Login failed:", err);
           const errCode = err.code || "";
           const errMsg = err.message || "";
-          
           if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
             errorMsg.innerHTML = `
               <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
@@ -3250,7 +3227,7 @@
             errorMsg.innerHTML = `
               <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
                 <strong>⚠️ Popup Blocked:</strong><br>
-                Your browser blocked the sign-in popup. Please allow popups for this site.
+                Your browser blocked the sign-in popup. Please allow popups for this site, or open this app in a <strong>new tab</strong> using the button in the top right corner.
               </div>
             `;
           } else {
@@ -3267,7 +3244,6 @@
           console.error("Login failed:", err);
           const errCode = err.code || "";
           const errMsg = err.message || "";
-          
           if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
             errorMsg.innerHTML = `
               <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
@@ -3286,7 +3262,7 @@
             errorMsg.innerHTML = `
               <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
                 <strong>⚠️ Popup Blocked:</strong><br>
-                Your browser blocked the sign-in popup. Please allow popups for this site.
+                Your browser blocked the sign-in popup. Please allow popups for this site, or open this app in a <strong>new tab</strong> using the button in the top right corner.
               </div>
             `;
           } else {

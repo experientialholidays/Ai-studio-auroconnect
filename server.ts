@@ -888,8 +888,16 @@ async function createServer() {
     res.sendFile(path.join(process.cwd(), "index.html"));
   });
 
+  app.get("/submit", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "submit.html"));
+  });
+
   app.get("/submit.html", (req, res) => {
     res.sendFile(path.join(process.cwd(), "submit.html"));
+  });
+
+  app.get("/dashboard", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "dashboard.html"));
   });
 
   app.get("/dashboard.html", (req, res) => {
