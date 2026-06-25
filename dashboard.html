@@ -1664,25 +1664,7 @@
       const adminEventsCost = document.getElementById("admin-events-cost");
       const btnAdminEventsFilter = document.getElementById("btn-admin-events-filter");
 
-      function formatDateToYYYYMMDD(dateStr) {
-        if (!dateStr) return "";
-        const str = dateStr.trim();
-        // Check if already in YYYY-MM-DD format
-        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-          return str;
-        }
-        // Try parsing other formats
-        try {
-          const d = new Date(str);
-          if (!isNaN(d.getTime())) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth() + 1).padStart(2, "0");
-            const r = String(d.getDate()).padStart(2, "0");
-            return `${y}-${m}-${r}`;
-          }
-        } catch (e) {}
-        return str;
-      }
+
 
       function getEventStartDate(e) {
         if (e.startDate) return formatDateToYYYYMMDD(e.startDate);
