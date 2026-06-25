@@ -32,6 +32,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/index.html ./index.html
 COPY --from=builder /app/submit.html ./submit.html
+COPY --from=builder /app/dashboard.html ./dashboard.html
 COPY --from=builder /app/assets ./assets
 
 # Expose port (Cloud Run will inject PORT at runtime, but we declare the default here)

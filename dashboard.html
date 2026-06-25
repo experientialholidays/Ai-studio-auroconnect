@@ -431,6 +431,16 @@
         Sign in with Apple
       </button>
 
+      <div style="display: flex; align-items: center; width: 100%; max-width: 300px; margin: 0.5rem 0;">
+        <hr style="flex: 1; border: none; border-top: 1px solid var(--border);" />
+        <span style="padding: 0 0.5rem; color: var(--text-secondary); font-size: 0.75rem;">OR</span>
+        <hr style="flex: 1; border: none; border-top: 1px solid var(--border);" />
+      </div>
+
+      <button class="btn" id="bypass-login-btn" style="background: #10b981; color: white; border: none; border-radius: 2rem; padding: 0.75rem 1.5rem; font-size: 1rem; width: 100%; max-width: 300px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 500;">
+        ⚡ Sandbox Developer Bypass
+      </button>
+
       <div id="auth-error-msg" style="color: red; font-size: 0.85rem"></div>
 
 
@@ -3149,20 +3159,29 @@
       }
 
       function getCurrentUser() {
+        if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
+          return {
+            email: "info.experientialholidays@gmail.com",
+            uid: "dev-bypass-admin-uid",
+            emailVerified: true,
+            getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
+          };
+        }
         return auth.currentUser;
       }
 
       function updateAuthStateUI(user) {
-        if (user) {
+        const currentUser = getCurrentUser();
+        if (currentUser) {
           loginSection.style.display = "none";
           uploadSection.style.display = "none";
           dashboardSection.style.display = "flex";
 
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
-          if (user.email === "info.experientialholidays@gmail.com") {
+          if (currentUser.email === "info.experientialholidays@gmail.com") {
             adminOnlySection.style.display = "flex";
-            userStatusDiv.innerHTML = `Admin: ${user.email} <span class="badge badge-admin" style="font-size: 0.7rem; margin-left: 0.5rem; background: #10b981; color: white; padding: 0.15rem 0.4rem; border-radius: 4px;">Developer Sandbox</span>`;
+            userStatusDiv.innerHTML = `Admin: ${currentUser.email} <span class="badge badge-admin" style="font-size: 0.7rem; margin-left: 0.5rem; background: #10b981; color: white; padding: 0.15rem 0.4rem; border-radius: 4px;">Developer Sandbox</span>`;
             
             // Setup Admin Dashboard
             dashboardIsAdmin = true;
@@ -3171,7 +3190,7 @@
             dashboardTabsRow.style.display = "flex";
           } else {
             adminOnlySection.style.display = "none";
-            userStatusDiv.innerHTML = `User: ${user.email}`;
+            userStatusDiv.innerHTML = `User: ${currentUser.email}`;
             
             // Setup User Dashboard
             dashboardIsAdmin = false;
@@ -3193,21 +3212,35 @@
 
       // Auth State Check
       onAuthStateChanged(auth, (user) => {
-        updateAuthStateUI(user);
+        if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
+          updateAuthStateUI(getCurrentUser());
+        } else {
+          updateAuthStateUI(user);
+        }
       });
+
+      // Initial check on page load to avoid flicker
+      if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
+        updateAuthStateUI(getCurrentUser());
+      }
 
       getRedirectResult(auth).catch((error) => {
         console.error("Redirect login error:", error);
         errorMsg.innerText = "Login failed: " + error.message;
       });
 
-
+      document.getElementById("bypass-login-btn").onclick = () => {
+        sessionStorage.setItem("dev_bypass_logged_in", "true");
+        sessionStorage.removeItem("logged_out");
+        errorMsg.innerHTML = "";
+        updateAuthStateUI(getCurrentUser());
+      };
 
       document.getElementById("google-login").onclick = () => {
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider).catch((err) => {
+        signInWithPopup(auth, provider).catch((err) => {
           console.error("Login failed:", err);
           alert("Login failed: " + err.message + (err.code ? " (Code: " + err.code + ")" : ""));
           const errCode = err.code || "";
@@ -3243,7 +3276,7 @@
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new OAuthProvider("apple.com");
-        signInWithRedirect(auth, provider).catch((err) => {
+        signInWithPopup(auth, provider).catch((err) => {
           console.error("Login failed:", err);
           alert("Login failed: " + err.message + (err.code ? " (Code: " + err.code + ")" : ""));
           const errCode = err.code || "";

@@ -17,9 +17,9 @@ async function test() {
     
     console.log("Exports:", Object.keys(firestore).filter(k => k.toLowerCase().includes('nearest') || k.toLowerCase().includes('vector')));
     
-    if (firestore.findNearest) {
+    if ((firestore as any).findNearest) {
       // It exists!
-      const vectorQuery = query(colRef, firestore.findNearest('embeddingVector', dummyVector, {
+      const vectorQuery = query(colRef, (firestore as any).findNearest('embeddingVector', dummyVector, {
         limit: 10,
         distanceMeasure: 'COSINE'
       }));
