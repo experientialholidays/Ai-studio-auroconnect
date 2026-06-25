@@ -1474,6 +1474,7 @@
       import {
         getAuth,
         signInWithPopup,
+        signInWithRedirect,
         GoogleAuthProvider,
         OAuthProvider,
         onAuthStateChanged,
@@ -3217,112 +3218,27 @@
 
       // Auth State Check
       onAuthStateChanged(auth, (user) => {
-        if (!bypassUser) {
-          updateAuthStateUI(user);
-        }
+        updateAuthStateUI(user);
       });
 
       // Developer Bypass Login trigger
-      document.getElementById("dev-bypass-login").onclick = () => {
-        sessionStorage.removeItem("logged_out");
-        bypassUser = {
-          email: "info.experientialholidays@gmail.com",
-          getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
-        };
-        sessionStorage.setItem("dev_bypass_logged_in", "true");
-        updateAuthStateUI(bypassUser);
-      };
-
-      // Check for persisted bypass login or perform automatic dev/preview auto-login on load
-      const isSandboxEnv = window.location.hostname.includes("run.app") || window.location.hostname.includes("localhost");
-      const hasBypassPersisted = sessionStorage.getItem("dev_bypass_logged_in") === "true";
-      const hasLoggedOutInSession = sessionStorage.getItem("logged_out") === "true";
-
-      if (hasBypassPersisted || (isSandboxEnv && !hasLoggedOutInSession)) {
-        bypassUser = {
-          email: "info.experientialholidays@gmail.com",
-          getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
-        };
-        sessionStorage.setItem("dev_bypass_logged_in", "true");
-        setTimeout(() => {
-          updateAuthStateUI(bypassUser);
-        }, 150);
+      const devBypassBtn = document.getElementById("dev-bypass-login");
+      if (devBypassBtn) {
+        devBypassBtn.style.display = "none";
       }
 
       document.getElementById("google-login").onclick = () => {
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new GoogleAuthProvider();
-        signInWithPopup(auth, provider).catch((err) => {
-          console.error(err);
-          const errCode = err.code || "";
-          const errMsg = err.message || "";
-          
-          if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
-            errorMsg.innerHTML = `
-              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
-                <strong>❌ Unauthorized Domain Error:</strong><br>
-                Firebase blocks logins from unauthorized domains.<br><br>
-                Please add <strong>${window.location.hostname}</strong> to your authorized domains in the Firebase Console:
-                <ol style="margin: 0.5rem 0 0 1rem; padding-left: 0.5rem;">
-                  <li>Go to the <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers" target="_blank" style="color: var(--accent); text-decoration: underline;">Firebase Console</a></li>
-                  <li>Click on the <strong>Settings</strong> tab under Authentication.</li>
-                  <li>In the left sidebar, click <strong>Authorized domains</strong>.</li>
-                  <li>Click <strong>Add domain</strong> and enter <strong>${window.location.hostname}</strong></li>
-                </ol>
-              </div>
-            `;
-          } else if (errCode === "auth/popup-blocked" || errMsg.includes("popup-blocked") || errMsg.includes("popup blocked")) {
-            errorMsg.innerHTML = `
-              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
-                <strong>⚠️ Popup Blocked:</strong><br>
-                Your browser blocked the sign-in popup. Please allow popups for this site, or open this application in a <strong>new tab</strong> to log in successfully.
-              </div>
-            `;
-          } else if (err.message.includes("API key")) {
-            errorMsg.innerText = "Configuration Error: Please update the apiKey in submit.html.";
-          } else {
-            errorMsg.innerText = "Login failed: " + err.message + " (Code: " + errCode + ")";
-          }
-        });
+        signInWithRedirect(auth, provider);
       };
 
       document.getElementById("apple-login").onclick = () => {
         sessionStorage.removeItem("logged_out");
         errorMsg.innerHTML = "";
         const provider = new OAuthProvider("apple.com");
-        signInWithPopup(auth, provider).catch((err) => {
-          console.error(err);
-          const errCode = err.code || "";
-          const errMsg = err.message || "";
-          
-          if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
-            errorMsg.innerHTML = `
-              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
-                <strong>❌ Unauthorized Domain Error:</strong><br>
-                Firebase blocks logins from unauthorized domains.<br><br>
-                Please add <strong>${window.location.hostname}</strong> to your authorized domains in the Firebase Console:
-                <ol style="margin: 0.5rem 0 0 1rem; padding-left: 0.5rem;">
-                  <li>Go to the <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers" target="_blank" style="color: var(--accent); text-decoration: underline;">Firebase Console</a></li>
-                  <li>Click on the <strong>Settings</strong> tab under Authentication.</li>
-                  <li>In the left sidebar, click <strong>Authorized domains</strong>.</li>
-                  <li>Click <strong>Add domain</strong> and enter <strong>${window.location.hostname}</strong></li>
-                </ol>
-              </div>
-            `;
-          } else if (errCode === "auth/popup-blocked" || errMsg.includes("popup-blocked") || errMsg.includes("popup blocked")) {
-            errorMsg.innerHTML = `
-              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
-                <strong>⚠️ Popup Blocked:</strong><br>
-                Your browser blocked the sign-in popup. Please allow popups for this site, or open this application in a <strong>new tab</strong> to log in successfully.
-              </div>
-            `;
-          } else if (err.message.includes("API key")) {
-            errorMsg.innerText = "Configuration Error: Please update the apiKey in submit.html.";
-          } else {
-            errorMsg.innerText = "Login failed: " + err.message + " (Code: " + errCode + ")";
-          }
-        });
+        signInWithRedirect(auth, provider);
       };
 
       window.signOutUser = () => {
