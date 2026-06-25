@@ -32,13 +32,13 @@ const configPath = path.join(process.cwd(), "firebase-applet-config.json");
 const firebaseConfig = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
   : { 
-      projectId: process.env.FIREBASE_PROJECT_ID, 
-      appId: process.env.FIREBASE_APP_ID,
-      apiKey: process.env.FIREBASE_API_KEY,
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || "(default)" 
+      projectId: process.env.FIREBASE_PROJECT_ID || "gen-lang-client-0039539258", 
+      appId: process.env.FIREBASE_APP_ID || "1:615927626963:web:af7cd31a3a9859919fe826",
+      apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBE_i3Y6SXSfmFfZ_ptMclJT0GySmA0dlM",
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN || "gen-lang-client-0039539258.firebaseapp.com",
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "gen-lang-client-0039539258.firebasestorage.app",
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "615927626963",
+      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || "ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4" 
     };
 
 try {
