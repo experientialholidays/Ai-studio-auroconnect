@@ -864,7 +864,7 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
 
 
 async function createServer() {
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const server = http.createServer(app);
 
   app.post("/api/embed", express.json(), async (req, res) => {
@@ -890,6 +890,10 @@ async function createServer() {
 
   app.get("/submit.html", (req, res) => {
     res.sendFile(path.join(process.cwd(), "submit.html"));
+  });
+
+  app.get("/dashboard.html", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "dashboard.html"));
   });
 
   app.use(express.static(process.cwd()));

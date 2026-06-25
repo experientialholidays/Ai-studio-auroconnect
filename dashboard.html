@@ -3179,8 +3179,8 @@
       function updateAuthStateUI(user) {
         if (user) {
           loginSection.style.display = "none";
-          uploadSection.style.display = "flex";
-          dashboardSection.style.display = "none";
+          uploadSection.style.display = "none";
+          dashboardSection.style.display = "flex";
 
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
