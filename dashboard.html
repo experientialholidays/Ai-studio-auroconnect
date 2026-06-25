@@ -371,6 +371,35 @@
     </style>
   </head>
   <body>
+    <!-- Diagnostic Console -->
+    <div id="diagnostic-overlay" style="display: none; position: fixed; bottom: 20px; right: 20px; max-width: 450px; background: #1e1e2e; color: #f38ba8; border: 2px solid #f38ba8; border-radius: 8px; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.5); z-index: 10000; font-family: monospace; font-size: 0.85rem; line-height: 1.4;">
+      <div style="font-weight: bold; border-bottom: 1px solid #f38ba8; padding-bottom: 0.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <span>⚠️ Browser / JS Error Detected</span>
+        <button onclick="document.getElementById('diagnostic-overlay').style.display='none'" style="background: none; border: none; color: #cdd6f4; cursor: pointer; font-size: 1.2rem;">&times;</button>
+      </div>
+      <div id="diagnostic-message" style="word-break: break-all; margin-bottom: 0.5rem;"></div>
+      <div id="diagnostic-stack" style="font-size: 0.75rem; color: #a6adc8; max-height: 150px; overflow-y: auto; white-space: pre-wrap;"></div>
+      <div style="margin-top: 0.5rem; border-top: 1px dashed #f38ba8; padding-top: 0.5rem; color: #a6e3a1; font-size: 0.8rem;">
+        💡 <strong>Diagnostic Tip:</strong> If you see <em>"Access is denied"</em> or <em>"SecurityError"</em>, your browser is blocking third-party storage. Try opening the app in a <strong>new tab</strong> or disabling content-blocking.
+      </div>
+    </div>
+    <script>
+      window.addEventListener('error', function(e) {
+        document.getElementById('diagnostic-overlay').style.display = 'block';
+        document.getElementById('diagnostic-message').innerText = e.message + ' (at ' + e.filename + ':' + e.lineno + ':' + e.colno + ')';
+        if (e.error && e.error.stack) {
+          document.getElementById('diagnostic-stack').innerText = e.error.stack;
+        }
+      });
+      window.addEventListener('unhandledrejection', function(e) {
+        document.getElementById('diagnostic-overlay').style.display = 'block';
+        document.getElementById('diagnostic-message').innerText = 'Unhandled Rejection: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason));
+        if (e.reason && e.reason.stack) {
+          document.getElementById('diagnostic-stack').innerText = e.reason.stack;
+        }
+      });
+    </script>
+
     <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
       <h1>🤖 AuroConnect</h1>
       <div class="dropdown">
@@ -429,16 +458,6 @@
           />
         </svg>
         Sign in with Apple
-      </button>
-
-      <div style="display: flex; align-items: center; width: 100%; max-width: 300px; margin: 0.5rem 0;">
-        <hr style="flex: 1; border: none; border-top: 1px solid var(--border);" />
-        <span style="padding: 0 0.5rem; color: var(--text-secondary); font-size: 0.75rem;">OR</span>
-        <hr style="flex: 1; border: none; border-top: 1px solid var(--border);" />
-      </div>
-
-      <button class="btn" id="bypass-login-btn" style="background: #10b981; color: white; border: none; border-radius: 2rem; padding: 0.75rem 1.5rem; font-size: 1rem; width: 100%; max-width: 300px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-weight: 500;">
-        ⚡ Sandbox Developer Bypass
       </button>
 
       <div id="auth-error-msg" style="color: red; font-size: 0.85rem"></div>
@@ -3158,15 +3177,31 @@
         }
       }
 
-      function getCurrentUser() {
-        if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
-          return {
-            email: "info.experientialholidays@gmail.com",
-            uid: "dev-bypass-admin-uid",
-            emailVerified: true,
-            getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
-          };
+      // Safe sessionStorage helpers to avoid cross-origin iframe SecurityErrors
+      function safeSessionGet(key) {
+        try {
+          return sessionStorage.getItem(key);
+        } catch (e) {
+          console.warn("Storage blocked:", e);
+          return null;
         }
+      }
+      function safeSessionSet(key, val) {
+        try {
+          sessionStorage.setItem(key, val);
+        } catch (e) {
+          console.warn("Storage blocked:", e);
+        }
+      }
+      function safeSessionRemove(key) {
+        try {
+          sessionStorage.removeItem(key);
+        } catch (e) {
+          console.warn("Storage blocked:", e);
+        }
+      }
+
+      function getCurrentUser() {
         return auth.currentUser;
       }
 
@@ -3181,7 +3216,7 @@
           const adminOnlySection = document.getElementById("admin-only-section");
           if (currentUser.email === "info.experientialholidays@gmail.com") {
             adminOnlySection.style.display = "flex";
-            userStatusDiv.innerHTML = `Admin: ${currentUser.email} <span class="badge badge-admin" style="font-size: 0.7rem; margin-left: 0.5rem; background: #10b981; color: white; padding: 0.15rem 0.4rem; border-radius: 4px;">Developer Sandbox</span>`;
+            userStatusDiv.innerHTML = `Admin: ${currentUser.email}`;
             
             // Setup Admin Dashboard
             dashboardIsAdmin = true;
@@ -3212,32 +3247,16 @@
 
       // Auth State Check
       onAuthStateChanged(auth, (user) => {
-        if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
-          updateAuthStateUI(getCurrentUser());
-        } else {
-          updateAuthStateUI(user);
-        }
+        updateAuthStateUI(user);
       });
-
-      // Initial check on page load to avoid flicker
-      if (sessionStorage.getItem("dev_bypass_logged_in") === "true") {
-        updateAuthStateUI(getCurrentUser());
-      }
 
       getRedirectResult(auth).catch((error) => {
         console.error("Redirect login error:", error);
         errorMsg.innerText = "Login failed: " + error.message;
       });
 
-      document.getElementById("bypass-login-btn").onclick = () => {
-        sessionStorage.setItem("dev_bypass_logged_in", "true");
-        sessionStorage.removeItem("logged_out");
-        errorMsg.innerHTML = "";
-        updateAuthStateUI(getCurrentUser());
-      };
-
       document.getElementById("google-login").onclick = () => {
-        sessionStorage.removeItem("logged_out");
+        safeSessionRemove("logged_out");
         errorMsg.innerHTML = "";
         const provider = new GoogleAuthProvider();
         signInWithPopup(auth, provider).catch((err) => {
@@ -3273,7 +3292,7 @@
       };
 
       document.getElementById("apple-login").onclick = () => {
-        sessionStorage.removeItem("logged_out");
+        safeSessionRemove("logged_out");
         errorMsg.innerHTML = "";
         const provider = new OAuthProvider("apple.com");
         signInWithPopup(auth, provider).catch((err) => {
@@ -3309,8 +3328,7 @@
       };
 
       window.signOutUser = () => {
-        sessionStorage.removeItem("dev_bypass_logged_in");
-        sessionStorage.setItem("logged_out", "true");
+        safeSessionSet("logged_out", "true");
         updateAuthStateUI(null);
         signOut(auth);
       };
