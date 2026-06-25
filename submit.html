@@ -1,0 +1,3696 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Submit Events | AuroConnect</title>
+    <style>
+      :root {
+        --accent: #0b57d0;
+        --bg: #f8f9fa;
+        --surface: #ffffff;
+        --text: #1f1f1f;
+        --text-secondary: #444444;
+        --border: #ddd;
+        --shadow: rgba(0, 0, 0, 0.05);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #1e1e1e;
+          --text: #f1f3f4;
+          --text-secondary: #bdc1c6;
+          --border: #3c4043;
+          --accent: #8ab4f8;
+          --shadow: rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      html {
+        font-size: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        align-items: center;
+      }
+
+      .header {
+        background: var(--surface);
+        width: 100%;
+        padding: 1rem 1.875rem;
+        border-bottom: 0.0625rem solid var(--border);
+        text-align: center;
+        box-sizing: border-box;
+      }
+
+      .header h1 {
+        margin: 0;
+        font-size: 1.375rem;
+        color: var(--text);
+        line-height: 1;
+      }
+
+      .container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin-top: 3rem;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 4px 6px var(--shadow);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        text-align: center;
+      }
+
+      .container h2 {
+        margin: 0;
+        font-size: 1.5rem;
+      }
+
+      .btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 2rem;
+        cursor: pointer;
+        font-weight: 500;
+        width: 100%;
+        max-width: 300px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .btn:hover {
+        background: var(--bg);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+      }
+
+      .btn-primary:hover {
+        background: #0a4ab3;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .btn-primary {
+          color: #000;
+        }
+        .btn-primary:hover {
+          background: #7ba2df;
+        }
+      }
+
+      input[type="file"] {
+        padding: 1rem;
+        border: 1px dashed var(--border);
+        border-radius: 0.5rem;
+        width: 100%;
+        max-width: 300px;
+        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      #status {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+      }
+
+      /* Dashboard Styling */
+      .dashboard-container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin-top: 2rem;
+        margin-bottom: 3rem;
+        width: 90%;
+        max-width: 1000px;
+        box-shadow: 0 4px 6px var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        box-sizing: border-box;
+      }
+
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .dashboard-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .dashboard-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+      }
+
+      .tab-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-radius: 0.375rem;
+        transition: all 0.2s;
+      }
+
+      .tab-btn.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      /* Tables styling */
+      .table-wrapper {
+        overflow-x: auto;
+        margin-top: 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+
+      th, td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--text);
+      }
+
+      th {
+        background: var(--bg);
+        font-weight: 600;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:hover td {
+        background: var(--bg);
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .badge-user {
+        background: rgba(11, 87, 208, 0.1);
+        color: var(--accent);
+      }
+
+      .badge-admin {
+        background: rgba(22, 163, 74, 0.1);
+        color: #16a34a;
+      }
+
+      .badge-info {
+        background: var(--bg);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+      }
+
+      .btn-danger {
+        background: #dc2626;
+        color: #fff;
+        border: none;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 0.375rem;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+
+      .btn-danger:hover {
+        background: #b91c1c;
+      }
+
+      .dashboard-search-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        width: 100%;
+      }
+
+      .dashboard-search-row input, .dashboard-search-row select {
+        padding: 0.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 0.875rem;
+      }
+
+      .dashboard-search-row input {
+        flex: 1;
+      }
+
+      .bulk-action-bar {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(11, 87, 208, 0.05);
+        border: 1px solid var(--border);
+        padding: 0.75rem 1.25rem;
+        border-radius: 0.5rem;
+        margin-bottom: 1rem;
+        animation: fadeIn 0.2s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .bulk-action-bar span {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--text);
+      }
+
+      th input[type="checkbox"], td input[type="checkbox"] {
+        cursor: pointer;
+        width: 1.15rem;
+        height: 1.15rem;
+        accent-color: var(--accent);
+        border-radius: 4px;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🤖 AuroConnect Admin</h1>
+    </div>
+
+    <!-- Login Section -->
+    <div class="container" id="login-section">
+      <h2>Admin Authentication</h2>
+      <p style="color: var(--text-secondary); margin-top: -1rem">
+        Sign in to upload bulk events to AuroConnect
+      </p>
+
+      <!-- Iframe Warning Banner -->
+      <div id="iframe-warning" style="display: none; background: rgba(234, 67, 53, 0.08); border: 1px solid rgba(234, 67, 53, 0.2); color: #ea4335; padding: 0.85rem 1.25rem; border-radius: 8px; font-size: 0.85rem; text-align: left; margin-bottom: 0.5rem; line-height: 1.4; width: 100%; box-sizing: border-box;">
+        ⚠️ <strong>Browser Frame Restriction:</strong><br>
+        Google/Apple login popups are blocked by browser security inside preview frames.<br><br>
+        Please open this page in a <strong>new tab</strong> using the button in the top right of this preview panel, or visit the direct URL to log in successfully.
+      </div>
+
+      <button class="btn" id="google-login">
+        <svg style="width: 18px; height: 18px" viewBox="0 0 48 48">
+          <path
+            fill="#EA4335"
+            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+          />
+          <path
+            fill="#4285F4"
+            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+          />
+          <path
+            fill="#FBBC05"
+            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+          />
+          <path
+            fill="#34A853"
+            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+          />
+        </svg>
+        Sign in with Google
+      </button>
+
+      <button class="btn" id="apple-login">
+        <svg
+          style="width: 18px; height: 18px; fill: var(--text)"
+          viewBox="0 0 170 170"
+        >
+          <path
+            d="M107.13,6.38a42.92,42.92,0,0,0-10.22,30.7,40.15,40.15,0,0,0,10.27,33.05h0A44.25,44.25,0,0,0,118.06,99c.35-1.07.64-2.18.9-3.26a45.72,45.72,0,0,1-11.83-34.4v0A44.89,44.89,0,0,1,118.06,24.1c-.24-1-.51-2.09-.85-3.14A44.22,44.22,0,0,0,107.13,6.38Z"
+          />
+          <path
+            d="M129.58,111.41a38.48,38.48,0,0,0,29.93-14.71,44.26,44.26,0,0,1-13-11.13,44,44,0,0,1-8-19.16,42.94,42.94,0,0,1-.85-18,46.12,46.12,0,0,1,6.59-17A44.47,44.47,0,0,0,121.28,0C106,0,94.27,9.6,85,9.6S64,.94,48.72.94C21,1,0,22.1,0,50A86,86,0,0,0,38.15,123.63c12,13.78,25.44,28.84,40.71,28.84S108.43,141,120.35,141C135.53,141,146.43,153.5,160.83,153.5a109.11,109.11,0,0,0,9.17-27,42.45,42.45,0,0,1-12.78-8.15A39.4,39.4,0,0,1,129.58,111.41Z"
+          />
+        </svg>
+        Sign in with Apple
+      </button>
+
+      <div id="auth-error-msg" style="color: red; font-size: 0.85rem"></div>
+
+      <!-- Development / Preview Bypass Login -->
+      <div id="dev-bypass-container" style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border); width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+        <span style="font-size: 0.75rem; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; display: block; text-align: center;">⚙️ Recommended Sandbox Login</span>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 0.5rem 0; line-height: 1.4; text-align: center;">
+          Because this application runs in an isolated AI Studio sandbox container, Google and Apple logins are blocked by browser iframe cookies and cross-origin restrictions.
+          <br><br>
+          Please click the green button below to bypass this restriction and log in immediately as <strong>info.experientialholidays@gmail.com</strong> with full admin permissions!
+        </p>
+        <button class="btn" id="dev-bypass-login" style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #10b981; max-width: 300px; width: 100%; font-weight: 700; transition: all 0.2s; padding: 0.75rem 1rem;">
+          ⚡ Admin Dev Bypass (Login Instantly)
+        </button>
+      </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="container" id="upload-section" style="display: none">
+      <div
+        id="user-status"
+        style="
+          color: var(--accent);
+          font-weight: 500;
+          font-size: 0.9rem;
+          text-align: left;
+          margin-bottom: 1rem;
+          width: 100%;
+          max-width: 500px;
+        "
+      ></div>
+
+      <div
+        id="admin-only-section"
+        style="
+          display: none;
+          width: 100%;
+          max-width: 500px;
+          flex-direction: column;
+          align-items: center;
+        "
+      >
+        <h2 style="align-self: flex-start">Upload Events Data (Excel)</h2>
+        <p
+          style="
+            color: var(--text-secondary);
+            margin-top: -0.5rem;
+            font-size: 0.9rem;
+            align-self: flex-start;
+          "
+        >
+          Select an Excel sheet (.xlsx) containing event data. The first row
+          must contain these exact headers (case-insensitive):
+          <strong>Title, Type, Category, Dates, Days, Times, Venue, Cost, Target Audience, Contact Person, Contact Phone, WhatsApp, Email, Website, Description</strong>
+        </p>
+
+        <input
+          type="file"
+          id="excel-file"
+          accept=".xlsx, .xls"
+          style="align-self: flex-start"
+        />
+        <button
+          class="btn btn-primary"
+          id="upload-btn"
+          style="align-self: flex-start"
+        >
+          Upload Excel to DB
+        </button>
+        <div id="status" style="align-self: flex-start"></div>
+
+        <hr
+          style="
+            width: 100%;
+            border-top: 1px solid var(--border);
+            margin: 1.5rem 0;
+          "
+        />
+
+        <h2 style="align-self: flex-start">Upload Knowledge DB (PDF)</h2>
+        <p
+          style="
+            color: var(--text-secondary);
+            margin-top: -0.5rem;
+            font-size: 0.9rem;
+            align-self: flex-start;
+          "
+        >
+          Select a PDF document containing <b>general knowledge</b> that the AI
+          chatbot can reference (up to 100 pages).
+        </p>
+
+        <input
+          type="file"
+          id="pdf-file"
+          accept=".pdf"
+          style="align-self: flex-start"
+        />
+        <button
+          class="btn btn-primary"
+          id="upload-pdf-btn"
+          style="align-self: flex-start"
+        >
+          Upload PDF Knowledge
+        </button>
+        <div id="pdf-status" style="align-self: flex-start"></div>
+
+        <hr
+          style="
+            width: 100%;
+            border-top: 1px solid var(--border);
+            margin: 1.5rem 0;
+          "
+        />
+      </div>
+
+      <h2 style="align-self: flex-start; max-width: 600px; width: 100%">
+        Submit Single Event
+      </h2>
+      <p
+        style="
+          color: var(--text-secondary);
+          margin-top: -0.5rem;
+          font-size: 0.9rem;
+          align-self: flex-start;
+          max-width: 600px;
+          width: 100%;
+        "
+      >
+        Use this form to add an individual event to the database. All logged-in
+        users can submit events.
+      </p>
+      <form
+        id="single-event-form"
+        style="
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          width: 100%;
+          max-width: 600px;
+          text-align: left;
+        "
+      >
+        <div>
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Title *</label
+          >
+          <input
+            type="text"
+            id="ev-title"
+            required
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+            "
+          />
+        </div>
+
+        <div style="display: flex; gap: 1rem">
+          <div style="flex: 1">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Type</label
+            >
+            <input
+              type="text"
+              id="ev-type"
+              placeholder="e.g. Workshop, Class"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+        </div>
+
+        <!-- New Event Timing Logic -->
+        <div
+          style="
+            border: 1px solid var(--border);
+            padding: 1rem;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.02);
+          "
+        >
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 600;
+              display: block;
+              margin-bottom: 0.5rem;
+            "
+            >Event Schedule Type *</label
+          >
+          <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+            <label
+              ><input
+                type="radio"
+                name="ev-schedule-type"
+                value="one-time"
+                checked
+              />
+              Date Specific (One Time)</label
+            >
+            <label
+              ><input type="radio" name="ev-schedule-type" value="recurring" />
+              Recurring</label
+            >
+          </div>
+
+          <div id="one-time-container" style="display: flex; gap: 1rem">
+            <div style="flex: 1">
+              <label
+                style="
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                  display: block;
+                  margin-bottom: 0.2rem;
+                "
+                >Start Date</label
+              >
+              <input
+                type="date"
+                id="ev-start-date"
+                style="
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+            <div style="flex: 1">
+              <label
+                style="
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                  display: block;
+                  margin-bottom: 0.2rem;
+                "
+                >End Date</label
+              >
+              <input
+                type="date"
+                id="ev-end-date"
+                style="
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+          </div>
+
+          <div
+            id="recurring-container"
+            style="display: none; flex-direction: column; gap: 0.5rem"
+          >
+            <label style="font-size: 0.85rem; font-weight: 500; display: block"
+              >Select Weekdays</label
+            >
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Mon" />
+                Mon</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Tue" />
+                Tue</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Wed" />
+                Wed</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Thu" />
+                Thu</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Fri" />
+                Fri</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Sat" />
+                Sat</label
+              >
+              <label
+                ><input type="checkbox" name="ev-weekdays" value="Sun" />
+                Sun</label
+              >
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 1rem; margin-top: 1rem">
+            <div style="flex: 1">
+              <label
+                style="
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                  display: block;
+                  margin-bottom: 0.2rem;
+                "
+                >Start Time</label
+              >
+              <input
+                type="time"
+                id="ev-start-time"
+                style="
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+            <div style="flex: 1">
+              <label
+                style="
+                  font-size: 0.85rem;
+                  font-weight: 500;
+                  display: block;
+                  margin-bottom: 0.2rem;
+                "
+                >End Time</label
+              >
+              <input
+                type="time"
+                id="ev-end-time"
+                style="
+                  width: 100%;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem">
+          <div style="flex: 2">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Venue</label
+            >
+            <input
+              type="text"
+              id="ev-venue"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+          <div style="flex: 1">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Cost</label
+            >
+            <input
+              type="text"
+              id="ev-cost"
+              placeholder="e.g. ₹500 or Free"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+          <div style="flex: 1">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Target Audience/Prerequisites</label
+            >
+            <input
+              type="text"
+              id="ev-audience"
+              placeholder="e.g. Adults, Kids"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+        </div>
+
+        <div
+          style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem"
+        >
+          <div style="flex: 1; min-width: 250px">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Contact Person / Unit</label
+            >
+            <input
+              type="text"
+              id="ev-contact-person"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
+          <div style="flex: 1; min-width: 250px">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Contact Phone</label
+            >
+            <div style="display: flex; gap: 0.5rem">
+              <input
+                type="text"
+                id="ev-contact-code"
+                value="+91"
+                style="
+                  width: 4rem;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+              <input
+                type="tel"
+                id="ev-contact"
+                style="
+                  flex: 1;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 250px">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >WhatsApp</label
+            >
+            <div style="display: flex; gap: 0.5rem">
+              <input
+                type="text"
+                id="ev-whatsapp-code"
+                value="+91"
+                style="
+                  width: 4rem;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+              <input
+                type="tel"
+                id="ev-whatsapp"
+                style="
+                  flex: 1;
+                  padding: 0.5rem;
+                  border: 1px solid var(--border);
+                  border-radius: 6px;
+                  background: var(--bg);
+                  color: var(--text);
+                "
+              />
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 250px">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Email</label
+            >
+            <input
+              type="email"
+              id="ev-email"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Website / PPT Links (Max 5)</label
+          >
+          <div
+            id="links-container"
+            style="display: flex; flex-direction: column; gap: 0.5rem"
+          >
+            <input
+              type="url"
+              class="ev-link"
+              placeholder="https://"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+          <button
+            type="button"
+            class="btn"
+            id="add-link-btn"
+            style="
+              margin-top: 0.5rem;
+              padding: 0.3rem 0.6rem;
+              font-size: 0.8rem;
+            "
+          >
+            + Add another link
+          </button>
+        </div>
+
+        <div>
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Media (Images / PDFs - Max 5, 10MB each)</label
+          >
+          <div
+            id="media-container"
+            style="display: flex; flex-direction: column; gap: 0.5rem"
+          >
+            <input
+              type="file"
+              class="ev-media"
+              accept="image/*,.pdf,.ppt,.pptx"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+              "
+            />
+          </div>
+          <button
+            type="button"
+            class="btn"
+            id="add-media-btn"
+            style="
+              margin-top: 0.5rem;
+              padding: 0.3rem 0.6rem;
+              font-size: 0.8rem;
+            "
+          >
+            + Add another file
+          </button>
+          
+          <!-- Editing Mode Existing Media Files -->
+          <div id="editing-existing-media" style="display: none; flex-direction: column; gap: 0.5rem; padding: 0.75rem; background: rgba(11, 87, 208, 0.03); border: 1px dashed var(--border); border-radius: 6px; margin-top: 0.75rem;">
+            <label style="font-size: 0.8rem; font-weight: 500; display: block; color: var(--text-secondary);">Currently Attached Media Files:</label>
+            <div id="existing-media-list" style="display: flex; flex-direction: column; gap: 0.25rem;"></div>
+          </div>
+        </div>
+
+        <div>
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Source Excel Filename (Optional)</label
+          >
+          <input
+            type="text"
+            id="ev-excel-filename"
+            placeholder="Form Submission"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+            "
+          />
+        </div>
+
+        <div>
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Description</label
+          >
+          <textarea
+            id="ev-desc"
+            rows="4"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+            "
+          ></textarea>
+        </div>
+        <div style="display: flex; gap: 0.75rem; width: 100%;">
+          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; min-width: 120px;">
+            Submit Event
+          </button>
+          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+            Cancel Edit
+          </button>
+        </div>
+        <div id="single-event-status"></div>
+      </form>
+
+      <button
+        class="btn"
+        id="logout-btn"
+        style="
+          margin-top: 1rem;
+          padding: 0.5rem;
+          max-width: 150px;
+          font-size: 0.85rem;
+          align-self: flex-start;
+        "
+      >
+        Sign out
+      </button>
+    </div>
+
+    <!-- Dashboard Container -->
+    <div class="dashboard-container" id="dashboard-section" style="display: none">
+      <div class="dashboard-header">
+        <h2>📊 AuroConnect Management Dashboard</h2>
+        <span id="dashboard-role-badge" class="badge badge-user">User Mode</span>
+      </div>
+
+      <div class="dashboard-tabs" id="dashboard-tabs-row" style="display: none">
+        <button class="tab-btn active" id="btn-tab-my-events">My Events</button>
+        <button class="tab-btn" id="btn-tab-all-events">All DB Events (Admin)</button>
+        <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
+      </div>
+
+      <!-- Tab 1: My Submitted Events -->
+      <div class="tab-content active" id="tab-my-events">
+        <h3>My Submitted Events</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          These are the events you submitted. Click "Details" to view all fields, or edit/delete them.
+        </p>
+
+        <!-- Tab 1 Search/Filter Row -->
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text);">🔍 Filter & Search My Events</span>
+            <button class="btn-clear-filters" onclick="clearMyFilters()" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Clear All Filters</button>
+          </div>
+          <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem;">
+            <!-- Field 1: Search -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">General Search</label>
+              <input type="text" id="my-events-search" placeholder="Search anything..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 2: Category -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Category</label>
+              <select id="my-events-category" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Categories</option>
+                <option value="Daily Events">Daily Events</option>
+                <option value="Weekly Events">Weekly Events</option>
+                <option value="Date-specific Events">Date-specific Events</option>
+              </select>
+            </div>
+            <!-- Field 3: Source Excel -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Excel Source</label>
+              <select id="my-events-excel" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Excel Files</option>
+                <option value="form">Form Submissions</option>
+              </select>
+            </div>
+            <!-- Field 4: Venue -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Venue</label>
+              <select id="my-events-venue" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Venues</option>
+              </select>
+            </div>
+            <!-- Field 5: Target Audience -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Audience</label>
+              <select id="my-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Audiences</option>
+              </select>
+            </div>
+            <!-- Field 6: Event Type -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Event Type</label>
+              <select id="my-events-type" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Types</option>
+              </select>
+            </div>
+            <!-- Field 7: Start Date -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Date</label>
+              <input type="date" id="my-events-start-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 8: End Date -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Date</label>
+              <input type="date" id="my-events-end-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 9: Start Time -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Time</label>
+              <input type="text" id="my-events-start-time" placeholder="e.g. 09:00am" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 10: End Time -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Time</label>
+              <input type="text" id="my-events-end-time" placeholder="e.g. 05:00pm" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 11: Contact Phone/WhatsApp -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact/WhatsApp</label>
+              <input type="text" id="my-events-contact" placeholder="Phone/WhatsApp..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 12: Contact Person/Unit -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Person</label>
+              <input type="text" id="my-events-contact-person" placeholder="Person/Unit..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 13: Contact Email -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Email</label>
+              <input type="text" id="my-events-email" placeholder="Email..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 14: Cost/Contribution -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Cost/Contribution</label>
+              <input type="text" id="my-events-cost" placeholder="Free / Rs..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+          </div>
+        </div>
+
+        <div id="my-events-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        
+        <!-- Bulk Action Bar -->
+        <div class="bulk-action-bar" id="my-events-bulk-bar" style="display: none;">
+          <span>Selected: <strong id="my-events-selected-count">0</strong> events</span>
+          <button class="btn btn-danger" id="btn-my-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Selected</button>
+        </div>
+
+        <div class="table-wrapper" id="my-events-table-wrapper" style="display: none;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-my-events-all" /></th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Schedule</th>
+                <th>Venue</th>
+                <th>Source</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="my-events-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 2: All Database Events (Admin Only) -->
+      <div class="tab-content" id="tab-all-events">
+        <h3>All Database Events (Admin Mode)</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          Moderation console to search, inspect, and delete any event in the system.
+        </p>
+        
+        <!-- Tab 2 Search/Filter Row -->
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+            <span style="font-weight: 600; font-size: 0.95rem; color: var(--text);">🔍 Filter & Search Database (Admin Mode)</span>
+            <button class="btn-clear-filters" onclick="clearAdminFilters()" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Clear All Filters</button>
+          </div>
+          <div class="filters-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.75rem;">
+            <!-- Field 1: Search -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">General Search</label>
+              <input type="text" id="admin-events-search" placeholder="Search anything..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 2: Category -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Category</label>
+              <select id="admin-events-category" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Categories</option>
+                <option value="Daily Events">Daily Events</option>
+                <option value="Weekly Events">Weekly Events</option>
+                <option value="Date-specific Events">Date-specific Events</option>
+              </select>
+            </div>
+            <!-- Field 3: Source Excel -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Excel Source</label>
+              <select id="admin-events-excel" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Excel Files</option>
+                <option value="form">Form Submissions</option>
+              </select>
+            </div>
+            <!-- Field 4: Venue -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Venue</label>
+              <select id="admin-events-venue" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Venues</option>
+              </select>
+            </div>
+            <!-- Field 5: Target Audience -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Audience</label>
+              <select id="admin-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Audiences</option>
+              </select>
+            </div>
+            <!-- Field 6: Event Type -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Event Type</label>
+              <select id="admin-events-type" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Types</option>
+              </select>
+            </div>
+            <!-- Field 7: Start Date -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Date</label>
+              <input type="date" id="admin-events-start-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 8: End Date -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Date</label>
+              <input type="date" id="admin-events-end-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 9: Start Time -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Time</label>
+              <input type="text" id="admin-events-start-time" placeholder="e.g. 09:00am" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 10: End Time -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Time</label>
+              <input type="text" id="admin-events-end-time" placeholder="e.g. 05:00pm" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 11: Contact Phone/WhatsApp -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact/WhatsApp</label>
+              <input type="text" id="admin-events-contact" placeholder="Phone/WhatsApp..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 12: Contact Person/Unit -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Person</label>
+              <input type="text" id="admin-events-contact-person" placeholder="Person/Unit..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 13: Contact Email -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Email</label>
+              <input type="text" id="admin-events-email" placeholder="Email..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <!-- Field 14: Cost/Contribution -->
+            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Cost/Contribution</label>
+              <input type="text" id="admin-events-cost" placeholder="Free / Rs..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+          </div>
+        </div>
+
+        <div id="all-events-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+
+        <!-- Bulk Action Bar -->
+        <div class="bulk-action-bar" id="all-events-bulk-bar" style="display: none;">
+          <span>Selected: <strong id="all-events-selected-count">0</strong> events</span>
+          <button class="btn btn-danger" id="btn-all-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Selected</button>
+        </div>
+
+        <div class="table-wrapper" id="all-events-table-wrapper" style="display: none;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-all-events-all" /></th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Schedule</th>
+                <th>Venue</th>
+                <th>Source</th>
+                <th>Submitted By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="all-events-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Tab 3: All Knowledge Base Documents (Admin Only) -->
+      <div class="tab-content" id="tab-all-knowledge">
+        <h3>All Knowledge Base Documents (Admin Mode)</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          These documents are read by the AI bot for responding to conversational questions.
+        </p>
+        <div id="all-knowledge-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        <div class="table-wrapper" id="all-knowledge-table-wrapper" style="display: none;">
+          <table>
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Text Length</th>
+                <th>Uploaded By</th>
+                <th>Uploaded At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="all-knowledge-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+      import {
+        getAuth,
+        signInWithPopup,
+        GoogleAuthProvider,
+        OAuthProvider,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+      import {
+        getStorage,
+        ref as storageRef,
+        uploadBytes,
+        getDownloadURL,
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
+      import {
+        getFirestore,
+        writeBatch,
+        collection,
+        doc,
+        addDoc,
+        setDoc,
+        serverTimestamp,
+        getDocs,
+        getDoc,
+        deleteDoc,
+        query,
+        where,
+        orderBy,
+        limit,
+        vector
+      } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+
+      let firebaseConfig = {
+        projectId: "gen-lang-client-0039539258",
+        appId: "1:615927626963:web:af7cd31a3a9859919fe826",
+        apiKey: "AIzaSyBE_i3Y6SXSfmFfZ_ptMclJT0GySmA0dlM",
+        authDomain: "gen-lang-client-0039539258.firebaseapp.com",
+        storageBucket: "gen-lang-client-0039539258.firebasestorage.app",
+        messagingSenderId: "615927626963",
+        firestoreDatabaseId: "ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4"
+      };
+
+      try {
+        const configRes = await fetch("/api/firebase_config");
+        if (configRes.ok) {
+          const fetchedConfig = await configRes.json();
+          firebaseConfig = { ...firebaseConfig, ...fetchedConfig };
+          console.log("Dynamically loaded Firebase configuration successfully.");
+        }
+      } catch (err) {
+        console.warn("Could not load dynamic Firebase config, using defaults:", err);
+      }
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const storage = getStorage(app);
+      const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)")
+        ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+        : getFirestore(app);
+
+      // Show warning if in an iframe
+      if (window.self !== window.top) {
+        const iframeWarning = document.getElementById("iframe-warning");
+        if (iframeWarning) {
+          iframeWarning.style.display = "block";
+        }
+      }
+
+      // Dynamic Fields Handlers
+      const scheduleRadios = document.querySelectorAll(
+        'input[name="ev-schedule-type"]',
+      );
+      const oneTimeContainer = document.getElementById("one-time-container");
+      const recurringContainer = document.getElementById("recurring-container");
+
+      scheduleRadios.forEach((radio) => {
+        radio.addEventListener("change", (e) => {
+          if (e.target.value === "one-time") {
+            oneTimeContainer.style.display = "flex";
+            recurringContainer.style.display = "none";
+          } else {
+            oneTimeContainer.style.display = "none";
+            recurringContainer.style.display = "flex";
+          }
+        });
+      });
+
+      const linksContainer = document.getElementById("links-container");
+      document.getElementById("add-link-btn").addEventListener("click", () => {
+        const inputs = linksContainer.querySelectorAll("input");
+        if (inputs.length < 5) {
+          const newLink = document.createElement("input");
+          newLink.type = "url";
+          newLink.className = "ev-link";
+          newLink.placeholder = "https://";
+          newLink.style.cssText =
+            "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
+          linksContainer.appendChild(newLink);
+        } else {
+          alert("Maximum 5 links allowed.");
+        }
+      });
+
+      const mediaContainer = document.getElementById("media-container");
+      document.getElementById("add-media-btn").addEventListener("click", () => {
+        const inputs = mediaContainer.querySelectorAll("input");
+        if (inputs.length < 5) {
+          const newMedia = document.createElement("input");
+          newMedia.type = "file";
+          newMedia.className = "ev-media";
+          newMedia.accept = "image/*,.pdf,.ppt,.pptx";
+          newMedia.style.cssText =
+            "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
+          mediaContainer.appendChild(newMedia);
+        } else {
+          alert("Maximum 5 files allowed.");
+        }
+      });
+
+      const loginSection = document.getElementById("login-section");
+      const uploadSection = document.getElementById("upload-section");
+      const statusDiv = document.getElementById("status");
+      const userStatusDiv = document.getElementById("user-status");
+      const errorMsg = document.getElementById("auth-error-msg");
+
+      // Dashboard state and elements
+      let dashboardIsAdmin = false;
+      const dashboardSection = document.getElementById("dashboard-section");
+      const dashboardRoleBadge = document.getElementById("dashboard-role-badge");
+      const dashboardTabsRow = document.getElementById("dashboard-tabs-row");
+
+      const btnTabMyEvents = document.getElementById("btn-tab-my-events");
+      const btnTabAllEvents = document.getElementById("btn-tab-all-events");
+      const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
+
+      const tabMyEvents = document.getElementById("tab-my-events");
+      const tabAllEvents = document.getElementById("tab-all-events");
+      const tabAllKnowledge = document.getElementById("tab-all-knowledge");
+
+      const myEventsLoading = document.getElementById("my-events-loading");
+      const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
+      const myEventsTbody = document.getElementById("my-events-tbody");
+
+      const allEventsLoading = document.getElementById("all-events-loading");
+      const allEventsTableWrapper = document.getElementById("all-events-table-wrapper");
+      const allEventsTbody = document.getElementById("all-events-tbody");
+
+      const allKnowledgeLoading = document.getElementById("all-knowledge-loading");
+      const allKnowledgeTableWrapper = document.getElementById("all-knowledge-table-wrapper");
+      const allKnowledgeTbody = document.getElementById("all-knowledge-tbody");
+
+      // Tab 1 Filters
+      const myEventsSearch = document.getElementById("my-events-search");
+      const myEventsCategory = document.getElementById("my-events-category");
+      const myEventsExcel = document.getElementById("my-events-excel");
+      const myEventsVenue = document.getElementById("my-events-venue");
+      const myEventsAudience = document.getElementById("my-events-audience");
+      const myEventsType = document.getElementById("my-events-type");
+      const myEventsStartDate = document.getElementById("my-events-start-date");
+      const myEventsEndDate = document.getElementById("my-events-end-date");
+      const myEventsStartTime = document.getElementById("my-events-start-time");
+      const myEventsEndTime = document.getElementById("my-events-end-time");
+      const myEventsContact = document.getElementById("my-events-contact");
+      const myEventsContactPerson = document.getElementById("my-events-contact-person");
+      const myEventsEmail = document.getElementById("my-events-email");
+      const myEventsCost = document.getElementById("my-events-cost");
+
+      // Tab 2 Filters
+      const adminEventsSearch = document.getElementById("admin-events-search");
+      const adminEventsCategory = document.getElementById("admin-events-category");
+      const adminEventsExcel = document.getElementById("admin-events-excel");
+      const adminEventsVenue = document.getElementById("admin-events-venue");
+      const adminEventsAudience = document.getElementById("admin-events-audience");
+      const adminEventsType = document.getElementById("admin-events-type");
+      const adminEventsStartDate = document.getElementById("admin-events-start-date");
+      const adminEventsEndDate = document.getElementById("admin-events-end-date");
+      const adminEventsStartTime = document.getElementById("admin-events-start-time");
+      const adminEventsEndTime = document.getElementById("admin-events-end-time");
+      const adminEventsContact = document.getElementById("admin-events-contact");
+      const adminEventsContactPerson = document.getElementById("admin-events-contact-person");
+      const adminEventsEmail = document.getElementById("admin-events-email");
+      const adminEventsCost = document.getElementById("admin-events-cost");
+      const btnAdminEventsFilter = document.getElementById("btn-admin-events-filter");
+
+      function formatDateToYYYYMMDD(dateStr) {
+        if (!dateStr) return "";
+        const str = dateStr.trim();
+        // Check if already in YYYY-MM-DD format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          return str;
+        }
+        // Try parsing other formats
+        try {
+          const d = new Date(str);
+          if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const r = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${r}`;
+          }
+        } catch (e) {}
+        return str;
+      }
+
+      function getEventStartDate(e) {
+        if (e.startDate) return formatDateToYYYYMMDD(e.startDate);
+        if (e.originalHeaders && e.originalHeaders.startDate) return formatDateToYYYYMMDD(e.originalHeaders.startDate);
+        if (e.dates) {
+          const parts = e.dates.split(" to ");
+          if (parts[0]) return formatDateToYYYYMMDD(parts[0]);
+        }
+        return "";
+      }
+
+      function getEventEndDate(e) {
+        if (e.endDate) return formatDateToYYYYMMDD(e.endDate);
+        if (e.originalHeaders && e.originalHeaders.endDate) return formatDateToYYYYMMDD(e.originalHeaders.endDate);
+        if (e.dates) {
+          const parts = e.dates.split(" to ");
+          if (parts[1]) return formatDateToYYYYMMDD(parts[1]);
+          if (parts[0]) return formatDateToYYYYMMDD(parts[0]);
+        }
+        return "";
+      }
+
+      function getEventStartTime(e) {
+        if (e.startTime) return e.startTime.trim().toLowerCase();
+        if (e.originalHeaders && e.originalHeaders.startTime) return e.originalHeaders.startTime.trim().toLowerCase();
+        if (e.times) {
+          const parts = e.times.split(" - ");
+          if (parts[0]) return parts[0].trim().toLowerCase();
+        }
+        return "";
+      }
+
+      function getEventEndTime(e) {
+        if (e.endTime) return e.endTime.trim().toLowerCase();
+        if (e.originalHeaders && e.originalHeaders.endTime) return e.originalHeaders.endTime.trim().toLowerCase();
+        if (e.times) {
+          const parts = e.times.split(" - ");
+          if (parts[1]) return parts[1].trim().toLowerCase();
+        }
+        return "";
+      }
+
+      window.clearMyFilters = function() {
+        if (myEventsSearch) myEventsSearch.value = "";
+        if (myEventsCategory) myEventsCategory.value = "";
+        if (myEventsExcel) myEventsExcel.value = "";
+        if (myEventsVenue) myEventsVenue.value = "";
+        if (myEventsAudience) myEventsAudience.value = "";
+        if (myEventsType) myEventsType.value = "";
+        if (myEventsStartDate) myEventsStartDate.value = "";
+        if (myEventsEndDate) myEventsEndDate.value = "";
+        if (myEventsStartTime) myEventsStartTime.value = "";
+        if (myEventsEndTime) myEventsEndTime.value = "";
+        if (myEventsContact) myEventsContact.value = "";
+        if (myEventsContactPerson) myEventsContactPerson.value = "";
+        if (myEventsEmail) myEventsEmail.value = "";
+        if (myEventsCost) myEventsCost.value = "";
+        loadMyEvents();
+      };
+
+      window.clearAdminFilters = function() {
+        if (adminEventsSearch) adminEventsSearch.value = "";
+        if (adminEventsCategory) adminEventsCategory.value = "";
+        if (adminEventsExcel) adminEventsExcel.value = "";
+        if (adminEventsVenue) adminEventsVenue.value = "";
+        if (adminEventsAudience) adminEventsAudience.value = "";
+        if (adminEventsType) adminEventsType.value = "";
+        if (adminEventsStartDate) adminEventsStartDate.value = "";
+        if (adminEventsEndDate) adminEventsEndDate.value = "";
+        if (adminEventsStartTime) adminEventsStartTime.value = "";
+        if (adminEventsEndTime) adminEventsEndTime.value = "";
+        if (adminEventsContact) adminEventsContact.value = "";
+        if (adminEventsContactPerson) adminEventsContactPerson.value = "";
+        if (adminEventsEmail) adminEventsEmail.value = "";
+        if (adminEventsCost) adminEventsCost.value = "";
+        loadAllDatabaseEvents();
+      };
+
+      function populateFilterDropdown(selectElement, values, defaultLabel) {
+        if (!selectElement) return;
+        const selectedValue = selectElement.value;
+        selectElement.innerHTML = `<option value="">${defaultLabel}</option>`;
+        
+        // Form submissions are treated specially as "Form Submissions" if requested
+        if (defaultLabel.includes("Excel")) {
+          const opt = document.createElement("option");
+          opt.value = "form";
+          opt.textContent = "Form Submissions";
+          selectElement.appendChild(opt);
+        }
+        
+        const sortedValues = Array.from(values).filter(v => v && v.trim() !== "").sort();
+        sortedValues.forEach(val => {
+          const opt = document.createElement("option");
+          opt.value = val;
+          opt.textContent = val;
+          selectElement.appendChild(opt);
+        });
+        
+        if (selectedValue && (values.has(selectedValue) || selectedValue === "form")) {
+          selectElement.value = selectedValue;
+        } else {
+          selectElement.value = "";
+        }
+      }
+
+      // Editing state
+      let editingEventId = null;
+      let existingMediaUrls = [];
+
+      function formatDateToYYYYMMDD(dateStr) {
+        if (!dateStr) return "";
+        dateStr = dateStr.trim();
+        if (dateStr === "") return "";
+
+        // Check if already in YYYY-MM-DD format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return dateStr;
+        }
+
+        // Try standard javascript Date parsing
+        const d = new Date(dateStr);
+        if (!isNaN(d.getTime())) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        }
+
+        // Try DD/MM/YYYY or DD-MM-YYYY
+        const parts = dateStr.split(/[-/]/);
+        if (parts.length === 3) {
+          if (parts[0].length === 4) {
+            const year = parts[0];
+            const month = parts[1].padStart(2, "0");
+            const day = parts[2].padStart(2, "0");
+            return `${year}-${month}-${day}`;
+          }
+          if (parts[2].length === 4) {
+            let day = parseInt(parts[0], 10);
+            let month = parseInt(parts[1], 10);
+            const year = parts[2];
+            
+            if (month > 12 && day <= 12) {
+              const temp = day;
+              day = month;
+              month = temp;
+            }
+            if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+              const mStr = String(month).padStart(2, "0");
+              const dStr = String(day).padStart(2, "0");
+              return `${year}-${mStr}-${dStr}`;
+            }
+          }
+        }
+
+        return "";
+      }
+
+      function formatTimeToHHMM(timeStr) {
+        if (!timeStr) return "";
+        timeStr = timeStr.trim().toLowerCase();
+        if (timeStr === "") return "";
+
+        const isPm = timeStr.includes("pm");
+        const isAm = timeStr.includes("am");
+        
+        const match = timeStr.match(/^(\d+)(?::(\d+))?/);
+        if (!match) {
+          if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+          return "";
+        }
+
+        let hours = parseInt(match[1], 10);
+        let minutes = match[2] ? parseInt(match[2], 10) : 0;
+
+        if (isPm || isAm) {
+          if (isPm && hours < 12) {
+            hours += 12;
+          } else if (isAm && hours === 12) {
+            hours = 0;
+          }
+        }
+
+        const hStr = String(hours).padStart(2, "0");
+        const mStr = String(minutes).padStart(2, "0");
+        return `${hStr}:${mStr}`;
+      }
+
+      function startEditEvent(ev) {
+        editingEventId = ev.id;
+        
+        // Change button text and show cancel button
+        document.getElementById("submit-event-btn").textContent = "Update Event";
+        document.getElementById("cancel-edit-btn").style.display = "block";
+        
+        // Fill simple inputs
+        document.getElementById("ev-title").value = ev.title || "";
+        document.getElementById("ev-type").value = ev.type || "";
+        document.getElementById("ev-venue").value = ev.venue || "";
+        document.getElementById("ev-cost").value = ev.cost || "";
+        document.getElementById("ev-audience").value = ev.audience || "";
+        
+        if (document.getElementById("ev-contact-person")) {
+          document.getElementById("ev-contact-person").value = ev.contactPerson || "";
+        }
+        document.getElementById("ev-email").value = ev.email || "";
+        document.getElementById("ev-desc").value = ev.description || "";
+        document.getElementById("ev-excel-filename").value = ev.excelFilename || "";
+        
+        // Determine scheduleType robustly
+        let sType = ev.scheduleType;
+        if (!sType) {
+          const categoryVal = (ev.category || "").toLowerCase();
+          const daysVal = (ev.days || "").toLowerCase();
+          if (categoryVal.includes("daily") || categoryVal.includes("weekly") || daysVal.includes("mon") || daysVal.includes("tue") || daysVal.includes("wed") || daysVal.includes("thu") || daysVal.includes("fri") || daysVal.includes("sat") || daysVal.includes("sun") || daysVal.includes("every") || daysVal.includes("daily")) {
+            sType = "recurring";
+          } else {
+            sType = "one-time";
+          }
+        }
+
+        // Schedule type radio and containers
+        const scheduleTypeRadio = document.querySelector(`input[name="ev-schedule-type"][value="${sType}"]`);
+        if (scheduleTypeRadio) {
+          scheduleTypeRadio.checked = true;
+        }
+        
+        const oneTimeContainer = document.getElementById("one-time-container");
+        const recurringContainer = document.getElementById("recurring-container");
+        
+        if (sType === "recurring") {
+          oneTimeContainer.style.display = "none";
+          recurringContainer.style.display = "flex";
+          
+          // Check checkboxes
+          if (ev.days) {
+            const daysLower = ev.days.toLowerCase();
+            const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday");
+            const daysArray = ev.days.split(",").map(d => d.trim().toLowerCase());
+            document.querySelectorAll('input[name="ev-weekdays"]').forEach(cb => {
+              const cbValLower = cb.value.toLowerCase();
+              cb.checked = isDaily || daysArray.some(day => day === cbValLower || day.startsWith(cbValLower));
+            });
+          } else {
+            document.querySelectorAll('input[name="ev-weekdays"]').forEach(cb => {
+              cb.checked = false;
+            });
+          }
+        } else {
+          oneTimeContainer.style.display = "flex";
+          recurringContainer.style.display = "none";
+          
+          // Populate start and end dates
+          let startDateVal = "";
+          let endDateVal = "";
+          if (ev.dates) {
+            if (ev.dates.includes(" to ")) {
+              const parts = ev.dates.split(" to ");
+              startDateVal = parts[0].trim();
+              endDateVal = parts[1].trim();
+            } else {
+              startDateVal = ev.dates.trim();
+              endDateVal = ev.dates.trim();
+            }
+          }
+          document.getElementById("ev-start-date").value = formatDateToYYYYMMDD(startDateVal);
+          document.getElementById("ev-end-date").value = formatDateToYYYYMMDD(endDateVal);
+        }
+        
+        // Times parsing
+        let startTimeVal = "";
+        let endTimeVal = "";
+        if (ev.times) {
+          if (ev.times.includes(" - ")) {
+            const parts = ev.times.split(" - ");
+            startTimeVal = parts[0].trim();
+            endTimeVal = parts[1].trim();
+          } else {
+            startTimeVal = ev.times.trim();
+          }
+        }
+        document.getElementById("ev-start-time").value = formatTimeToHHMM(startTimeVal);
+        document.getElementById("ev-end-time").value = formatTimeToHHMM(endTimeVal);
+        
+        // Contact phone
+        if (ev.contact) {
+          const parts = ev.contact.trim().split(" ");
+          if (parts.length > 1) {
+            document.getElementById("ev-contact-code").value = parts[0];
+            document.getElementById("ev-contact").value = parts.slice(1).join(" ");
+          } else {
+            document.getElementById("ev-contact-code").value = "+91";
+            document.getElementById("ev-contact").value = ev.contact;
+          }
+        } else {
+          document.getElementById("ev-contact-code").value = "+91";
+          document.getElementById("ev-contact").value = "";
+        }
+        
+        // WhatsApp
+        if (ev.whatsapp) {
+          const parts = ev.whatsapp.trim().split(" ");
+          if (parts.length > 1) {
+            document.getElementById("ev-whatsapp-code").value = parts[0];
+            document.getElementById("ev-whatsapp").value = parts.slice(1).join(" ");
+          } else {
+            document.getElementById("ev-whatsapp-code").value = "+91";
+            document.getElementById("ev-whatsapp").value = ev.whatsapp;
+          }
+        } else {
+          document.getElementById("ev-whatsapp-code").value = "+91";
+          document.getElementById("ev-whatsapp").value = "";
+        }
+        
+        // Links
+        const linksContainer = document.getElementById("links-container");
+        linksContainer.innerHTML = "";
+        
+        let websiteLinksArray = [];
+        if (ev.websiteLinks && ev.websiteLinks.length > 0) {
+          websiteLinksArray = ev.websiteLinks;
+        } else if (ev.website) {
+          websiteLinksArray = ev.website.split(",").map(s => s.trim()).filter(Boolean);
+        }
+
+        if (websiteLinksArray.length > 0) {
+          websiteLinksArray.forEach((link) => {
+            const input = document.createElement("input");
+            input.type = "url";
+            input.className = "ev-link";
+            input.placeholder = "https://";
+            input.value = link;
+            input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
+            linksContainer.appendChild(input);
+          });
+        } else {
+          const input = document.createElement("input");
+          input.type = "url";
+          input.className = "ev-link";
+          input.placeholder = "https://";
+          input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
+          linksContainer.appendChild(input);
+        }
+        
+        // Media setup
+        let mediaArray = [];
+        if (Array.isArray(ev.mediaUrls)) {
+          mediaArray = ev.mediaUrls.filter(Boolean);
+        } else if (typeof ev.mediaUrls === "string" && ev.mediaUrls) {
+          mediaArray = ev.mediaUrls.split(",").map(s => s.trim()).filter(Boolean);
+        }
+        
+        if (mediaArray.length === 0 && ev.posterUrl) {
+          mediaArray = typeof ev.posterUrl === "string" 
+            ? ev.posterUrl.split(",").map(s => s.trim()).filter(Boolean)
+            : [ev.posterUrl];
+        }
+        
+        existingMediaUrls = mediaArray;
+        renderExistingMediaList();
+        
+        // Scroll to form section
+        const submissionSection = document.getElementById("single-event-form");
+        if (submissionSection) {
+          submissionSection.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }
+
+      function renderExistingMediaList() {
+        const editingExistingMedia = document.getElementById("editing-existing-media");
+        const existingMediaList = document.getElementById("existing-media-list");
+        if (!editingExistingMedia || !existingMediaList) return;
+        
+        if (existingMediaUrls.length > 0) {
+          editingExistingMedia.style.display = "flex";
+          existingMediaList.innerHTML = "";
+          existingMediaUrls.forEach((url, index) => {
+            const div = document.createElement("div");
+            div.style.cssText = "display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background: var(--bg); padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;";
+            
+            const filename = url.split("/").pop().split("?")[0].replace(/^event-media\/\d+_/, "");
+            const decodedFilename = decodeURIComponent(filename);
+            
+            div.innerHTML = `
+              <a href="${url}" target="_blank" style="color: var(--accent); text-decoration: underline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px;">${decodedFilename || 'File ' + (index + 1)}</a>
+              <button type="button" style="background: none; border: none; color: red; cursor: pointer; font-weight: bold; font-size: 0.9rem; padding: 0 0.2rem;" onclick="removeExistingMedia(${index})">×</button>
+            `;
+            existingMediaList.appendChild(div);
+          });
+        } else {
+          editingExistingMedia.style.display = "none";
+          existingMediaList.innerHTML = "";
+        }
+      }
+
+      window.removeExistingMedia = function(index) {
+        existingMediaUrls.splice(index, 1);
+        renderExistingMediaList();
+      };
+
+      function exitEditMode() {
+        editingEventId = null;
+        existingMediaUrls = [];
+        
+        // Reset form
+        const singleEventForm = document.getElementById("single-event-form");
+        if (singleEventForm) singleEventForm.reset();
+        
+        document.getElementById("submit-event-btn").textContent = "Submit Event";
+        document.getElementById("cancel-edit-btn").style.display = "none";
+        
+        document.getElementById("editing-existing-media").style.display = "none";
+        document.getElementById("existing-media-list").innerHTML = "";
+        
+        // Reset inputs to default state
+        document.getElementById("one-time-container").style.display = "flex";
+        document.getElementById("recurring-container").style.display = "none";
+        document.getElementById("links-container").innerHTML =
+          '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+        document.getElementById("media-container").innerHTML =
+          '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+      }
+
+      // Bind Cancel Edit Button
+      const cancelEditBtn = document.getElementById("cancel-edit-btn");
+      if (cancelEditBtn) {
+        cancelEditBtn.onclick = () => {
+          exitEditMode();
+        };
+      }
+
+      // Bulk actions element references and sets
+      const selectedMyEvents = new Set();
+      const selectedAllEvents = new Set();
+
+      const chkMyEventsAll = document.getElementById("chk-my-events-all");
+      const myEventsBulkBar = document.getElementById("my-events-bulk-bar");
+      const myEventsSelectedCount = document.getElementById("my-events-selected-count");
+      const btnMyEventsBulkDelete = document.getElementById("btn-my-events-bulk-delete");
+
+      const chkAllEventsAll = document.getElementById("chk-all-events-all");
+      const allEventsBulkBar = document.getElementById("all-events-bulk-bar");
+      const allEventsSelectedCount = document.getElementById("all-events-selected-count");
+      const btnAllEventsBulkDelete = document.getElementById("btn-all-events-bulk-delete");
+
+      function updateMyEventsBulkBar() {
+        if (selectedMyEvents.size > 0) {
+          myEventsBulkBar.style.display = "flex";
+          myEventsSelectedCount.textContent = selectedMyEvents.size;
+        } else {
+          myEventsBulkBar.style.display = "none";
+        }
+      }
+
+      function updateAllEventsBulkBar() {
+        if (selectedAllEvents.size > 0) {
+          allEventsBulkBar.style.display = "flex";
+          allEventsSelectedCount.textContent = selectedAllEvents.size;
+        } else {
+          allEventsBulkBar.style.display = "none";
+        }
+      }
+
+      // Tab switching logic
+      function switchTab(activeTabId) {
+        // Exit edit mode if user is editing
+        exitEditMode();
+
+        // Clear bulk selections
+        selectedMyEvents.clear();
+        selectedAllEvents.clear();
+        if (chkMyEventsAll) chkMyEventsAll.checked = false;
+        if (chkAllEventsAll) chkAllEventsAll.checked = false;
+        if (myEventsBulkBar) myEventsBulkBar.style.display = "none";
+        if (allEventsBulkBar) allEventsBulkBar.style.display = "none";
+
+        // Tab buttons
+        btnTabMyEvents.classList.toggle("active", activeTabId === "my-events");
+        btnTabAllEvents.classList.toggle("active", activeTabId === "all-events");
+        btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
+
+        // Tab contents
+        tabMyEvents.classList.toggle("active", activeTabId === "my-events");
+        tabAllEvents.classList.toggle("active", activeTabId === "all-events");
+        tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
+
+        if (activeTabId === "all-events") {
+          loadAllDatabaseEvents();
+        } else if (activeTabId === "all-knowledge") {
+          loadAllKnowledgeDocs();
+        } else {
+          loadMyEvents();
+        }
+      }
+
+      btnTabMyEvents.onclick = () => switchTab("my-events");
+      btnTabAllEvents.onclick = () => switchTab("all-events");
+      btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
+
+      // Load My Submitted Events
+      async function loadMyEvents() {
+        const currentUser = getCurrentUser();
+        if (!currentUser) return;
+        myEventsLoading.style.display = "block";
+        myEventsTableWrapper.style.display = "none";
+        myEventsTbody.innerHTML = "";
+        
+        // Reset state
+        selectedMyEvents.clear();
+        if (chkMyEventsAll) chkMyEventsAll.checked = false;
+        updateMyEventsBulkBar();
+
+        try {
+          const eventsCol = collection(db, "events");
+          const q = query(eventsCol, where("submittedBy", "==", currentUser.email));
+          const snapshot = await getDocs(q);
+
+          let events = [];
+          snapshot.forEach((docSnap) => {
+            events.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // In-memory sort by submittedAt descending
+          events.sort((a, b) => {
+            const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+            const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          // Dynamically populate filter dropdowns from raw events list
+          const uniqueExcel = new Set();
+          const uniqueVenues = new Set();
+          const uniqueAudiences = new Set();
+          const uniqueTypes = new Set();
+
+          events.forEach((e) => {
+            if (e.excelFilename) uniqueExcel.add(e.excelFilename);
+            if (e.venue) uniqueVenues.add(e.venue);
+            if (e.audience) uniqueAudiences.add(e.audience);
+            if (e.type) uniqueTypes.add(e.type);
+          });
+
+          populateFilterDropdown(myEventsExcel, uniqueExcel, "All Excel Files");
+          populateFilterDropdown(myEventsVenue, uniqueVenues, "All Venues");
+          populateFilterDropdown(myEventsAudience, uniqueAudiences, "All Audiences");
+          populateFilterDropdown(myEventsType, uniqueTypes, "All Types");
+
+          // Apply multi-field filtering
+          let filteredEvents = [...events];
+          const searchQuery = myEventsSearch.value.trim().toLowerCase();
+          const categoryFilter = myEventsCategory.value;
+          const excelFilter = myEventsExcel.value;
+          const venueFilter = myEventsVenue.value;
+          const audienceFilter = myEventsAudience.value;
+          const typeFilter = myEventsType ? myEventsType.value : "";
+          const startDateFilter = myEventsStartDate ? myEventsStartDate.value : "";
+          const endDateFilter = myEventsEndDate ? myEventsEndDate.value : "";
+          const startTimeFilter = myEventsStartTime ? myEventsStartTime.value.trim().toLowerCase() : "";
+          const endTimeFilter = myEventsEndTime ? myEventsEndTime.value.trim().toLowerCase() : "";
+          const contactFilter = myEventsContact ? myEventsContact.value.trim().toLowerCase() : "";
+          const contactPersonFilter = myEventsContactPerson ? myEventsContactPerson.value.trim().toLowerCase() : "";
+          const emailFilter = myEventsEmail ? myEventsEmail.value.trim().toLowerCase() : "";
+          const costFilter = myEventsCost ? myEventsCost.value.trim().toLowerCase() : "";
+
+          if (categoryFilter) {
+            filteredEvents = filteredEvents.filter((e) => e.category === categoryFilter);
+          }
+          if (excelFilter) {
+            if (excelFilter === "form") {
+              filteredEvents = filteredEvents.filter((e) => !e.excelFilename);
+            } else {
+              filteredEvents = filteredEvents.filter((e) => e.excelFilename === excelFilter);
+            }
+          }
+          if (venueFilter) {
+            filteredEvents = filteredEvents.filter((e) => e.venue === venueFilter);
+          }
+          if (audienceFilter) {
+            filteredEvents = filteredEvents.filter((e) => e.audience === audienceFilter);
+          }
+          if (typeFilter) {
+            filteredEvents = filteredEvents.filter((e) => e.type === typeFilter);
+          }
+          if (startDateFilter || endDateFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const eventStart = getEventStartDate(e);
+              const eventEnd = getEventEndDate(e);
+              if (!eventStart) return false;
+
+              if (startDateFilter && endDateFilter) {
+                const eStart = eventStart;
+                const eEnd = eventEnd || eventStart;
+                return (eStart <= endDateFilter && eEnd >= startDateFilter);
+              } else if (startDateFilter) {
+                const eEnd = eventEnd || eventStart;
+                return (eEnd >= startDateFilter);
+              } else if (endDateFilter) {
+                return (eventStart <= endDateFilter);
+              }
+              return true;
+            });
+          }
+          if (startTimeFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const startVal = getEventStartTime(e);
+              return startVal.includes(startTimeFilter);
+            });
+          }
+          if (endTimeFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const endVal = getEventEndTime(e);
+              return endVal.includes(endTimeFilter);
+            });
+          }
+          if (contactFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const contactVal = ((e.contact || "") + " " + (e.whatsapp || "") + " " + (e.originalHeaders?.contactPhoneWhatsApp || "")).toLowerCase();
+              return contactVal.includes(contactFilter);
+            });
+          }
+          if (contactPersonFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const personVal = ((e.contactPerson || "") + " " + (e.originalHeaders?.contactPersonUnit || "")).toLowerCase();
+              return personVal.includes(contactPersonFilter);
+            });
+          }
+          if (emailFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const emailVal = ((e.email || "") + " " + (e.originalHeaders?.contactEmail || "")).toLowerCase();
+              return emailVal.includes(emailFilter);
+            });
+          }
+          if (costFilter) {
+            filteredEvents = filteredEvents.filter((e) => {
+              const costVal = ((e.cost || "") + " " + (e.originalHeaders?.costContribution || "")).toLowerCase();
+              return costVal.includes(costFilter);
+            });
+          }
+
+          if (searchQuery) {
+            filteredEvents = filteredEvents.filter((e) => {
+              return (
+                (e.title || "").toLowerCase().includes(searchQuery) ||
+                (e.description || "").toLowerCase().includes(searchQuery) ||
+                (e.venue || "").toLowerCase().includes(searchQuery) ||
+                (e.category || "").toLowerCase().includes(searchQuery) ||
+                (e.type || "").toLowerCase().includes(searchQuery) ||
+                (e.audience || "").toLowerCase().includes(searchQuery) ||
+                (e.contactPerson || "").toLowerCase().includes(searchQuery) ||
+                (e.contact || "").toLowerCase().includes(searchQuery) ||
+                (e.whatsapp || "").toLowerCase().includes(searchQuery) ||
+                (e.email || "").toLowerCase().includes(searchQuery) ||
+                (e.excelFilename || "").toLowerCase().includes(searchQuery) ||
+                (e.submittedBy || "").toLowerCase().includes(searchQuery)
+              );
+            });
+          }
+
+          // Auto-select filtered events if any filter is active
+          const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
+          if (isFilterActive) {
+            selectedMyEvents.clear();
+            filteredEvents.forEach((ev) => {
+              selectedMyEvents.add(ev.id);
+            });
+            if (chkMyEventsAll) {
+              chkMyEventsAll.checked = (filteredEvents.length > 0);
+            }
+          }
+          updateMyEventsBulkBar();
+
+          myEventsLoading.style.display = "none";
+
+          if (filteredEvents.length === 0) {
+            myEventsTbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
+            myEventsTableWrapper.style.display = "block";
+            return;
+          }
+
+          filteredEvents.forEach((ev) => {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-id", ev.id);
+            tr.style.cursor = "pointer";
+
+            // Format dates/schedule beautifully
+            let scheduleStr = ev.dates || "";
+            if (ev.scheduleType === "recurring") {
+              scheduleStr = `${ev.days || ""} at ${ev.times || ""}`;
+            }
+
+            const submittedDate = ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A";
+            const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
+
+            tr.innerHTML = `
+              <td style="text-align: center;" onclick="event.stopPropagation();">
+                <input type="checkbox" class="chk-my-event" data-id="${ev.id}" ${selectedMyEvents.has(ev.id) ? "checked" : ""} />
+              </td>
+              <td style="font-weight: 500;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="chevron-icon" style="transition: transform 0.2s; display: inline-block; font-size: 0.75rem; color: var(--text-secondary);">▶</span>
+                  <span>${ev.title || "Untitled"}</span>
+                </div>
+              </td>
+              <td><span class="badge badge-info">${ev.category || "General"}</span></td>
+              <td>${scheduleStr || "N/A"}</td>
+              <td>${ev.venue || "N/A"}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);">${submittedDate}</td>
+              <td style="white-space: nowrap;" onclick="event.stopPropagation();">
+                <button class="btn btn-secondary btn-toggle-details" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(11, 87, 208, 0.08); color: var(--accent); cursor: pointer; margin-right: 0.25rem; font-weight: 500;">Details</button>
+                <button class="btn btn-secondary btn-edit-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
+                <button class="btn-danger btn-delete-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
+              </td>
+            `;
+            myEventsTbody.appendChild(tr);
+
+            // Append Collapsible details row
+            const detailsTr = document.createElement("tr");
+            detailsTr.id = `details-my-${ev.id}`;
+            detailsTr.style.display = "none";
+            detailsTr.style.background = "rgba(11, 87, 208, 0.015)";
+
+            // Format website links list
+            const linksHtml = (ev.websiteLinks && ev.websiteLinks.length > 0) 
+              ? ev.websiteLinks.map(l => `<a href="${l}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size:0.8rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l}</a>`).join('')
+              : (ev.website ? `<a href="${ev.website}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size:0.8rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ev.website}</a>` : "None");
+
+            // Format media links
+            const mediaHtml = (ev.mediaUrls && ev.mediaUrls.length > 0)
+              ? ev.mediaUrls.map((m, i) => {
+                  const filename = m.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
+                  const decoded = decodeURIComponent(filename);
+                  return `<a href="${m}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>${decoded || 'File ' + (i+1)}</a>`;
+                }).join('')
+              : (ev.posterUrl ? `<a href="${ev.posterUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Poster File</a>` : "None");
+
+            detailsTr.innerHTML = `
+              <td colspan="8" style="padding: 1rem 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                  
+                  <!-- Column 1: General & Schedule -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      General &amp; Schedule
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Type:</strong> ${ev.type || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Category:</strong> ${ev.category || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Schedule Type:</strong> ${ev.scheduleType || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Dates / Days:</strong> ${ev.dates || ev.days || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Target Audience:</strong> ${ev.audience || "All"}</div>
+                  </div>
+
+                  <!-- Column 2: Contact Info -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Contact &amp; Links
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Person:</strong> ${ev.contactPerson || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Phone:</strong> ${ev.contact || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">WhatsApp:</strong> ${ev.whatsapp || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Email:</strong> ${ev.email || "N/A"}</div>
+                    <div style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.website || ''}">
+                      <strong style="color: var(--text-secondary);">Website:</strong> 
+                      ${ev.website ? `<a href="${ev.website}" target="_blank" style="color: var(--accent); text-decoration: underline;">${ev.website}</a>` : "None"}
+                    </div>
+                    <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.15rem;">
+                      <strong style="color: var(--text-secondary);">All Links:</strong>
+                      ${linksHtml}
+                    </div>
+                  </div>
+
+                  <!-- Column 3: Source, Media & Details -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; grid-column: span 1;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      Metadata &amp; Media
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Source Excel:</strong> <span style="font-family: monospace; font-size: 0.8rem; background: rgba(11,87,208,0.06); padding: 0.1rem 0.3rem; border-radius: 4px; color: var(--accent);">${ev.excelFilename || "Form Submission"}</span></div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Submitted By:</strong> ${ev.submittedBy || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Submitted At:</strong> ${ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A"}</div>
+                    ${ev.updatedAt ? `<div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Updated At:</strong> ${new Date(ev.updatedAt).toLocaleString()}</div>` : ""}
+                    <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.25rem;">
+                      <strong style="color: var(--text-secondary);">Attached Media:</strong>
+                      ${mediaHtml}
+                    </div>
+                  </div>
+
+                  <!-- Full-width Description -->
+                  <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.25rem; border-top: 1px dashed var(--border); padding-top: 0.75rem;">
+                    <strong style="font-size: 0.85rem; color: var(--text-secondary);">Description:</strong>
+                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || "No description provided."}</div>
+                  </div>
+
+                </div>
+              </td>
+            `;
+            myEventsTbody.appendChild(detailsTr);
+
+            // Toggle function
+            const toggleDetails = () => {
+              const isHidden = detailsTr.style.display === "none";
+              detailsTr.style.display = isHidden ? "table-row" : "none";
+              const chevron = tr.querySelector(".chevron-icon");
+              if (chevron) {
+                chevron.textContent = isHidden ? "▼" : "▶";
+                chevron.style.color = isHidden ? "var(--accent)" : "var(--text-secondary)";
+              }
+            };
+
+            tr.onclick = toggleDetails;
+            const toggleBtn = tr.querySelector(".btn-toggle-details");
+            if (toggleBtn) {
+              toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleDetails();
+              };
+            }
+          });
+
+          // Bind row checkboxes selection
+          const rowCheckboxes = myEventsTbody.querySelectorAll(".chk-my-event");
+          rowCheckboxes.forEach((chk) => {
+            chk.onchange = (e) => {
+              e.stopPropagation();
+              const docId = e.target.getAttribute("data-id");
+              if (e.target.checked) {
+                selectedMyEvents.add(docId);
+              } else {
+                selectedMyEvents.delete(docId);
+              }
+              
+              // Update master checkbox state
+              const allChecked = Array.from(rowCheckboxes).every(c => c.checked);
+              if (chkMyEventsAll) chkMyEventsAll.checked = allChecked;
+              
+              updateMyEventsBulkBar();
+            };
+          });
+
+          // Master checkbox trigger
+          if (chkMyEventsAll) {
+            chkMyEventsAll.onchange = (e) => {
+              const checked = e.target.checked;
+              rowCheckboxes.forEach((chk) => {
+                chk.checked = checked;
+                const docId = chk.getAttribute("data-id");
+                if (checked) {
+                  selectedMyEvents.add(docId);
+                } else {
+                  selectedMyEvents.delete(docId);
+                }
+              });
+              updateMyEventsBulkBar();
+            };
+          }
+
+          // Bind single edit actions
+          myEventsTbody.querySelectorAll(".btn-edit-event").forEach((btn) => {
+            btn.onclick = (e) => {
+              e.stopPropagation();
+              const docId = e.target.getAttribute("data-id");
+              const targetEv = events.find((item) => item.id === docId);
+              if (targetEv) {
+                startEditEvent(targetEv);
+              }
+            };
+          });
+
+          // Bind single delete actions
+          myEventsTbody.querySelectorAll(".btn-delete-event").forEach((btn) => {
+            btn.onclick = async (e) => {
+              const docId = e.target.getAttribute("data-id");
+              if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
+                try {
+                  await deleteDoc(doc(db, "events", docId));
+                  alert("Event deleted successfully!");
+                  loadMyEvents();
+                  if (dashboardIsAdmin) {
+                    loadAllDatabaseEvents();
+                  }
+                } catch (err) {
+                  alert("Failed to delete event: " + err.message);
+                }
+              }
+            };
+          });
+
+          myEventsTableWrapper.style.display = "block";
+        } catch (error) {
+          console.error("Error loading my events:", error);
+          myEventsLoading.innerHTML = `<span style="color: red;">Error loading your events: ${error.message}</span>`;
+        }
+      }
+
+      // Bind Bulk Delete Button for My Events
+      btnMyEventsBulkDelete.onclick = async () => {
+        if (selectedMyEvents.size === 0) return;
+        const confirmMsg = `Are you sure you want to delete all ${selectedMyEvents.size} selected events? This action cannot be undone.`;
+        if (confirm(confirmMsg)) {
+          myEventsLoading.style.display = "block";
+          myEventsTableWrapper.style.display = "none";
+          try {
+            let docsDeleted = 0;
+            let currentBatch = writeBatch(db);
+            
+            for (const docId of selectedMyEvents) {
+              currentBatch.delete(doc(db, "events", docId));
+              docsDeleted++;
+              if (docsDeleted % 450 === 0) {
+                await currentBatch.commit();
+                currentBatch = writeBatch(db);
+              }
+            }
+            if (docsDeleted % 450 !== 0) {
+              await currentBatch.commit();
+            }
+
+            alert(`Successfully deleted ${docsDeleted} events.`);
+            selectedMyEvents.clear();
+            loadMyEvents();
+            if (dashboardIsAdmin) {
+              loadAllDatabaseEvents();
+            }
+          } catch (err) {
+            alert("Failed to perform bulk deletion: " + err.message);
+            loadMyEvents();
+          }
+        }
+      };
+
+      // Load All Events (Admin Only)
+      async function loadAllDatabaseEvents() {
+        if (!getCurrentUser()) return;
+        allEventsLoading.style.display = "block";
+        allEventsTableWrapper.style.display = "none";
+        allEventsTbody.innerHTML = "";
+
+        // Reset state
+        selectedAllEvents.clear();
+        if (chkAllEventsAll) chkAllEventsAll.checked = false;
+        updateAllEventsBulkBar();
+
+        try {
+          const eventsCol = collection(db, "events");
+          const snapshot = await getDocs(eventsCol);
+
+          let rawEvents = [];
+          snapshot.forEach((docSnap) => {
+            rawEvents.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // Sort in-memory by submittedAt desc
+          rawEvents.sort((a, b) => {
+            const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+            const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          // Dynamically populate excel filenames, venues, and audiences dropdown filters from raw events
+          const uniqueExcelFiles = new Set();
+          const uniqueVenues = new Set();
+          const uniqueAudiences = new Set();
+          const uniqueTypes = new Set();
+
+          rawEvents.forEach((e) => {
+            if (e.excelFilename) uniqueExcelFiles.add(e.excelFilename);
+            if (e.venue) uniqueVenues.add(e.venue);
+            if (e.audience) uniqueAudiences.add(e.audience);
+            if (e.type) uniqueTypes.add(e.type);
+          });
+
+          populateFilterDropdown(adminEventsExcel, uniqueExcelFiles, "All Excel Files");
+          populateFilterDropdown(adminEventsVenue, uniqueVenues, "All Venues");
+          populateFilterDropdown(adminEventsAudience, uniqueAudiences, "All Audiences");
+          populateFilterDropdown(adminEventsType, uniqueTypes, "All Types");
+
+          // Apply client-side multi-field filters
+          let events = [...rawEvents];
+          const searchQuery = adminEventsSearch.value.trim().toLowerCase();
+          const categoryFilter = adminEventsCategory.value;
+          const excelFilter = adminEventsExcel.value;
+          const venueFilter = adminEventsVenue.value;
+          const audienceFilter = adminEventsAudience.value;
+          const typeFilter = adminEventsType ? adminEventsType.value : "";
+          const startDateFilter = adminEventsStartDate ? adminEventsStartDate.value : "";
+          const endDateFilter = adminEventsEndDate ? adminEventsEndDate.value : "";
+          const startTimeFilter = adminEventsStartTime ? adminEventsStartTime.value.trim().toLowerCase() : "";
+          const endTimeFilter = adminEventsEndTime ? adminEventsEndTime.value.trim().toLowerCase() : "";
+          const contactFilter = adminEventsContact ? adminEventsContact.value.trim().toLowerCase() : "";
+          const contactPersonFilter = adminEventsContactPerson ? adminEventsContactPerson.value.trim().toLowerCase() : "";
+          const emailFilter = adminEventsEmail ? adminEventsEmail.value.trim().toLowerCase() : "";
+          const costFilter = adminEventsCost ? adminEventsCost.value.trim().toLowerCase() : "";
+
+          if (categoryFilter) {
+            events = events.filter((e) => e.category === categoryFilter);
+          }
+          if (excelFilter) {
+            if (excelFilter === "form") {
+              events = events.filter((e) => !e.excelFilename);
+            } else {
+              events = events.filter((e) => e.excelFilename === excelFilter);
+            }
+          }
+          if (venueFilter) {
+            events = events.filter((e) => e.venue === venueFilter);
+          }
+          if (audienceFilter) {
+            events = events.filter((e) => e.audience === audienceFilter);
+          }
+          if (typeFilter) {
+            events = events.filter((e) => e.type === typeFilter);
+          }
+          if (startDateFilter || endDateFilter) {
+            events = events.filter((e) => {
+              const eventStart = getEventStartDate(e);
+              const eventEnd = getEventEndDate(e);
+              if (!eventStart) return false;
+
+              if (startDateFilter && endDateFilter) {
+                const eStart = eventStart;
+                const eEnd = eventEnd || eventStart;
+                return (eStart <= endDateFilter && eEnd >= startDateFilter);
+              } else if (startDateFilter) {
+                const eEnd = eventEnd || eventStart;
+                return (eEnd >= startDateFilter);
+              } else if (endDateFilter) {
+                return (eventStart <= endDateFilter);
+              }
+              return true;
+            });
+          }
+          if (startTimeFilter) {
+            events = events.filter((e) => {
+              const startVal = getEventStartTime(e);
+              return startVal.includes(startTimeFilter);
+            });
+          }
+          if (endTimeFilter) {
+            events = events.filter((e) => {
+              const endVal = getEventEndTime(e);
+              return endVal.includes(endTimeFilter);
+            });
+          }
+          if (contactFilter) {
+            events = events.filter((e) => {
+              const contactVal = ((e.contact || "") + " " + (e.whatsapp || "") + " " + (e.originalHeaders?.contactPhoneWhatsApp || "")).toLowerCase();
+              return contactVal.includes(contactFilter);
+            });
+          }
+          if (contactPersonFilter) {
+            events = events.filter((e) => {
+              const personVal = ((e.contactPerson || "") + " " + (e.originalHeaders?.contactPersonUnit || "")).toLowerCase();
+              return personVal.includes(contactPersonFilter);
+            });
+          }
+          if (emailFilter) {
+            events = events.filter((e) => {
+              const emailVal = ((e.email || "") + " " + (e.originalHeaders?.contactEmail || "")).toLowerCase();
+              return emailVal.includes(emailFilter);
+            });
+          }
+          if (costFilter) {
+            events = events.filter((e) => {
+              const costVal = ((e.cost || "") + " " + (e.originalHeaders?.costContribution || "")).toLowerCase();
+              return costVal.includes(costFilter);
+            });
+          }
+
+          if (searchQuery) {
+            events = events.filter((e) => {
+              return (
+                (e.title || "").toLowerCase().includes(searchQuery) ||
+                (e.description || "").toLowerCase().includes(searchQuery) ||
+                (e.venue || "").toLowerCase().includes(searchQuery) ||
+                (e.category || "").toLowerCase().includes(searchQuery) ||
+                (e.type || "").toLowerCase().includes(searchQuery) ||
+                (e.audience || "").toLowerCase().includes(searchQuery) ||
+                (e.contactPerson || "").toLowerCase().includes(searchQuery) ||
+                (e.contact || "").toLowerCase().includes(searchQuery) ||
+                (e.whatsapp || "").toLowerCase().includes(searchQuery) ||
+                (e.email || "").toLowerCase().includes(searchQuery) ||
+                (e.excelFilename || "").toLowerCase().includes(searchQuery) ||
+                (e.submittedBy || "").toLowerCase().includes(searchQuery)
+              );
+            });
+          }
+
+          // Auto-select filtered events if any filter is active
+          const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
+          if (isFilterActive) {
+            selectedAllEvents.clear();
+            events.forEach((ev) => {
+              selectedAllEvents.add(ev.id);
+            });
+            if (chkAllEventsAll) {
+              chkAllEventsAll.checked = (events.length > 0);
+            }
+          }
+          updateAllEventsBulkBar();
+
+          allEventsLoading.style.display = "none";
+
+          if (events.length === 0) {
+            allEventsTbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
+            allEventsTableWrapper.style.display = "block";
+            return;
+          }
+
+          events.forEach((ev) => {
+            const tr = document.createElement("tr");
+            tr.setAttribute("data-id", ev.id);
+            tr.style.cursor = "pointer";
+
+            let scheduleStr = ev.dates || "";
+            if (ev.scheduleType === "recurring") {
+              scheduleStr = `${ev.days || ""} at ${ev.times || ""}`;
+            }
+
+            const submitter = ev.submittedBy || "Anonymous";
+            const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
+
+            tr.innerHTML = `
+              <td style="text-align: center;" onclick="event.stopPropagation();">
+                <input type="checkbox" class="chk-all-event" data-id="${ev.id}" ${selectedAllEvents.has(ev.id) ? "checked" : ""} />
+              </td>
+              <td style="font-weight: 500;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <span class="chevron-icon" style="transition: transform 0.2s; display: inline-block; font-size: 0.75rem; color: var(--text-secondary);">▶</span>
+                  <span>${ev.title || "Untitled"}</span>
+                </div>
+              </td>
+              <td><span class="badge badge-info">${ev.category || "General"}</span></td>
+              <td>${scheduleStr || "N/A"}</td>
+              <td>${ev.venue || "N/A"}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
+              <td style="white-space: nowrap;" onclick="event.stopPropagation();">
+                <button class="btn btn-secondary btn-toggle-details" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: rgba(11, 87, 208, 0.08); color: var(--accent); cursor: pointer; margin-right: 0.25rem; font-weight: 500;">Details</button>
+                <button class="btn btn-secondary btn-edit-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
+                <button class="btn-danger btn-delete-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
+              </td>
+            `;
+            allEventsTbody.appendChild(tr);
+
+            // Append collapsible details row
+            const detailsTr = document.createElement("tr");
+            detailsTr.id = `details-all-${ev.id}`;
+            detailsTr.style.display = "none";
+            detailsTr.style.background = "rgba(11, 87, 208, 0.015)";
+
+            // Format website links list
+            const linksHtml = (ev.websiteLinks && ev.websiteLinks.length > 0) 
+              ? ev.websiteLinks.map(l => `<a href="${l}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size:0.8rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l}</a>`).join('')
+              : (ev.website ? `<a href="${ev.website}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size:0.8rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${ev.website}</a>` : "None");
+
+            // Format media links
+            const mediaHtml = (ev.mediaUrls && ev.mediaUrls.length > 0)
+              ? ev.mediaUrls.map((m, i) => {
+                  const filename = m.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
+                  const decoded = decodeURIComponent(filename);
+                  return `<a href="${m}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem; margin-bottom: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>${decoded || 'File ' + (i+1)}</a>`;
+                }).join('')
+              : (ev.posterUrl ? `<a href="${ev.posterUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Poster File</a>` : "None");
+
+            detailsTr.innerHTML = `
+              <td colspan="8" style="padding: 1rem 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                  
+                  <!-- Column 1: General & Schedule -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      General &amp; Schedule
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Type:</strong> ${ev.type || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Category:</strong> ${ev.category || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Schedule Type:</strong> ${ev.scheduleType || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Dates / Days:</strong> ${ev.dates || ev.days || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Target Audience:</strong> ${ev.audience || "All"}</div>
+                  </div>
+
+                  <!-- Column 2: Contact Info -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      Contact &amp; Links
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Person:</strong> ${ev.contactPerson || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Phone:</strong> ${ev.contact || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">WhatsApp:</strong> ${ev.whatsapp || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contact Email:</strong> ${ev.email || "N/A"}</div>
+                    <div style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.website || ''}">
+                      <strong style="color: var(--text-secondary);">Website:</strong> 
+                      ${ev.website ? `<a href="${ev.website}" target="_blank" style="color: var(--accent); text-decoration: underline;">${ev.website}</a>` : "None"}
+                    </div>
+                    <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.15rem;">
+                      <strong style="color: var(--text-secondary);">All Links:</strong>
+                      ${linksHtml}
+                    </div>
+                  </div>
+
+                  <!-- Column 3: Source, Media & Details -->
+                  <div style="display: flex; flex-direction: column; gap: 0.5rem; grid-column: span 1;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--accent); font-size: 0.95rem; border-bottom: 1px solid var(--border); padding-bottom: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                      Metadata &amp; Media
+                    </h4>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Source Excel:</strong> <span style="font-family: monospace; font-size: 0.8rem; background: rgba(11,87,208,0.06); padding: 0.1rem 0.3rem; border-radius: 4px; color: var(--accent);">${ev.excelFilename || "Form Submission"}</span></div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Submitted By:</strong> ${ev.submittedBy || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Submitted At:</strong> ${ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A"}</div>
+                    ${ev.updatedAt ? `<div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Updated At:</strong> ${new Date(ev.updatedAt).toLocaleString()}</div>` : ""}
+                    <div style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.25rem;">
+                      <strong style="color: var(--text-secondary);">Attached Media:</strong>
+                      ${mediaHtml}
+                    </div>
+                  </div>
+
+                  <!-- Full-width Description -->
+                  <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.25rem; border-top: 1px dashed var(--border); padding-top: 0.75rem;">
+                    <strong style="font-size: 0.85rem; color: var(--text-secondary);">Description:</strong>
+                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || "No description provided."}</div>
+                  </div>
+
+                </div>
+              </td>
+            `;
+            allEventsTbody.appendChild(detailsTr);
+
+            // Toggle function
+            const toggleDetails = () => {
+              const isHidden = detailsTr.style.display === "none";
+              detailsTr.style.display = isHidden ? "table-row" : "none";
+              const chevron = tr.querySelector(".chevron-icon");
+              if (chevron) {
+                chevron.textContent = isHidden ? "▼" : "▶";
+                chevron.style.color = isHidden ? "var(--accent)" : "var(--text-secondary)";
+              }
+            };
+
+            tr.onclick = toggleDetails;
+            const toggleBtn = tr.querySelector(".btn-toggle-details");
+            if (toggleBtn) {
+              toggleBtn.onclick = (e) => {
+                e.stopPropagation();
+                toggleDetails();
+              };
+            }
+          });
+
+          // Bind row checkboxes selection
+          const rowCheckboxes = allEventsTbody.querySelectorAll(".chk-all-event");
+          rowCheckboxes.forEach((chk) => {
+            chk.onchange = (e) => {
+              e.stopPropagation();
+              const docId = e.target.getAttribute("data-id");
+              if (e.target.checked) {
+                selectedAllEvents.add(docId);
+              } else {
+                selectedAllEvents.delete(docId);
+              }
+              
+              // Update master checkbox state
+              const allChecked = Array.from(rowCheckboxes).every(c => c.checked);
+              if (chkAllEventsAll) chkAllEventsAll.checked = allChecked;
+              
+              updateAllEventsBulkBar();
+            };
+          });
+
+          // Master checkbox trigger
+          if (chkAllEventsAll) {
+            chkAllEventsAll.onchange = (e) => {
+              const checked = e.target.checked;
+              rowCheckboxes.forEach((chk) => {
+                chk.checked = checked;
+                const docId = chk.getAttribute("data-id");
+                if (checked) {
+                  selectedAllEvents.add(docId);
+                } else {
+                  selectedAllEvents.delete(docId);
+                }
+              });
+              updateAllEventsBulkBar();
+            };
+          }
+
+          // Bind single edit actions
+          allEventsTbody.querySelectorAll(".btn-edit-all-event").forEach((btn) => {
+            btn.onclick = (e) => {
+              e.stopPropagation();
+              const docId = e.target.getAttribute("data-id");
+              const targetEv = events.find((item) => item.id === docId);
+              if (targetEv) {
+                startEditEvent(targetEv);
+              }
+            };
+          });
+
+          // Bind single delete actions
+          allEventsTbody.querySelectorAll(".btn-delete-all-event").forEach((btn) => {
+            btn.onclick = async (e) => {
+              e.stopPropagation();
+              const docId = e.target.getAttribute("data-id");
+              if (confirm("Are you sure you want to delete this event from the master database? This action cannot be undone.")) {
+                try {
+                  await deleteDoc(doc(db, "events", docId));
+                  alert("Event deleted from master DB successfully!");
+                  loadAllDatabaseEvents();
+                  loadMyEvents();
+                } catch (err) {
+                  alert("Failed to delete event: " + err.message);
+                }
+              }
+            };
+          });
+
+          allEventsTableWrapper.style.display = "block";
+        } catch (error) {
+          console.error("Error loading master events:", error);
+          allEventsLoading.innerHTML = `<span style="color: red;">Error loading master events: ${error.message}</span>`;
+        }
+      }
+
+      // Bind Bulk Delete Button for All Events
+      btnAllEventsBulkDelete.onclick = async () => {
+        if (selectedAllEvents.size === 0) return;
+        const confirmMsg = `Are you sure you want to delete all ${selectedAllEvents.size} selected events from the master database? This action cannot be undone.`;
+        if (confirm(confirmMsg)) {
+          allEventsLoading.style.display = "block";
+          allEventsTableWrapper.style.display = "none";
+          try {
+            let docsDeleted = 0;
+            let currentBatch = writeBatch(db);
+            
+            for (const docId of selectedAllEvents) {
+              currentBatch.delete(doc(db, "events", docId));
+              docsDeleted++;
+              if (docsDeleted % 450 === 0) {
+                await currentBatch.commit();
+                currentBatch = writeBatch(db);
+              }
+            }
+            if (docsDeleted % 450 !== 0) {
+              await currentBatch.commit();
+            }
+
+            alert(`Successfully deleted ${docsDeleted} events from the master database.`);
+            selectedAllEvents.clear();
+            loadAllDatabaseEvents();
+            loadMyEvents();
+          } catch (err) {
+            alert("Failed to perform bulk deletion: " + err.message);
+            loadAllDatabaseEvents();
+          }
+        }
+      };
+
+      // Bind search/filter triggers
+      // Tab 1 (User Events)
+      if (myEventsSearch) myEventsSearch.oninput = () => loadMyEvents();
+      if (myEventsCategory) myEventsCategory.onchange = () => loadMyEvents();
+      if (myEventsExcel) myEventsExcel.onchange = () => loadMyEvents();
+      if (myEventsVenue) myEventsVenue.onchange = () => loadMyEvents();
+      if (myEventsAudience) myEventsAudience.onchange = () => loadMyEvents();
+      if (myEventsType) myEventsType.onchange = () => loadMyEvents();
+      if (myEventsStartDate) myEventsStartDate.oninput = () => loadMyEvents();
+      if (myEventsEndDate) myEventsEndDate.oninput = () => loadMyEvents();
+      if (myEventsStartTime) myEventsStartTime.oninput = () => loadMyEvents();
+      if (myEventsEndTime) myEventsEndTime.oninput = () => loadMyEvents();
+      if (myEventsContact) myEventsContact.oninput = () => loadMyEvents();
+      if (myEventsContactPerson) myEventsContactPerson.oninput = () => loadMyEvents();
+      if (myEventsEmail) myEventsEmail.oninput = () => loadMyEvents();
+      if (myEventsCost) myEventsCost.oninput = () => loadMyEvents();
+
+      // Tab 2 (Admin Events)
+      if (btnAdminEventsFilter) {
+        btnAdminEventsFilter.onclick = () => {
+          loadAllDatabaseEvents();
+        };
+      }
+      if (adminEventsSearch) adminEventsSearch.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsCategory) adminEventsCategory.onchange = () => loadAllDatabaseEvents();
+      if (adminEventsExcel) adminEventsExcel.onchange = () => loadAllDatabaseEvents();
+      if (adminEventsVenue) adminEventsVenue.onchange = () => loadAllDatabaseEvents();
+      if (adminEventsAudience) adminEventsAudience.onchange = () => loadAllDatabaseEvents();
+      if (adminEventsType) adminEventsType.onchange = () => loadAllDatabaseEvents();
+      if (adminEventsStartDate) adminEventsStartDate.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsEndDate) adminEventsEndDate.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsStartTime) adminEventsStartTime.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsEndTime) adminEventsEndTime.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsContact) adminEventsContact.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsContactPerson) adminEventsContactPerson.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsEmail) adminEventsEmail.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsCost) adminEventsCost.oninput = () => loadAllDatabaseEvents();
+
+      // Load All Knowledge PDFs (Admin Only)
+      async function loadAllKnowledgeDocs() {
+        if (!getCurrentUser()) return;
+        allKnowledgeLoading.style.display = "block";
+        allKnowledgeTableWrapper.style.display = "none";
+        allKnowledgeTbody.innerHTML = "";
+
+        try {
+          const knowledgeCol = collection(db, "knowledge");
+          const snapshot = await getDocs(knowledgeCol);
+
+          let docs = [];
+          snapshot.forEach((docSnap) => {
+            docs.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // Sort by uploadedAt desc
+          docs.sort((a, b) => {
+            const dateA = a.uploadedAt ? (a.uploadedAt.toDate ? a.uploadedAt.toDate().getTime() : new Date(a.uploadedAt).getTime()) : 0;
+            const dateB = b.uploadedAt ? (b.uploadedAt.toDate ? b.uploadedAt.toDate().getTime() : new Date(b.uploadedAt).getTime()) : 0;
+            return dateB - dateA;
+          });
+
+          allKnowledgeLoading.style.display = "none";
+
+          if (docs.length === 0) {
+            allKnowledgeTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic;">No knowledge PDF documents uploaded yet.</td></tr>`;
+            allKnowledgeTableWrapper.style.display = "block";
+            return;
+          }
+
+          docs.forEach((kDoc) => {
+            const tr = document.createElement("tr");
+
+            const uploadTime = kDoc.uploadedAt
+              ? (kDoc.uploadedAt.toDate ? kDoc.uploadedAt.toDate().toLocaleString() : new Date(kDoc.uploadedAt).toLocaleString())
+              : "N/A";
+
+            const uploader = kDoc.uploadedBy || "System";
+
+            tr.innerHTML = `
+              <td style="font-weight: 500;">📄 ${kDoc.filename || "Unnamed Document"}</td>
+              <td>${kDoc.text ? kDoc.text.length.toLocaleString() + " chars" : "0 chars"}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${uploader}">${uploader.length > 20 ? uploader.substring(0, 18) + "..." : uploader}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);">${uploadTime}</td>
+              <td>
+                <button class="btn-danger btn-delete-knowledge" data-id="${kDoc.id}">Delete</button>
+              </td>
+            `;
+            allKnowledgeTbody.appendChild(tr);
+          });
+
+          // Bind delete actions
+          allKnowledgeTbody.querySelectorAll(".btn-delete-knowledge").forEach((btn) => {
+            btn.onclick = async (e) => {
+              const docId = e.target.getAttribute("data-id");
+              if (confirm("Are you sure you want to remove this knowledge document from the AI base? This action cannot be undone.")) {
+                try {
+                  await deleteDoc(doc(db, "knowledge", docId));
+                  alert("Knowledge document deleted successfully!");
+                  loadAllKnowledgeDocs();
+                } catch (err) {
+                  alert("Failed to delete knowledge document: " + err.message);
+                }
+              }
+            };
+          });
+
+          allKnowledgeTableWrapper.style.display = "block";
+        } catch (error) {
+          console.error("Error loading knowledge documents:", error);
+          allKnowledgeLoading.innerHTML = `<span style="color: red;">Error loading knowledge documents: ${error.message}</span>`;
+        }
+      }
+
+      // Main reload trigger for everything
+      window.loadDashboard = function() {
+        if (!getCurrentUser()) return;
+        loadMyEvents();
+        if (dashboardIsAdmin) {
+          // If we are currently on those tabs, reload them too
+          if (tabAllEvents.classList.contains("active")) {
+            loadAllDatabaseEvents();
+          }
+          if (tabAllKnowledge.classList.contains("active")) {
+            loadAllKnowledgeDocs();
+          }
+        }
+      }
+
+      // Developer Bypass State management
+      let bypassUser = null;
+
+      function getCurrentUser() {
+        if (bypassUser) return bypassUser;
+        return auth.currentUser;
+      }
+
+      function updateAuthStateUI(user) {
+        if (user) {
+          loginSection.style.display = "none";
+          uploadSection.style.display = "flex";
+          dashboardSection.style.display = "flex";
+
+          // Show admin-only section for specific user
+          const adminOnlySection = document.getElementById("admin-only-section");
+          if (user.email === "info.experientialholidays@gmail.com") {
+            adminOnlySection.style.display = "flex";
+            userStatusDiv.innerHTML = `Admin: ${user.email} <span class="badge badge-admin" style="font-size: 0.7rem; margin-left: 0.5rem; background: #10b981; color: white; padding: 0.15rem 0.4rem; border-radius: 4px;">Developer Sandbox</span>`;
+            
+            // Setup Admin Dashboard
+            dashboardIsAdmin = true;
+            dashboardRoleBadge.innerHTML = "Admin Mode";
+            dashboardRoleBadge.className = "badge badge-admin";
+            dashboardTabsRow.style.display = "flex";
+          } else {
+            adminOnlySection.style.display = "none";
+            userStatusDiv.innerHTML = `User: ${user.email}`;
+            
+            // Setup User Dashboard
+            dashboardIsAdmin = false;
+            dashboardRoleBadge.innerHTML = "User Mode";
+            dashboardRoleBadge.className = "badge badge-user";
+            dashboardTabsRow.style.display = "none";
+          }
+
+          // Automatically default to my-events view
+          switchTab("my-events");
+
+          statusDiv.innerHTML = "";
+        } else {
+          loginSection.style.display = "flex";
+          uploadSection.style.display = "none";
+          dashboardSection.style.display = "none";
+        }
+      }
+
+      // Auth State Check
+      onAuthStateChanged(auth, (user) => {
+        if (!bypassUser) {
+          updateAuthStateUI(user);
+        }
+      });
+
+      // Developer Bypass Login trigger
+      document.getElementById("dev-bypass-login").onclick = () => {
+        sessionStorage.removeItem("logged_out");
+        bypassUser = {
+          email: "info.experientialholidays@gmail.com",
+          getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
+        };
+        sessionStorage.setItem("dev_bypass_logged_in", "true");
+        updateAuthStateUI(bypassUser);
+      };
+
+      // Check for persisted bypass login or perform automatic dev/preview auto-login on load
+      const isSandboxEnv = window.location.hostname.includes("run.app") || window.location.hostname.includes("localhost");
+      const hasBypassPersisted = sessionStorage.getItem("dev_bypass_logged_in") === "true";
+      const hasLoggedOutInSession = sessionStorage.getItem("logged_out") === "true";
+
+      if (hasBypassPersisted || (isSandboxEnv && !hasLoggedOutInSession)) {
+        bypassUser = {
+          email: "info.experientialholidays@gmail.com",
+          getIdToken: async () => "DEV_BYPASS_TOKEN_info.experientialholidays@gmail.com"
+        };
+        sessionStorage.setItem("dev_bypass_logged_in", "true");
+        setTimeout(() => {
+          updateAuthStateUI(bypassUser);
+        }, 150);
+      }
+
+      document.getElementById("google-login").onclick = () => {
+        sessionStorage.removeItem("logged_out");
+        errorMsg.innerHTML = "";
+        const provider = new GoogleAuthProvider();
+        signInWithPopup(auth, provider).catch((err) => {
+          console.error(err);
+          const errCode = err.code || "";
+          const errMsg = err.message || "";
+          
+          if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
+            errorMsg.innerHTML = `
+              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
+                <strong>❌ Unauthorized Domain Error:</strong><br>
+                Firebase blocks logins from unauthorized domains.<br><br>
+                Please add <strong>${window.location.hostname}</strong> to your authorized domains in the Firebase Console:
+                <ol style="margin: 0.5rem 0 0 1rem; padding-left: 0.5rem;">
+                  <li>Go to the <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers" target="_blank" style="color: var(--accent); text-decoration: underline;">Firebase Console</a></li>
+                  <li>Click on the <strong>Settings</strong> tab under Authentication.</li>
+                  <li>In the left sidebar, click <strong>Authorized domains</strong>.</li>
+                  <li>Click <strong>Add domain</strong> and enter <strong>${window.location.hostname}</strong></li>
+                </ol>
+              </div>
+            `;
+          } else if (errCode === "auth/popup-blocked" || errMsg.includes("popup-blocked") || errMsg.includes("popup blocked")) {
+            errorMsg.innerHTML = `
+              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
+                <strong>⚠️ Popup Blocked:</strong><br>
+                Your browser blocked the sign-in popup. Please allow popups for this site, or open this application in a <strong>new tab</strong> to log in successfully.
+              </div>
+            `;
+          } else if (err.message.includes("API key")) {
+            errorMsg.innerText = "Configuration Error: Please update the apiKey in submit.html.";
+          } else {
+            errorMsg.innerText = "Login failed: " + err.message + " (Code: " + errCode + ")";
+          }
+        });
+      };
+
+      document.getElementById("apple-login").onclick = () => {
+        sessionStorage.removeItem("logged_out");
+        errorMsg.innerHTML = "";
+        const provider = new OAuthProvider("apple.com");
+        signInWithPopup(auth, provider).catch((err) => {
+          console.error(err);
+          const errCode = err.code || "";
+          const errMsg = err.message || "";
+          
+          if (errCode === "auth/unauthorized-domain" || errMsg.includes("unauthorized-domain") || errMsg.includes("unauthorized domain")) {
+            errorMsg.innerHTML = `
+              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
+                <strong>❌ Unauthorized Domain Error:</strong><br>
+                Firebase blocks logins from unauthorized domains.<br><br>
+                Please add <strong>${window.location.hostname}</strong> to your authorized domains in the Firebase Console:
+                <ol style="margin: 0.5rem 0 0 1rem; padding-left: 0.5rem;">
+                  <li>Go to the <a href="https://console.firebase.google.com/project/${firebaseConfig.projectId}/authentication/providers" target="_blank" style="color: var(--accent); text-decoration: underline;">Firebase Console</a></li>
+                  <li>Click on the <strong>Settings</strong> tab under Authentication.</li>
+                  <li>In the left sidebar, click <strong>Authorized domains</strong>.</li>
+                  <li>Click <strong>Add domain</strong> and enter <strong>${window.location.hostname}</strong></li>
+                </ol>
+              </div>
+            `;
+          } else if (errCode === "auth/popup-blocked" || errMsg.includes("popup-blocked") || errMsg.includes("popup blocked")) {
+            errorMsg.innerHTML = `
+              <div style="background: rgba(220, 38, 38, 0.08); border: 1px solid rgba(220, 38, 38, 0.2); padding: 1rem; border-radius: 8px; color: #dc2626; text-align: left; margin-top: 0.5rem; line-height: 1.4;">
+                <strong>⚠️ Popup Blocked:</strong><br>
+                Your browser blocked the sign-in popup. Please allow popups for this site, or open this application in a <strong>new tab</strong> to log in successfully.
+              </div>
+            `;
+          } else if (err.message.includes("API key")) {
+            errorMsg.innerText = "Configuration Error: Please update the apiKey in submit.html.";
+          } else {
+            errorMsg.innerText = "Login failed: " + err.message + " (Code: " + errCode + ")";
+          }
+        });
+      };
+
+      document.getElementById("logout-btn").onclick = () => {
+        bypassUser = null;
+        sessionStorage.removeItem("dev_bypass_logged_in");
+        sessionStorage.setItem("logged_out", "true");
+        updateAuthStateUI(null);
+        signOut(auth);
+      };
+
+      document.getElementById("upload-btn").onclick = async () => {
+        const fileInput = document.getElementById("excel-file");
+        if (!fileInput.files.length) {
+          statusDiv.innerHTML = `<span style="color: red;">Please select an excel file first.</span>`;
+          return;
+        }
+
+        const file = fileInput.files[0];
+        statusDiv.innerHTML = "Processing and uploading...";
+
+        try {
+          const currentUser = getCurrentUser();
+          if (!currentUser) {
+            statusDiv.innerHTML = `❌ <span style="color:red;">You must be logged in to upload.</span>`;
+            return;
+          }
+
+          let token;
+          try {
+            token = await currentUser.getIdToken();
+          } catch (tokenErr) {
+            statusDiv.innerHTML = `❌ <span style="color:red;">Firebase authentication token error: ${tokenErr.message}. Try logging out and logging in again.</span>`;
+            return;
+          }
+
+          // Workaround for Chrome on Android "Google Drive" fetch bug
+          statusDiv.innerHTML = "Reading file...";
+          let blob;
+          try {
+            const buffer = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsArrayBuffer(file);
+            });
+            blob = new Blob([buffer], { type: file.type });
+          } catch (err) {
+            statusDiv.innerHTML = `❌ <span style="color:red;">Could not read file from your device. Please try downloading it locally first.</span>`;
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("token", token);
+          formData.append("file", blob, file.name || "upload.xlsx");
+
+          statusDiv.innerHTML = "Processing and parsing on server...";
+          const response = await fetch("/api/upload_events", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            statusDiv.innerHTML = "Server parsed successfully. Writing to database...";
+            try {
+              let docsCreated = 0;
+              let currentBatch = writeBatch(db);
+              const eventsArray = result.data;
+              
+              const currentUser = getCurrentUser();
+              for (const ev of eventsArray) {
+                const newDocRef = doc(collection(db, "events"));
+                ev.submittedBy = currentUser ? currentUser.email : "";
+                ev.submittedAt = new Date().toISOString();
+                currentBatch.set(newDocRef, ev);
+                docsCreated++;
+                
+                if (docsCreated % 450 === 0) {
+                  await currentBatch.commit();
+                  currentBatch = writeBatch(db);
+                }
+              }
+              if (docsCreated % 450 !== 0) {
+                await currentBatch.commit();
+              }
+              
+              statusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully inserted ${docsCreated} events to Firestore!</span>`;
+              fileInput.value = ""; // clear after success
+              if (window.loadDashboard) window.loadDashboard();
+            } catch (fsErr) {
+              statusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
+            }
+          } else {
+            statusDiv.innerHTML = `❌ <span style="color:red;">Parse failed: ${result.detail || result.message}</span>`;
+          }
+        } catch (error) {
+          statusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during upload: ${error.message}</span>`;
+        }
+      };
+
+      const pdfStatusDiv = document.getElementById("pdf-status");
+      document.getElementById("upload-pdf-btn").onclick = async () => {
+        const fileInput = document.getElementById("pdf-file");
+        if (!fileInput.files.length) {
+          pdfStatusDiv.innerHTML = `<span style="color: red;">Please select a PDF file first.</span>`;
+          return;
+        }
+
+        const file = fileInput.files[0];
+        pdfStatusDiv.innerHTML =
+          "Extracting text and uploading... (may take a minute for large PDFs)";
+
+        try {
+          const currentUser = getCurrentUser();
+          if (!currentUser) {
+            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">You must be logged in to upload.</span>`;
+            return;
+          }
+
+          let token;
+          try {
+            token = await currentUser.getIdToken();
+          } catch (tokenErr) {
+            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Firebase authentication token error: ${tokenErr.message}. Try logging out and logging in again.</span>`;
+            return;
+          }
+
+          // Workaround for Chrome on Android "Google Drive" fetch bug
+          pdfStatusDiv.innerHTML = "Reading file from device...";
+          let blob;
+          try {
+            const buffer = await new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsArrayBuffer(file);
+            });
+            blob = new Blob([buffer], { type: file.type });
+          } catch (err) {
+            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Could not read file from your device. Please try downloading it locally first.</span>`;
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("token", token);
+          formData.append("file", blob, file.name || "knowledge.pdf");
+
+          pdfStatusDiv.innerHTML =
+            "Extracting text on server... (may take a minute for large PDFs)";
+          const response = await fetch("/api/upload_knowledge", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (response.ok) {
+            pdfStatusDiv.innerHTML = "Text extracted and embedded. Writing chunks to database...";
+            try {
+              const currentUser = getCurrentUser();
+              const batch = writeBatch(db);
+              let chunkCount = 0;
+              for (const chunk of result.chunks) {
+                const newDocRef = doc(collection(db, "knowledge"));
+                batch.set(newDocRef, {
+                   filename: result.filename,
+                   text: chunk.text,
+                   embeddingVector: chunk.embeddingVector,
+                   uploadedAt: serverTimestamp(),
+                   uploadedBy: currentUser ? currentUser.email : ""
+                });
+                chunkCount++;
+              }
+              await batch.commit();
+              
+              pdfStatusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully uploaded knowledge document: ${result.filename}. It was split into ${chunkCount} chunks. Total chars: ${result.fullTextLength}</span>`;
+              fileInput.value = ""; // clear after success
+              if (window.loadDashboard) window.loadDashboard();
+            } catch (fsErr) {
+              pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
+            }
+          } else {
+            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Parse failed: ${result.detail || result.message}</span>`;
+          }
+        } catch (error) {
+          pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during upload: ${error.message}</span>`;
+        }
+      };
+
+      const singleEventForm = document.getElementById("single-event-form");
+      const singleEventStatus = document.getElementById("single-event-status");
+
+      singleEventForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        singleEventStatus.innerHTML =
+          '<span style="color:var(--text-secondary)">Processing submission...</span>';
+
+        try {
+          const currentUser = getCurrentUser();
+          if (!currentUser) {
+            singleEventStatus.innerHTML = `❌ <span style="color:red;">You must be logged in to submit an event.</span>`;
+            return;
+          }
+          let token;
+          try {
+            token = await currentUser.getIdToken();
+          } catch (tokenErr) {
+            singleEventStatus.innerHTML = `❌ <span style="color:red;">Firebase authentication token error: ${tokenErr.message}. Try logging out and logging in again.</span>`;
+            return;
+          }
+
+          // Gather Media Files
+          const mediaInputs = document.querySelectorAll(".ev-media");
+          const mediaFiles = [];
+          mediaInputs.forEach((inp) => {
+            if (inp.files.length > 0) {
+              mediaFiles.push(inp.files[0]);
+            }
+          });
+
+          if (mediaFiles.length > 5) {
+            singleEventStatus.innerHTML = `❌ <span style="color:red;">Max 5 media files allowed.</span>`;
+            return;
+          }
+
+          const uploadedMediaUrls = [];
+          for (let file of mediaFiles) {
+            if (file.size > 10 * 1024 * 1024) {
+              singleEventStatus.innerHTML = `❌ <span style="color:red;">File ${file.name} exceeds 10MB size limit.</span>`;
+              return;
+            }
+          }
+
+          if (mediaFiles.length > 0) {
+            singleEventStatus.innerHTML =
+              '<span style="color:var(--text-secondary)">Uploading media files to storage...</span>';
+            for (let file of mediaFiles) {
+              try {
+                const newRef = storageRef(
+                  storage,
+                  `event-media/${Date.now()}_${file.name}`,
+                );
+                await uploadBytes(newRef, file);
+                const downloadUrl = await getDownloadURL(newRef);
+                uploadedMediaUrls.push(downloadUrl);
+              } catch (uploadErr) {
+                console.error("Storage Upload Error:", uploadErr);
+                // If Storage is not enabled or permission denied,
+                // we show warning, but might still save event without media
+                singleEventStatus.innerHTML = `❌ <span style="color:red;">Failed to upload ${file.name}. Ensure Firebase Storage is enabled in Console. Error: ${uploadErr.message}</span>`;
+                return;
+              }
+            }
+          }
+
+          // Gather logic
+          const scheduleType = document.querySelector(
+            'input[name="ev-schedule-type"]:checked',
+          ).value;
+          let category = "Date-specific Events";
+          let dates = "";
+          let days = "";
+
+          if (scheduleType === "one-time") {
+            const startDt = document.getElementById("ev-start-date").value;
+            const endDt = document.getElementById("ev-end-date").value;
+
+            dates =
+              startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
+
+            if (startDt && endDt) {
+              const sDt = new Date(startDt);
+              const eDt = new Date(endDt);
+              const diffTime = Math.abs(eDt - sDt);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              if (diffDays > 8) {
+                category = "Daily Events";
+                days = diffDays + " days total";
+              }
+            }
+          } else {
+            const checkedWeekdays = Array.from(
+              document.querySelectorAll('input[name="ev-weekdays"]:checked'),
+            ).map((cb) => cb.value);
+            days = checkedWeekdays.join(", ");
+
+            if (checkedWeekdays.length > 5) {
+              category = "Daily Events";
+            } else if (checkedWeekdays.length > 0) {
+              category = "Weekly Events";
+            }
+          }
+
+          let startTime = document.getElementById("ev-start-time").value;
+          let endTime = document.getElementById("ev-end-time").value;
+
+          if (startTime && !endTime) {
+            try {
+              const parts = startTime.split(":");
+              if (parts.length >= 2) {
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1], 10);
+                if (!isNaN(h) && !isNaN(m)) {
+                  const eh = (h + 1) % 24;
+                  endTime = `${eh.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+                }
+              }
+            } catch (e) {
+              console.error("Error calculating end time", e);
+            }
+          }
+
+          const times = startTime + (endTime ? " - " + endTime : "");
+
+          const linkInputs = document.querySelectorAll(".ev-link");
+          const links = Array.from(linkInputs)
+            .map((inp) => inp.value)
+            .filter((val) => val.trim() !== "");
+
+          const contactValue = document.getElementById("ev-contact-code").value + " " + document.getElementById("ev-contact").value;
+          const whatsappValue = document.getElementById("ev-whatsapp-code").value + " " + document.getElementById("ev-whatsapp").value;
+          const firstLink = links[0] || "";
+          const firstMedia = uploadedMediaUrls[0] || "";
+
+          const eventData = {
+            title: document.getElementById("ev-title").value,
+            type: document.getElementById("ev-type").value,
+            category: category,
+            scheduleType: scheduleType,
+            
+            dates: dates,
+            days: days,
+            times: times,
+            startDate: scheduleType === "one-time" ? document.getElementById("ev-start-date").value : "",
+            endDate: scheduleType === "one-time" ? document.getElementById("ev-end-date").value : "",
+            startTime: startTime,
+            endTime: endTime,
+            
+            venue: document.getElementById("ev-venue").value,
+            cost: document.getElementById("ev-cost").value,
+            audience: document.getElementById("ev-audience").value,
+            contactPerson: document.getElementById("ev-contact-person")
+              ? document.getElementById("ev-contact-person").value
+              : "",
+            contact: contactValue,
+            whatsapp: whatsappValue,
+            email: document.getElementById("ev-email").value,
+            
+            website: firstLink,
+            websiteLinks: links,
+            
+            posterUrl: (existingMediaUrls.length > 0 || uploadedMediaUrls.length > 0) ? (existingMediaUrls[0] || uploadedMediaUrls[0]) : "",
+            mediaUrls: [...existingMediaUrls, ...uploadedMediaUrls],
+            
+            excelFilename: document.getElementById("ev-excel-filename") ? document.getElementById("ev-excel-filename").value.trim() : "",
+            
+            description: document.getElementById("ev-desc").value
+          };
+
+          singleEventStatus.innerHTML =
+            `<span style="color:var(--text-secondary)">Generating semantic search vector...</span>`;
+          
+          try {
+              // Generate embedding before saving
+              const textToEmbed = `${eventData.title || ''} ${eventData.description || ''} ${eventData.category || ''} ${eventData.type || ''} ${eventData.venue || ''} ${eventData.days || ''} ${eventData.cost || ''} ${eventData.audience || ''} ${eventData.contactPerson || ''} ${eventData.contact || ''} ${eventData.email || ''}`.replace(/\s+/g, " ").trim();
+              const embedRes = await fetch("/api/embed", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ text: textToEmbed })
+              });
+              
+              if (embedRes.ok) {
+                  const embedData = await embedRes.json();
+                  if (embedData.embedding && embedData.embedding.length > 0) {
+                      eventData.embeddingVector = vector(embedData.embedding);
+                  }
+              }
+          } catch (embedError) {
+              console.warn("Failed to generate embedding", embedError);
+          }
+
+          singleEventStatus.innerHTML =
+            `<span style="color:var(--text-secondary)">${editingEventId ? 'Updating' : 'Submitting'} event data...</span>`;
+
+          try {
+            if (editingEventId) {
+              eventData.updatedAt = new Date().toISOString();
+              await setDoc(doc(db, "events", editingEventId), eventData, { merge: true });
+              
+              singleEventStatus.innerHTML = `✅ <span style="color:var(--text);">Successfully updated event.</span>`;
+              exitEditMode();
+            } else {
+              const currentUser = getCurrentUser();
+              eventData.submittedBy = currentUser ? currentUser.email : "";
+              eventData.submittedAt = new Date().toISOString();
+              
+              await addDoc(collection(db, "events"), eventData);
+              
+              singleEventStatus.innerHTML = `✅ <span style="color:var(--text);">Successfully submitted event.</span>`;
+              singleEventForm.reset();
+              // Reset custom views manually
+              oneTimeContainer.style.display = "flex";
+              recurringContainer.style.display = "none";
+              document.getElementById("links-container").innerHTML =
+                '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+              document.getElementById("media-container").innerHTML =
+                '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+            }
+            if (window.loadDashboard) window.loadDashboard();
+          } catch (error) {
+            singleEventStatus.innerHTML = `❌ <span style="color:red;">Error: ${error.message}</span>`;
+          }
+        } catch (error) {
+          singleEventStatus.innerHTML = `❌ <span style="color:red;">Network or server error submitting event: ${error.message}</span>`;
+        }
+      });
+    </script>
+  </body>
+</html>

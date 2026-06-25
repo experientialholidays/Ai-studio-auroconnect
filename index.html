@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>AuroConnect | AI Assistant for Auroville Events</title>
+    <meta name="description" content="AuroConnect is an AI-powered chatbot assistant helping you discover daily events, workshops, and happenings in Auroville. Ask questions and stay connected.">
+    <meta name="keywords" content="Auroville, Auroville events, AuroConnect, Auroville chatbot, Auroville AI, happenings in Auroville, visit Auroville, Things to do in Auroville">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://auroconnect.info/">
+
+    <meta property="og:title" content="AuroConnect | Auroville AI Event Assistant">
+    <meta property="og:description" content="Discover daily events, workshops, and happenings in Auroville instantly with our AI assistant.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://auroconnect.info/">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-39E75ED7Q6"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-39E75ED7Q6');
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "AuroConnect",
+      "url": "https://yourdomain.com/",
+      "description": "AI-powered chatbot assistant for discovering events, workshops, and daily updates in Auroville.",
+      "applicationCategory": "LifestyleApplication",
+      "operatingSystem": "All"
+    }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+    :root { 
+        --accent: #0b57d0; 
+        --bg: #f8f9fa; 
+        --surface: #ffffff;
+        --text: #1f1f1f;
+        --text-secondary: #444444;
+        --border: #ddd;
+        --user-msg-bg: #e9eef6;
+        --input-border: #dfe1e5;
+        --shadow: rgba(0,0,0,0.05);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #000000; 
+            --surface: #1e1e1e; 
+            --text: #f1f3f4; 
+            --text-secondary: #bdc1c6; 
+            --border: #3c4043;
+            --user-msg-bg: #1a73e8; 
+            --accent: #8ab4f8; 
+            --input-border: #5f6368;
+            --shadow: rgba(0,0,0,0.5);
+        }
+        .user { color: #ffffff !important; }
+        .bot a, #modal-body a { 
+            color: #8ab4f8 !important; 
+            text-decoration: underline !important; 
+            text-underline-offset: 4px;
+            font-weight: bold; 
+        }
+    }
+
+    html { font-size: 100%; }
+
+    body { 
+        margin: 0; 
+        font-family: 'Segoe UI', Roboto, sans-serif; 
+        background: var(--bg); 
+        color: var(--text);
+        display: flex; 
+        flex-direction: column; 
+        height: 100vh; 
+        
+        /* Stop selection/zoom bugs */
+        -webkit-text-size-adjust: 100%;
+        touch-action: pan-y;
+        overscroll-behavior: none;
+    }
+    
+    .header { 
+        background: var(--surface); 
+        padding: 1rem 1.875rem; 
+        border-bottom: 0.0625rem solid var(--border); 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+    }
+    
+    .header-title-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .header h1 { margin: 0; font-size: 1.375rem; color: var(--text); line-height: 1; }
+
+    .coffee-link {
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+        font-weight: 500; 
+        font-size: 0.9rem; 
+        display: inline-block;
+    }
+
+    #chat-window { 
+        flex: 1; 
+        overflow-y: auto; 
+        padding: 1.25rem 5%; 
+        display: flex; 
+        flex-direction: column; 
+        gap: 1.25rem; 
+    }
+    
+    .msg { max-width: 95%; line-height: 1.6; }
+    
+    .user { 
+        align-self: flex-end; 
+        background: var(--user-msg-bg); 
+        border-radius: 1.125rem; 
+        padding: 0.4rem 0.8rem; 
+        max-width: 80%; 
+        width: fit-content; 
+        word-wrap: break-word;
+        box-shadow: 0 1px 2px var(--shadow);
+        color: var(--text);
+    }
+
+    .bot { align-self: flex-start; width: 100%; color: var(--text); }
+    .bot p { margin-top: 0; }
+    .bot a { 
+        color: var(--accent); 
+        font-weight: 600; 
+        text-decoration: underline; 
+        text-underline-offset: 4px;
+    }
+
+    /* COMPACT FOOTER NAVIGATION */
+    .footer-nav { 
+        text-align: center; 
+        padding: 0.5rem 0.9375rem 0.2rem 0.9375rem; 
+        background: var(--bg); 
+        border-top: 0.0625rem solid var(--border); 
+        display: flex; 
+        justify-content: center; 
+        gap: 0.5rem; 
+        flex-wrap: wrap;
+    }
+    .footer-nav a { 
+        color: var(--accent); 
+        text-decoration: none; 
+        font-weight: 600; 
+        font-size: 0.85rem; 
+        background: var(--surface);
+        padding: 0.3rem 0.8rem; 
+        border: 0.0625rem solid var(--border);
+        border-radius: 1.25rem; 
+        transition: all 0.2s;
+    }
+
+    .input-area { 
+        padding: 1rem 1.25rem; 
+        display: flex; 
+        justify-content: center; 
+        background: var(--surface); 
+        border-top: 0.0625rem solid var(--border); 
+    }
+    .input-box { 
+        width: 100%; 
+        max-width: 50rem; 
+        display: flex; 
+        background: var(--surface); 
+        border: 1px solid var(--input-border); 
+        border-radius: 1.5rem; 
+        padding: 0.4rem 1.25rem; 
+    }
+    input { 
+        flex: 1; 
+        border: none; 
+        padding: 0.5rem; 
+        font-size: 1rem; 
+        outline: none; 
+        background: transparent;
+        color: var(--text);
+    }
+    .send-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
+
+    .modal { 
+        display: none; 
+        position: fixed; 
+        inset: 0; 
+        background: rgba(0,0,0,0.75); 
+        backdrop-filter: blur(4px); 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 1000; 
+    }
+    .modal-content { 
+        background: var(--surface); 
+        color: var(--text);
+        padding: 1.875rem; 
+        border-radius: 1.25rem; 
+        max-width: 37.5rem; 
+        width: 90%; 
+        max-height: 80vh; 
+        overflow-y: auto; 
+        position: relative;
+    }
+    .close-btn { 
+        color: var(--text-secondary); 
+        float: right; 
+        font-size: 2rem; 
+        font-weight: bold; 
+        cursor: pointer; 
+        margin-top: -0.5rem; 
+    }
+
+    .bot h3 { color: var(--accent); margin-top: 1rem; }
+    .bot hr { border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+    .header button {
+        cursor: pointer; 
+        border-radius: 1.25rem; 
+        border: 0.0625rem solid var(--border); 
+        padding: 0.375rem 1rem; 
+        background: var(--surface); 
+        color: var(--text);
+        font-weight: 500; 
+        font-size: 0.9375rem;
+    }
+
+    /* COMPACT DISCLAIMER */
+    .disclaimer {
+        font-size: 0.65rem; 
+        color: var(--text-secondary); 
+        text-align: center;
+        padding: 0.2rem 1rem 0.8rem 1rem; 
+        background: var(--bg);
+        line-height: 1.2;
+    }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-title-group">
+        <h1>🤖 AuroConnect</h1>
+        <a href="https://rzp.io/rzp/AuroConnect" target="_blank" class="coffee-link">☕ Buy me a coffee</a>
+    </div>
+    <button onclick="startNewSession()">New Session</button>
+</div>
+
+<div id="chat-window"></div>
+
+<div class="input-area">
+    <div class="input-box">
+        <input type="text" id="user-input" placeholder="Ask about Auroville...">
+        <button class="send-btn" id="send-btn">➤</button>
+    </div>
+</div>
+
+<div class="footer-nav">
+    <!-- Updated the link to our new dynamic submit page! -->
+    <a href="/submit.html" target="_blank">➕ Submit Event</a>
+    <a href="https://forms.gle/ePCJUuVeuKB9EPAa8" target="_blank">💬 Feedback</a>
+</div>
+<div class="disclaimer">
+    “AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”
+</div>
+
+<div id="modal" class="modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<script>
+    let ws;
+    let currentBotDiv = null;
+    const chatWin = document.getElementById('chat-window');
+
+    function openModal(content) {
+        document.getElementById('modal-body').innerHTML = marked.parse(content, { breaks: true });
+        document.getElementById('modal').style.display = 'flex';
+        history.pushState({ modalOpen: true }, "");
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+        if (history.state && history.state.modalOpen) {
+            history.back();
+        }
+    }
+
+    window.onpopstate = function(event) {
+        document.getElementById('modal').style.display = 'none';
+    };
+
+    function startNewSession() {
+        localStorage.removeItem("auro_session_id");
+        location.reload();
+    }
+
+    function connect() {
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+        
+        let sessionId = localStorage.getItem("auro_session_id") || "sess_" + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem("auro_session_id", sessionId);
+
+        const currentHost = window.location.host;
+        // Fix ws scheme logic to always use Secure Websockets correctly
+        const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const wsTarget = currentHost;
+
+        ws = new WebSocket(`${scheme}://${wsTarget}/ws/chat/${sessionId}`);
+        
+        ws.onmessage = (e) => {
+            const data = JSON.parse(e.data);
+            if (data.type === "history_load") {
+                chatWin.innerHTML = ""; 
+                data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content));
+            } 
+            else if (data.type === "welcome" || data.type === "static_response") {
+                appendMsg('bot', data.content);
+            }
+            else if (data.type === "modal") {
+                openModal(data.content); 
+            } 
+            else if (data.type === "start_stream") {
+                currentBotDiv = appendMsg('bot', '');
+            } 
+            else if (data.type === "stream_chunk") {
+                if (currentBotDiv) {
+                    currentBotDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
+                    chatWin.scrollTop = chatWin.scrollHeight;
+                }
+            }
+        };
+    }
+
+    function appendMsg(role, text) {
+        if (!text && role !== 'bot') return;
+        const div = document.createElement('div');
+        div.className = `msg ${role}`;
+        div.innerHTML = marked.parse(text || "", { breaks: true });
+        chatWin.appendChild(div);
+        chatWin.scrollTop = chatWin.scrollHeight;
+        return div;
+    }
+
+    async function send(msg = null) {
+        const text = msg || document.getElementById('user-input').value.trim();
+        if (!text) return;
+        if (!msg) document.getElementById('user-input').value = ''; 
+        try {
+            connect();
+            while (ws.readyState !== WebSocket.OPEN) await new Promise(r => setTimeout(r, 50));
+            if (!msg) appendMsg('user', text);
+            ws.send(JSON.stringify({ message: text }));
+        } catch (err) {
+            appendMsg('bot', '⚠️ Error connecting.');
+        }
+    }
+
+    chatWin.addEventListener('click', (e) => {
+        const a = e.target.closest('a');
+        if (a && a.getAttribute('href')?.startsWith('#')) {
+            e.preventDefault();
+            const href = a.getAttribute('href');
+            if (href.startsWith('#DETAILS::')) send(`#DETAILS_COMMAND::${href.split('::')[1]}`);
+            else if (href.includes('SHOWDAILY')) send('show daily events');
+        }
+    });
+
+    document.getElementById('send-btn').onclick = () => send();
+    document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
+    connect();
+</script>
+</body>
+</html>
+
