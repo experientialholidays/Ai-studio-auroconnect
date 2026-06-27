@@ -310,6 +310,13 @@
 </div>
 
 <script>
+    // Check for start new session requested from another page
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('new_session') === 'true') {
+        localStorage.removeItem("auro_session_id");
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
     let ws;
     let currentBotDiv = null;
     const chatWin = document.getElementById('chat-window');
@@ -404,6 +411,7 @@
             const href = a.getAttribute('href');
             if (href.startsWith('#DETAILS::')) send(`#DETAILS_COMMAND::${href.split('::')[1]}`);
             else if (href.includes('SHOWDAILY')) send('show daily events');
+            else if (href.includes('NODAILY')) send('No, thank you');
         }
     });
 
@@ -431,6 +439,7 @@
         alert("Logged out");
     }
 </script>
+<script src="/common.js" type="module"></script>
 </body>
 </html>
 

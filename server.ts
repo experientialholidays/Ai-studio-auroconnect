@@ -11,6 +11,8 @@ import { getAuth } from "firebase-admin/auth";
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
+import mammoth from "mammoth";
+import * as cheerio from "cheerio";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -465,7 +467,7 @@ app.get("/api/firebase_config", (req, res) => {
 
 import { PDFParse } from "pdf-parse";
 
-// Knowledge PDF Upload API Endpoint
+// Knowledge PDF & Word Upload API Endpoint
 app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
   try {
     const token = req.body.token;
@@ -487,19 +489,33 @@ app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
     }
 
     if (!req.file) return res.status(400).json({ detail: "No file uploaded" });
-    if (req.file.mimetype !== "application/pdf") return res.status(400).json({ detail: "Only PDFs are allowed" });
 
-    const pdfApp: any = new PDFParse(new Uint8Array(req.file.buffer));
-    await pdfApp.load();
-    const pdfData: any = await pdfApp.getText();
+    let fullText = "";
+    const mime = req.file.mimetype;
+    const originalname = req.file.originalname.toLowerCase();
+
+    if (mime === "application/pdf" || originalname.endsWith(".pdf")) {
+      const pdfApp: any = new PDFParse(new Uint8Array(req.file.buffer));
+      await pdfApp.load();
+      const pdfData: any = await pdfApp.getText();
+      fullText = pdfData.text.replace(/\0/g, ""); // remove null bytes
+    } else if (
+      mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
+      originalname.endsWith(".docx")
+    ) {
+      const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+      fullText = result.value;
+    } else {
+      return res.status(400).json({ detail: "Only PDF (.pdf) and Word (.docx) files are allowed" });
+    }
     
-    const fullText = pdfData.text.replace(/\0/g, ""); // remove null bytes
-    
-    // Chunk the text into roughly 1000 character pieces (overlapping a bit is good practice, but keeping it simple)
-    const CHUNK_SIZE = 4000;
+    // Chunk the text into roughly 2000 character pieces with overlap
+    const CHUNK_SIZE = 2000;
+    const OVERLAP = 200;
     const chunks = [];
-    for (let i = 0; i < fullText.length; i += CHUNK_SIZE) {
+    for (let i = 0; i < fullText.length; i += (CHUNK_SIZE - OVERLAP)) {
        chunks.push(fullText.substring(i, i + CHUNK_SIZE));
+       if (i + CHUNK_SIZE >= fullText.length) break;
     }
 
     const chunkData = [];
@@ -523,17 +539,308 @@ app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
 
     const filename = req.file.originalname;
 
-    res.json({ message: "Successfully parsed pdf", filename, chunks: chunkData, fullTextLength: fullText.length });
+    res.json({ message: "Successfully parsed document", filename, chunks: chunkData, fullTextLength: fullText.length });
   } catch (err: any) {
-    console.error("PDF upload error:", err);
-    res.status(500).json({ detail: `Failed to process PDF: ${err.message}` });
+    console.error("Document upload error:", err);
+    res.status(500).json({ detail: `Failed to process document: ${err.message}` });
+  }
+});
+
+// Knowledge Webpage Scraper API Endpoint
+app.post("/api/add_url_knowledge", async (req, res) => {
+  try {
+    const { token, url } = req.body;
+    if (!token) return res.status(401).json({ detail: "No authentication token provided" });
+    
+    let decodedToken;
+    if (token && token.startsWith("DEV_BYPASS_TOKEN_")) {
+      decodedToken = { email: token.replace("DEV_BYPASS_TOKEN_", "") };
+    } else {
+      try {
+        decodedToken = await getAuth().verifyIdToken(token);
+      } catch (e) {
+        return res.status(401).json({ detail: "Invalid auth token" });
+      }
+    }
+
+    if (decodedToken.email !== 'info.experientialholidays@gmail.com') {
+      return res.status(403).json({ detail: "Forbidden: Admin access required." });
+    }
+
+    if (!url) return res.status(400).json({ detail: "No URL provided" });
+
+    // Validate URL
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url);
+    } catch (e) {
+      return res.status(400).json({ detail: "Invalid URL format" });
+    }
+
+    // Fetch the URL
+    const response = await fetch(url, {
+      headers: {
+        "User-Agent": "AuroConnect-Bot/1.0 (Web Scraper)"
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(400).json({ detail: `Failed to fetch URL: ${response.statusText}` });
+    }
+
+    const html = await response.text();
+    const $ = cheerio.load(html);
+
+    // Remove scripts, styles, noscripts, and other non-content tags
+    $("script, style, noscript, iframe, svg, header, footer, nav, aside").remove();
+
+    // Get plain text
+    let rawText = $("body").text();
+
+    // Clean up text
+    let cleanedText = rawText
+      .replace(/\s+/g, " ")
+      .replace(/\n+/g, "\n")
+      .trim();
+
+    if (cleanedText.length < 50) {
+      return res.status(400).json({ detail: "The webpage did not contain enough text content." });
+    }
+
+    // Chunk the text into roughly 2000 character pieces with overlap
+    const CHUNK_SIZE = 2000;
+    const OVERLAP = 200;
+    const chunks = [];
+    for (let i = 0; i < cleanedText.length; i += (CHUNK_SIZE - OVERLAP)) {
+       chunks.push(cleanedText.substring(i, i + CHUNK_SIZE));
+       if (i + CHUNK_SIZE >= cleanedText.length) break;
+    }
+
+    const chunkData = [];
+    for (const chunkText of chunks) {
+       if (!chunkText.trim()) continue;
+       try {
+           const embeddingRes = await ai.models.embedContent({
+               model: "text-embedding-004",
+               contents: chunkText,
+           });
+           chunkData.push({
+               text: chunkText,
+               embeddingVector: embeddingRes.embeddings?.[0]?.values || null
+           });
+       } catch (err) {
+           console.error("Failed to embed URL chunk", err);
+           chunkData.push({ text: chunkText, embeddingVector: null });
+       }
+    }
+
+    const filename = `Webpage: ${parsedUrl.hostname}${parsedUrl.pathname}`;
+
+    res.json({ message: "Successfully scraped webpage", filename, chunks: chunkData, fullTextLength: cleanedText.length });
+  } catch (err: any) {
+    console.error("URL scrape error:", err);
+    res.status(500).json({ detail: `Failed to process URL: ${err.message}` });
   }
 });
 
 // Helper functions for Chat Processing //
 
+function getEventCategoryType(event: any): "date-specific" | "weekly" | "daily" {
+    const category = (event.category || "").toLowerCase().trim();
+    const days = (event.days || "").toLowerCase().trim();
+    const scheduleType = (event.scheduleType || "").toLowerCase().trim();
+
+    if (category.includes("daily") || days.includes("daily") || days.includes("every day") || days.includes("everyday")) {
+        return "daily";
+    }
+    if (category.includes("weekly") || days.includes("weekly") || scheduleType === "recurring") {
+        return "weekly";
+    }
+    // Check if there are specific weekdays in days (e.g. Monday, Tuesday, etc.)
+    const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+    if (weekdays.some(w => days.includes(w))) {
+        return "weekly";
+    }
+    
+    return "date-specific";
+}
+
+function getEventTimeString(ev: any): string {
+    if (ev.startTime) return ev.startTime.trim().toLowerCase();
+    if (ev.originalHeaders && ev.originalHeaders.startTime) return ev.originalHeaders.startTime.trim().toLowerCase();
+    if (ev.times) return ev.times.trim().toLowerCase();
+    return "";
+}
+
+function getMinutesFromTimeString(t: string): number {
+    if (!t) return 9999;
+    
+    // Pattern 1: HH:MM AM/PM or HH:MM (e.g. 9:30am, 9:30 am, 14:30)
+    const matchColon = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/);
+    if (matchColon) {
+        let hours = parseInt(matchColon[1], 10);
+        let minutes = parseInt(matchColon[2], 10);
+        let ampm = matchColon[3];
+        
+        if (ampm === "pm" && hours < 12) hours += 12;
+        if (ampm === "am" && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+    }
+    
+    // Pattern 2: HH AM/PM (e.g. 7am, 7 am, 5pm)
+    const matchNoColon = t.match(/(\d{1,2})\s*(am|pm)/);
+    if (matchNoColon) {
+        let hours = parseInt(matchNoColon[1], 10);
+        let minutes = 0;
+        let ampm = matchNoColon[2];
+        
+        if (ampm === "pm" && hours < 12) hours += 12;
+        if (ampm === "am" && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+    }
+
+    // Pattern 3: just numbers (e.g. "7 - 8" or "14")
+    const matchNumbers = t.match(/(\d{1,2})/);
+    if (matchNumbers) {
+        let hours = parseInt(matchNumbers[1], 10);
+        return hours * 60;
+    }
+
+    return 9999;
+}
+
+function compareStartTime(a: any, b: any) {
+    const timeA = getEventTimeString(a);
+    const timeB = getEventTimeString(b);
+    
+    const minsA = getMinutesFromTimeString(timeA);
+    const minsB = getMinutesFromTimeString(timeB);
+
+    return minsA - minsB;
+}
+
+function formatCategorizedEvents(rawEvents: any[], introText: string): string {
+    if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+        return introText + "\n\nI couldn't find any upcoming events matching those criteria.";
+    }
+
+    const dateSpecific: any[] = [];
+    const weekly: any[] = [];
+    const daily: any[] = [];
+
+    rawEvents.forEach((ev) => {
+        const catType = getEventCategoryType(ev);
+        if (catType === "daily") {
+            daily.push(ev);
+        } else if (catType === "weekly") {
+            weekly.push(ev);
+        } else {
+            dateSpecific.push(ev);
+        }
+    });
+
+    dateSpecific.sort(compareStartTime);
+    weekly.sort(compareStartTime);
+    daily.sort(compareStartTime);
+
+    const formatEvent = (data: any) => {
+        const parts = [];
+        if (data.dates) parts.push(data.dates);
+        else if (data.days) parts.push(data.days);
+        if (data.times) parts.push(data.times);
+        if (data.venue) parts.push(`@${data.venue}`);
+        
+        const extras = [];
+        if (data.cost) extras.push(`Cost: ${data.cost}`);
+        if (data.audience) extras.push(`Key info: ${data.audience}`);
+
+        const header = `**[➤➤ ${data.title}](#DETAILS::${data.uuid})**`;
+        const timeLoc = parts.join(", ");
+        const ext = extras.join(" | ");
+        let s = [header];
+        if (timeLoc) s.push(timeLoc);
+        if (ext) s.push(ext);
+        return s.join("  \n");
+    };
+
+    let resultChunks: string[] = [];
+    if (introText) {
+        resultChunks.push(introText);
+    }
+
+    if (dateSpecific.length > 0) {
+        resultChunks.push("\n### 📅 Date-Specific Events");
+        dateSpecific.forEach(ev => {
+            resultChunks.push(formatEvent(ev));
+            resultChunks.push("");
+        });
+    }
+
+    if (weekly.length > 0) {
+        resultChunks.push("\n### 🔁 Weekly Events");
+        weekly.forEach(ev => {
+            resultChunks.push(formatEvent(ev));
+            resultChunks.push("");
+        });
+    }
+
+    if (daily.length > 0) {
+        resultChunks.push("\n---");
+        resultChunks.push("💡 **There are Daily Events Happening, would you like to see?**");
+        resultChunks.push(`
+<div style="margin-top: 12px; display: flex; gap: 8px;">
+  <a href="#SHOWDAILY" style="display: inline-block; padding: 8px 18px; background-color: var(--accent); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.85rem; border: 1px solid var(--accent); cursor: pointer; text-align: center;">Yes, show daily events</a>
+  <a href="#NODAILY" style="display: inline-block; padding: 8px 18px; background-color: transparent; color: var(--text-secondary); border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.85rem; border: 1px solid var(--border); cursor: pointer; text-align: center;">No, thanks</a>
+</div>
+`);
+    }
+
+    if (dateSpecific.length === 0 && weekly.length === 0 && daily.length === 0) {
+        return (introText ? introText + "\n\n" : "") + "I couldn't find any upcoming events matching those criteria.";
+    }
+
+    return resultChunks.join("\n");
+}
+
+function formatDailyEventsOnly(rawEvents: any[]): string {
+    const daily = rawEvents.filter(ev => getEventCategoryType(ev) === "daily");
+    daily.sort(compareStartTime);
+
+    if (daily.length === 0) {
+        return "I couldn't find any daily events matching those criteria.";
+    }
+
+    const formatEvent = (data: any) => {
+        const parts = [];
+        if (data.dates) parts.push(data.dates);
+        else if (data.days) parts.push(data.days);
+        if (data.times) parts.push(data.times);
+        if (data.venue) parts.push(`@${data.venue}`);
+        
+        const extras = [];
+        if (data.cost) extras.push(`Cost: ${data.cost}`);
+        if (data.audience) extras.push(`Key info: ${data.audience}`);
+
+        const header = `**[➤➤ ${data.title}](#DETAILS::${data.uuid})**`;
+        const timeLoc = parts.join(", ");
+        const ext = extras.join(" | ");
+        let s = [header];
+        if (timeLoc) s.push(timeLoc);
+        if (ext) s.push(ext);
+        return s.join("  \n");
+    };
+
+    let resultChunks: string[] = ["### ☀️ Daily Events\n"];
+    daily.forEach(ev => {
+        resultChunks.push(formatEvent(ev));
+        resultChunks.push("");
+    });
+
+    return resultChunks.join("\n");
+}
+
 /** Natively fetches events from Firebase directly */
-async function searchAurovilleEvents(searchQuery: string, specificity: string, filterDay?: string, filterDate?: string, filterTimeAfter?: string) {
+async function searchAurovilleEvents(searchQuery: string, specificity: string, filterDay?: string, filterDate?: string, filterTimeAfter?: string, returnRaw?: boolean): Promise<string | any[]> {
   try {
     const colRef = collection(db, "events");
     const snapshot = await getDocs(colRef);
@@ -642,6 +949,10 @@ async function searchAurovilleEvents(searchQuery: string, specificity: string, f
       events = events.filter(data => {
         return (data.days || "").toLowerCase().includes(filterDay.toLowerCase());
       });
+    }
+
+    if (returnRaw) {
+      return events;
     }
 
     if (events.length === 0) {
@@ -783,8 +1094,13 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
 
         if (bucket === "A") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" }));
-             const output = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter);
-             ws.send(JSON.stringify({ type: "stream_chunk", chunk: introText + "\n\n" + output }));
+             const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true);
+             if (Array.isArray(rawEvents)) {
+                 const output = formatCategorizedEvents(rawEvents, introText);
+                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
+             } else {
+                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: (introText ? introText + "\n\n" : "") + rawEvents }));
+             }
         }
         else if (bucket === "B") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" }));
@@ -825,9 +1141,50 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
              // Fetch general knowledge chunks
              let knowledgeContext = "";
              try {
-                const knowledgeSnap = await getDocs(query(collection(db, "knowledge"), limit(5)));
+                let queryEmbedding: number[] | null = null;
+                try {
+                    const embedRes = await ai.models.embedContent({
+                        model: "text-embedding-004",
+                        contents: message,
+                    });
+                    queryEmbedding = embedRes.embeddings?.[0]?.values || null;
+                } catch (embedErr) {
+                    console.error("Failed to generate query embedding for chat:", embedErr);
+                }
+
+                const knowledgeCol = collection(db, "knowledge");
+                const knowledgeSnap = await getDocs(knowledgeCol);
+                
                 if (!knowledgeSnap.empty) {
-                    knowledgeContext = knowledgeSnap.docs.map(docSnap => "DOCUMENT: " + docSnap.data().filename + "\n" + docSnap.data().text).join("\n\n---\n\n");
+                    const docs = knowledgeSnap.docs.map(docSnap => {
+                        const data = docSnap.data();
+                        return {
+                            filename: data.filename || "Unknown",
+                            text: data.text || "",
+                            embeddingVector: data.embeddingVector || null
+                        };
+                    });
+
+                    if (queryEmbedding) {
+                        // Compute similarity for all documents
+                        const scoredDocs = docs.map(doc => {
+                            let score = 0;
+                            if (doc.embeddingVector) {
+                                score = cosineSimilarity(queryEmbedding!, doc.embeddingVector);
+                            }
+                            return { ...doc, score };
+                        });
+                        // Sort by similarity score descending
+                        scoredDocs.sort((a, b) => b.score - a.score);
+                        
+                        // Select top 8 most similar chunks to get high precision and coverage
+                        const topDocs = scoredDocs.slice(0, 8);
+                        
+                        knowledgeContext = topDocs.map(doc => `DOCUMENT: ${doc.filename} (Relevance: ${doc.score.toFixed(3)})\n${doc.text}`).join("\n\n---\n\n");
+                    } else {
+                        // Fallback to first 5 if embedding failed
+                        knowledgeContext = docs.slice(0, 5).map(doc => `DOCUMENT: ${doc.filename}\n${doc.text}`).join("\n\n---\n\n");
+                    }
                 }
              } catch (e) {
                  console.error("Error fetching knowledge docs", e);
@@ -904,6 +1261,14 @@ async function createServer() {
     res.sendFile(path.join(process.cwd(), "dashboard.html"));
   });
 
+  app.get("/contact", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "contact.html"));
+  });
+
+  app.get("/contact.html", (req, res) => {
+    res.sendFile(path.join(process.cwd(), "contact.html"));
+  });
+
   app.use(express.static(process.cwd()));
 
   const wss = new WebSocketServer({ server });
@@ -932,10 +1297,29 @@ async function createServer() {
                  return;
             }
 
-            if (text.toLowerCase().includes("show daily events")) {
+            const lowerText = text.toLowerCase().trim();
+            if (
+                lowerText.includes("show daily events") || 
+                lowerText === "yes" || 
+                lowerText.includes("pull down all diary events") || 
+                lowerText.includes("pull down all daily events") || 
+                lowerText.includes("show daily")
+            ) {
                 ws.send(JSON.stringify({ type: "start_stream" }));
-                const out = await searchAurovilleEvents("", "broad");
-                ws.send(JSON.stringify({ type: "stream_chunk", chunk: out }));
+                ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" }));
+                const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true);
+                if (Array.isArray(rawEvents)) {
+                    const output = formatDailyEventsOnly(rawEvents);
+                    ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
+                } else {
+                    ws.send(JSON.stringify({ type: "stream_chunk", chunk: "Failed to load daily events." }));
+                }
+                return;
+            }
+
+            if (lowerText === "no, thank you" || lowerText === "no" || lowerText === "no thanks" || lowerText === "no, thanks") {
+                ws.send(JSON.stringify({ type: "start_stream" }));
+                ws.send(JSON.stringify({ type: "stream_chunk", chunk: "No problem! Let me know if you need help finding any other events." }));
                 return;
             }
 

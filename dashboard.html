@@ -38,7 +38,7 @@
         color: var(--text);
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        min-height: 100vh;
         align-items: center;
       }
 
@@ -368,6 +368,188 @@
         color: var(--text);
         padding: 0 10px !important;
       }
+
+      /* Professional Responsive Media Queries for Mobile, Tablet & Laptop */
+      @media (max-width: 768px) {
+        .dashboard-container {
+          padding: 1.25rem;
+          width: 95%;
+          margin-top: 1rem;
+          margin-bottom: 2rem;
+        }
+        .container {
+          padding: 1.5rem;
+          width: 95%;
+          margin-top: 1.5rem;
+        }
+        .dashboard-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
+        }
+        .dashboard-tabs {
+          flex-wrap: wrap;
+          gap: 0.25rem;
+          width: 100%;
+        }
+        .tab-btn {
+          padding: 0.4rem 0.8rem;
+          font-size: 0.8rem;
+          flex: 1 1 auto;
+          text-align: center;
+        }
+        /* Make form flex rows stack nicely on mobile */
+        div[style*="display: flex; gap: 1rem; flex-wrap: wrap"],
+        div[style*="display: flex; gap: 1rem"] {
+          flex-direction: column !important;
+          gap: 0.75rem !important;
+        }
+        /* Except specific inline elements such as country code + input or side-by-side small buttons */
+        div[style*="display: flex; gap: 0.5rem"],
+        div[style*="display: flex; gap: 0.75rem; width: 100%"] {
+          flex-direction: row !important;
+          gap: 0.5rem !important;
+        }
+        /* Ensure table overflow */
+        .table-wrapper {
+          width: 100%;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          margin-top: 0.5rem;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+        }
+        table {
+          min-width: 650px;
+        }
+        /* Expand submit button and other interactive items fully */
+        #submit-event-btn, #cancel-edit-btn {
+          width: 100% !important;
+        }
+      }
+
+      /* Premium Aesthetic & Spacious Grid layouts for Admin & Forms */
+      .upload-card {
+        max-width: 1000px !important;
+        text-align: left !important;
+        align-items: stretch !important;
+        padding: 3rem !important;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      @media (max-width: 768px) {
+        .upload-card {
+          padding: 1.5rem !important;
+          width: 95% !important;
+        }
+      }
+
+      .admin-panel-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        width: 100%;
+        margin-bottom: 2rem;
+        text-align: left;
+      }
+      .admin-tool-card {
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        box-shadow: 0 2px 4px var(--shadow);
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-sizing: border-box;
+      }
+      .admin-tool-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px var(--shadow);
+      }
+      .admin-tool-card h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .admin-tool-card p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.4;
+        flex: 1;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1.25rem;
+        width: 100%;
+        text-align: left;
+        box-sizing: border-box;
+      }
+      .form-col-12 { grid-column: span 12; }
+      .form-col-8 { grid-column: span 8; }
+      .form-col-6 { grid-column: span 6; }
+      .form-col-4 { grid-column: span 4; }
+      .form-col-3 { grid-column: span 3; }
+
+      @media (max-width: 1024px) {
+        .form-col-8 { grid-column: span 12; }
+        .form-col-4 { grid-column: span 6; }
+        .form-col-3 { grid-column: span 6; }
+      }
+      @media (max-width: 768px) {
+        .form-col-6, .form-col-4, .form-col-3 { grid-column: span 12; }
+      }
+
+      /* Uniform input/select/textarea styling inside forms for perfect height and width alignment */
+      .form-grid input[type="text"],
+      .form-grid input[type="tel"],
+      .form-grid input[type="email"],
+      .form-grid input[type="url"],
+      .form-grid textarea,
+      .form-grid select {
+        width: 100% !important;
+        max-width: none !important;
+        height: 38px !important;
+        box-sizing: border-box !important;
+        padding: 0.5rem 0.75rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+        background: var(--bg) !important;
+        color: var(--text) !important;
+        font-family: inherit !important;
+        font-size: 0.85rem !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
+      }
+
+      /* Allow multi-line textareas (like Description) but enforce other styles */
+      .form-grid textarea {
+        height: auto !important;
+        min-height: 38px !important;
+        resize: vertical !important;
+      }
+
+      /* Specific override for event form file inputs to ensure consistency with text inputs */
+      input.ev-media {
+        padding: 0.5rem 0.75rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 6px !important;
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+        height: 38px !important;
+        background: var(--bg) !important;
+        color: var(--text) !important;
+        font-family: inherit !important;
+        font-size: 0.85rem !important;
+      }
     </style>
   </head>
   <body>
@@ -400,19 +582,7 @@
       });
     </script>
 
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem;">
-      <h1>🤖 AuroConnect</h1>
-      <div class="dropdown">
-          <button onclick="toggleDropdown()" class="three-dots">⋮</button>
-          <div id="myDropdown" class="dropdown-content">
-              <a href="/">New Session</a>
-              <a href="/submit.html">Submit</a>
-              <a href="/dashboard.html">Dashboard</a>
-              <a href="https://forms.gle/ePCJUuVeuKB9EPAa8" target="_blank">Contact</a>
-              <a href="#" onclick="signOutUser(); toggleDropdown()">Sign Out</a>
-          </div>
-      </div>
-    </div>
+    <div class="header"></div>
 
     <!-- Login Section -->
     <div class="container" id="login-section">
@@ -466,7 +636,7 @@
     </div>
 
     <!-- Upload Section -->
-    <div class="container" id="upload-section" style="display: none">
+    <div class="container upload-card" id="upload-section" style="display: none">
       <div
         id="user-status"
         style="
@@ -485,113 +655,80 @@
         style="
           display: none;
           width: 100%;
-          max-width: 500px;
           flex-direction: column;
-          align-items: center;
+          gap: 1.5rem;
+          margin-bottom: 2.5rem;
         "
       >
-        <h2 style="align-self: flex-start">Upload Events Data (Excel)</h2>
-        <p
-          style="
-            color: var(--text-secondary);
-            margin-top: -0.5rem;
-            font-size: 0.9rem;
-            align-self: flex-start;
-          "
-        >
-          Select an Excel sheet (.xlsx) containing event data. The first row
-          must contain these exact headers (case-insensitive):
-          <strong>Title, Type, Category, Dates, Days, Times, Venue, Cost, Target Audience, Contact Person, Contact Phone, WhatsApp, Email, Website, Description</strong>
-        </p>
+        <h2 style="font-size: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          ⚙️ Administrative Control Panel
+        </h2>
+        
+        <div class="admin-panel-grid">
+          <!-- Card 1: Excel Bulk Import -->
+          <div class="admin-tool-card">
+            <h3>📈 Bulk Events Import (Excel)</h3>
+            <p>
+              Select an Excel sheet (.xlsx) containing event data. The first row must contain these exact headers (case-insensitive):
+              <strong>Title, Type, Category, Dates, Days, Times, Venue, Cost, Target Audience, Contact Person, Contact Phone, WhatsApp, Email, Website, Description</strong>
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
+              <input type="file" id="excel-file" accept=".xlsx, .xls" style="max-width: 100%;" />
+              <button class="btn btn-primary" id="upload-btn" style="max-width: 100%; margin-top: 0.5rem;">
+                Upload Excel to DB
+              </button>
+              <div id="status" style="align-self: flex-start"></div>
+            </div>
+          </div>
 
-        <input
-          type="file"
-          id="excel-file"
-          accept=".xlsx, .xls"
-          style="align-self: flex-start"
-        />
-        <button
-          class="btn btn-primary"
-          id="upload-btn"
-          style="align-self: flex-start"
-        >
-          Upload Excel to DB
-        </button>
-        <div id="status" style="align-self: flex-start"></div>
+          <!-- Card 2: Knowledge Ingestion -->
+          <div class="admin-tool-card">
+            <h3>📚 Knowledge Base Ingest (PDF/Word)</h3>
+            <p>
+              Select a PDF (.pdf) or Word (.docx) document containing <b>general knowledge</b> that the AI chatbot can reference.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
+              <input type="file" id="pdf-file" accept=".pdf,.docx" style="max-width: 100%;" />
+              <button class="btn btn-primary" id="upload-pdf-btn" style="max-width: 100%; margin-top: 0.5rem;">
+                Upload Document Knowledge
+              </button>
+              <div id="pdf-status" style="align-self: flex-start; margin-top: 0.5rem;"></div>
+            </div>
+          </div>
 
-        <hr
-          style="
-            width: 100%;
-            border-top: 1px solid var(--border);
-            margin: 1.5rem 0;
-          "
-        />
-
-        <h2 style="align-self: flex-start">Upload Knowledge DB (PDF)</h2>
-        <p
-          style="
-            color: var(--text-secondary);
-            margin-top: -0.5rem;
-            font-size: 0.9rem;
-            align-self: flex-start;
-          "
-        >
-          Select a PDF document containing <b>general knowledge</b> that the AI
-          chatbot can reference (up to 100 pages).
-        </p>
-
-        <input
-          type="file"
-          id="pdf-file"
-          accept=".pdf"
-          style="align-self: flex-start"
-        />
-        <button
-          class="btn btn-primary"
-          id="upload-pdf-btn"
-          style="align-self: flex-start"
-        >
-          Upload PDF Knowledge
-        </button>
-        <div id="pdf-status" style="align-self: flex-start"></div>
-
-        <hr
-          style="
-            width: 100%;
-            border-top: 1px solid var(--border);
-            margin: 1.5rem 0;
-          "
-        />
+          <!-- Card 3: Web Scraper -->
+          <div class="admin-tool-card">
+            <h3>🌐 Webpage URL Knowledge Scraper</h3>
+            <p>
+              Enter a public webpage URL to scrape and ingest its text content into the AI knowledge base.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
+              <input
+                type="url"
+                id="knowledge-url"
+                placeholder="https://example.com/auroville-info"
+                style="width: 100%; padding: 0.5rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box;"
+              />
+              <button class="btn btn-primary" id="scrape-url-btn" style="max-width: 100%; margin-top: 0.5rem;">
+                Read Webpage
+              </button>
+              <div id="url-status" style="align-self: flex-start; margin-top: 0.5rem;"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <h2 style="align-self: flex-start; max-width: 600px; width: 100%">
-        Submit Single Event
+        Submit an Entry
       </h2>
-      <p
-        style="
-          color: var(--text-secondary);
-          margin-top: -0.5rem;
-          font-size: 0.9rem;
-          align-self: flex-start;
-          max-width: 600px;
-          width: 100%;
-        "
-      >
-        Use this form to add an individual event to the database. All logged-in
-        users can submit events.
-      </p>
+      <!-- Heading description removed as requested -->
       <form
         id="single-event-form"
-        style="
-          display: flex;
-          flex-direction: column;
-          gap: 1rem;
-          width: 100%;
-          max-width: 600px;
-          text-align: left;
-        "
+        class="form-grid"
+        style="width: 100%; margin-top: 1rem;"
       >
-        <div>
+        <!-- Title -->
+        <div class="form-col-8">
           <label
             style="
               font-size: 0.85rem;
@@ -601,10 +738,10 @@
             "
             >Title *</label
           >
-          <input
-            type="text"
+          <textarea
             id="ev-title"
             required
+            rows="1"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -612,43 +749,47 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Type -->
+        <div class="form-col-4">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Type</label
+          >
+          <input
+            type="text"
+            id="ev-type"
+            placeholder="e.g. Workshop, Class"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
             "
           />
         </div>
 
-        <div style="display: flex; gap: 1rem">
-          <div style="flex: 1">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Type</label
-            >
-            <input
-              type="text"
-              id="ev-type"
-              placeholder="e.g. Workshop, Class"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-        </div>
-
-        <!-- New Event Timing Logic -->
+        <!-- Timing Details (Full Width Container) -->
         <div
+          class="form-col-12"
           style="
             border: 1px solid var(--border);
-            padding: 1rem;
-            border-radius: 6px;
+            padding: 1.25rem;
+            border-radius: 8px;
             background: rgba(0, 0, 0, 0.02);
           "
         >
@@ -659,7 +800,7 @@
               display: block;
               margin-bottom: 0.5rem;
             "
-            >Event Schedule Type *</label
+            >Event Schedule Type</label
           >
           <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
             <label
@@ -677,7 +818,7 @@
             >
           </div>
 
-          <div id="one-time-container" style="display: flex; gap: 1rem">
+          <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem;">
             <div style="flex: 1">
               <label
                 style="
@@ -765,7 +906,7 @@
             </div>
           </div>
 
-          <div style="display: flex; gap: 1rem; margin-top: 1rem">
+          <div style="display: flex; gap: 2rem; margin-top: 1.5rem">
             <div style="flex: 1">
               <label
                 style="
@@ -776,8 +917,7 @@
                 "
                 >Start Time</label
               >
-              <input
-                type="time"
+              <select
                 id="ev-start-time"
                 style="
                   width: 100%;
@@ -787,7 +927,9 @@
                   background: var(--bg);
                   color: var(--text);
                 "
-              />
+              >
+                <!-- Dynamically populated options -->
+              </select>
             </div>
             <div style="flex: 1">
               <label
@@ -799,8 +941,7 @@
                 "
                 >End Time</label
               >
-              <input
-                type="time"
+              <select
                 id="ev-end-time"
                 style="
                   width: 100%;
@@ -810,216 +951,15 @@
                   background: var(--bg);
                   color: var(--text);
                 "
-              />
+              >
+                <!-- Dynamically populated options -->
+              </select>
             </div>
           </div>
         </div>
 
-        <div style="display: flex; gap: 1rem">
-          <div style="flex: 2">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Venue</label
-            >
-            <input
-              type="text"
-              id="ev-venue"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-          <div style="flex: 1">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Cost</label
-            >
-            <input
-              type="text"
-              id="ev-cost"
-              placeholder="e.g. ₹500 or Free"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-          <div style="flex: 1">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Target Audience/Prerequisites</label
-            >
-            <input
-              type="text"
-              id="ev-audience"
-              placeholder="e.g. Adults, Kids"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-        </div>
-
-        <div
-          style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem"
-        >
-          <div style="flex: 1; min-width: 250px">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Contact Person / Unit</label
-            >
-            <input
-              type="text"
-              id="ev-contact-person"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap">
-          <div style="flex: 1; min-width: 250px">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Contact Phone</label
-            >
-            <div style="display: flex; gap: 0.5rem">
-              <input
-                type="text"
-                id="ev-contact-code"
-                value="+91"
-                style="
-                  width: 4rem;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-              <input
-                type="tel"
-                id="ev-contact"
-                style="
-                  flex: 1;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-            </div>
-          </div>
-          <div style="flex: 1; min-width: 250px">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >WhatsApp</label
-            >
-            <div style="display: flex; gap: 0.5rem">
-              <input
-                type="text"
-                id="ev-whatsapp-code"
-                value="+91"
-                style="
-                  width: 4rem;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-              <input
-                type="tel"
-                id="ev-whatsapp"
-                style="
-                  flex: 1;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-            </div>
-          </div>
-          <div style="flex: 1; min-width: 250px">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Email</label
-            >
-            <input
-              type="email"
-              id="ev-email"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-              "
-            />
-          </div>
-        </div>
-
-        <div>
+        <!-- Venue (renamed to Location) -->
+        <div class="form-col-6">
           <label
             style="
               font-size: 0.85rem;
@@ -1027,7 +967,258 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Website / PPT Links (Max 5)</label
+            >Location</label
+          >
+          <textarea
+            id="ev-venue"
+            rows="1"
+            placeholder="e.g. Community Center or Online link"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Contribution -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contribution</label
+          >
+          <textarea
+            id="ev-cost"
+            placeholder="e.g. ₹500, Donation or Free"
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Target Audience -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Target Audience / Prerequisites</label
+          >
+          <textarea
+            id="ev-audience"
+            placeholder="e.g. Adults, Kids"
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Contact Person -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contact Person / Unit</label
+          >
+          <input
+            type="text"
+            id="ev-contact-person"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              height: 38px;
+              box-sizing: border-box;
+            "
+          />
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contact Phone</label
+          >
+          <div style="display: flex; gap: 0.5rem">
+            <input
+              id="ev-contact-code"
+              type="text"
+              list="submit-country-codes-list"
+              value="+91"
+              placeholder="+91"
+              style="
+                width: 4rem !important;
+                flex: none !important;
+                padding: 0.5rem 0.25rem !important;
+                text-align: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 0.85rem;
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+            <input
+              type="tel"
+              id="ev-contact"
+              style="
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+          </div>
+        </div>
+
+        <!-- WhatsApp -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >WhatsApp</label
+          >
+          <div style="display: flex; gap: 0.5rem">
+            <input
+              id="ev-whatsapp-code"
+              type="text"
+              list="submit-country-codes-list"
+              value="+91"
+              placeholder="+91"
+              style="
+                width: 4rem !important;
+                flex: none !important;
+                padding: 0.5rem 0.25rem !important;
+                text-align: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 0.85rem;
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+            <datalist id="submit-country-codes-list">
+              <option value="+91">India (+91)</option>
+              <option value="+1">USA/Canada (+1)</option>
+              <option value="+44">UK (+44)</option>
+              <option value="+971">UAE (+971)</option>
+              <option value="+33">France (+33)</option>
+              <option value="+49">Germany (+49)</option>
+              <option value="+61">Australia (+61)</option>
+              <option value="+65">Singapore (+65)</option>
+              <option value="+81">Japan (+81)</option>
+              <option value="+7">Russia (+7)</option>
+              <option value="+86">China (+86)</option>
+            </datalist>
+            <input
+              type="tel"
+              id="ev-whatsapp"
+              style="
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+          </div>
+        </div>
+
+        <!-- Email -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Email</label
+          >
+          <input
+            type="email"
+            id="ev-email"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              height: 38px;
+              box-sizing: border-box;
+            "
+          />
+        </div>
+
+        <!-- Links -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Website / External Links (Max 5)</label
           >
           <div
             id="links-container"
@@ -1044,6 +1235,8 @@
                 border-radius: 6px;
                 background: var(--bg);
                 color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
               "
             />
           </div>
@@ -1055,13 +1248,16 @@
               margin-top: 0.5rem;
               padding: 0.3rem 0.6rem;
               font-size: 0.8rem;
+              width: auto;
+              max-width: fit-content;
             "
           >
             + Add another link
           </button>
         </div>
 
-        <div>
+        <!-- Media -->
+        <div class="form-col-6">
           <label
             style="
               font-size: 0.85rem;
@@ -1086,6 +1282,7 @@
                 border-radius: 6px;
                 background: var(--bg);
                 color: var(--text);
+                box-sizing: border-box;
               "
             />
           </div>
@@ -1097,6 +1294,8 @@
               margin-top: 0.5rem;
               padding: 0.3rem 0.6rem;
               font-size: 0.8rem;
+              width: auto;
+              max-width: fit-content;
             "
           >
             + Add another file
@@ -1109,32 +1308,11 @@
           </div>
         </div>
 
-        <div>
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Source Excel Filename (Optional)</label
-          >
-          <input
-            type="text"
-            id="ev-excel-filename"
-            placeholder="Form Submission"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-            "
-          />
-        </div>
+        <!-- Hidden Source Filename for seamless backwards compatibility -->
+        <input type="hidden" id="ev-excel-filename" value="Single Form Submission" />
 
-        <div>
+        <!-- Description -->
+        <div class="form-col-12">
           <label
             style="
               font-size: 0.85rem;
@@ -1142,10 +1320,11 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Description</label
+            >Description *</label
           >
           <textarea
             id="ev-desc"
+            required
             rows="4"
             style="
               width: 100%;
@@ -1157,26 +1336,24 @@
             "
           ></textarea>
         </div>
-        <div style="display: flex; gap: 0.75rem; width: 100%;">
-          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; min-width: 120px;">
+
+        <!-- Actions -->
+        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; max-width: none;">
             Submit Event
           </button>
-          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; min-width: 120px; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
             Cancel Edit
           </button>
         </div>
-        <div id="single-event-status"></div>
+        <div id="single-event-status" class="form-col-12"></div>
       </form>
 
       <button
         class="btn"
         id="logout-btn"
         style="
-          margin-top: 1rem;
-          padding: 0.5rem;
-          max-width: 150px;
-          font-size: 0.85rem;
-          align-self: flex-start;
+          display: none !important;
         "
       >
         Sign out
@@ -1194,6 +1371,7 @@
         <button class="tab-btn active" id="btn-tab-my-events">My Events</button>
         <button class="tab-btn" id="btn-tab-all-events">All DB Events (Admin)</button>
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
+        <button class="tab-btn" id="btn-tab-contact-messages">Contact Messages (Admin)</button>
       </div>
 
       <!-- Tab 1: My Submitted Events -->
@@ -1480,6 +1658,44 @@
           </table>
         </div>
       </div>
+
+      <!-- Tab 4: Contact Messages (Admin Only) -->
+      <div class="tab-content" id="tab-contact-messages">
+        <h3>Contact Messages & Feedback</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          These are the feedback submissions and contact messages sent by visitors.
+        </p>
+        
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Search Messages</label>
+              <input type="text" id="contact-messages-search" placeholder="Search by name, email, subject, or message..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <button class="btn-clear-filters" id="btn-clear-contact-filters" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline; margin-top: 1.25rem;">Clear Search</button>
+          </div>
+        </div>
+
+        <div id="contact-messages-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        <div class="table-wrapper" id="contact-messages-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Sender Name</th>
+                <th>Contact Email</th>
+                <th>Mobile Number</th>
+                <th>Subject</th>
+                <th>Message / Feedback</th>
+                <th>Submitted At</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="contact-messages-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script type="module">
@@ -1614,10 +1830,12 @@
       const btnTabMyEvents = document.getElementById("btn-tab-my-events");
       const btnTabAllEvents = document.getElementById("btn-tab-all-events");
       const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
+      const btnTabContactMessages = document.getElementById("btn-tab-contact-messages");
 
       const tabMyEvents = document.getElementById("tab-my-events");
       const tabAllEvents = document.getElementById("tab-all-events");
       const tabAllKnowledge = document.getElementById("tab-all-knowledge");
+      const tabContactMessages = document.getElementById("tab-contact-messages");
 
       const myEventsLoading = document.getElementById("my-events-loading");
       const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
@@ -1630,6 +1848,12 @@
       const allKnowledgeLoading = document.getElementById("all-knowledge-loading");
       const allKnowledgeTableWrapper = document.getElementById("all-knowledge-table-wrapper");
       const allKnowledgeTbody = document.getElementById("all-knowledge-tbody");
+
+      const contactMessagesLoading = document.getElementById("contact-messages-loading");
+      const contactMessagesTableWrapper = document.getElementById("contact-messages-table-wrapper");
+      const contactMessagesTbody = document.getElementById("contact-messages-tbody");
+      const contactMessagesSearch = document.getElementById("contact-messages-search");
+      const btnClearContactFilters = document.getElementById("btn-clear-contact-filters");
 
       // Tab 1 Filters
       const myEventsSearch = document.getElementById("my-events-search");
@@ -1947,8 +2171,8 @@
             startTimeVal = ev.times.trim();
           }
         }
-        document.getElementById("ev-start-time").value = formatTimeToHHMM(startTimeVal);
-        document.getElementById("ev-end-time").value = formatTimeToHHMM(endTimeVal);
+        setSelectTime("ev-start-time", startTimeVal);
+        setSelectTime("ev-end-time", endTimeVal);
         
         // Contact phone
         if (ev.contact) {
@@ -2146,16 +2370,20 @@
         btnTabMyEvents.classList.toggle("active", activeTabId === "my-events");
         btnTabAllEvents.classList.toggle("active", activeTabId === "all-events");
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
+        btnTabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
 
         // Tab contents
         tabMyEvents.classList.toggle("active", activeTabId === "my-events");
         tabAllEvents.classList.toggle("active", activeTabId === "all-events");
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
+        tabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
 
         if (activeTabId === "all-events") {
           loadAllDatabaseEvents();
         } else if (activeTabId === "all-knowledge") {
           loadAllKnowledgeDocs();
+        } else if (activeTabId === "contact-messages") {
+          loadContactMessages();
         } else {
           loadMyEvents();
         }
@@ -2164,6 +2392,7 @@
       btnTabMyEvents.onclick = () => switchTab("my-events");
       btnTabAllEvents.onclick = () => switchTab("all-events");
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
+      btnTabContactMessages.onclick = () => switchTab("contact-messages");
 
       // Load My Submitted Events
       async function loadMyEvents() {
@@ -2975,7 +3204,6 @@
           // Bind single delete actions
           allEventsTbody.querySelectorAll(".btn-delete-all-event").forEach((btn) => {
             btn.onclick = async (e) => {
-              e.stopPropagation();
               const docId = e.target.getAttribute("data-id");
               if (confirm("Are you sure you want to delete this event from the master database? This action cannot be undone.")) {
                 try {
@@ -3085,8 +3313,41 @@
             docs.push({ id: docSnap.id, ...docSnap.data() });
           });
 
+          // Group by filename
+          const fileGroups = {};
+          docs.forEach((d) => {
+            const filename = d.filename || "Unnamed Document";
+            if (!fileGroups[filename]) {
+              fileGroups[filename] = {
+                filename: filename,
+                chunkCount: 0,
+                totalLength: 0,
+                uploadedBy: d.uploadedBy || "System",
+                uploadedAt: d.uploadedAt,
+                docIds: []
+              };
+            }
+            fileGroups[filename].chunkCount += 1;
+            fileGroups[filename].totalLength += (d.text ? d.text.length : 0);
+            fileGroups[filename].docIds.push(d.id);
+            
+            // Keep the latest upload date and uploader
+            if (d.uploadedAt) {
+              const dTime = d.uploadedAt.toDate ? d.uploadedAt.toDate().getTime() : new Date(d.uploadedAt).getTime();
+              const currentGroupTime = fileGroups[filename].uploadedAt
+                ? (fileGroups[filename].uploadedAt.toDate ? fileGroups[filename].uploadedAt.toDate().getTime() : new Date(fileGroups[filename].uploadedAt).getTime())
+                : 0;
+              if (dTime > currentGroupTime) {
+                fileGroups[filename].uploadedAt = d.uploadedAt;
+                fileGroups[filename].uploadedBy = d.uploadedBy || "System";
+              }
+            }
+          });
+
+          const groupedDocs = Object.values(fileGroups);
+
           // Sort by uploadedAt desc
-          docs.sort((a, b) => {
+          groupedDocs.sort((a, b) => {
             const dateA = a.uploadedAt ? (a.uploadedAt.toDate ? a.uploadedAt.toDate().getTime() : new Date(a.uploadedAt).getTime()) : 0;
             const dateB = b.uploadedAt ? (b.uploadedAt.toDate ? b.uploadedAt.toDate().getTime() : new Date(b.uploadedAt).getTime()) : 0;
             return dateB - dateA;
@@ -3094,28 +3355,28 @@
 
           allKnowledgeLoading.style.display = "none";
 
-          if (docs.length === 0) {
-            allKnowledgeTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic;">No knowledge PDF documents uploaded yet.</td></tr>`;
+          if (groupedDocs.length === 0) {
+            allKnowledgeTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); font-style: italic;">No knowledge documents uploaded yet.</td></tr>`;
             allKnowledgeTableWrapper.style.display = "block";
             return;
           }
 
-          docs.forEach((kDoc) => {
+          groupedDocs.forEach((fileGroup) => {
             const tr = document.createElement("tr");
 
-            const uploadTime = kDoc.uploadedAt
-              ? (kDoc.uploadedAt.toDate ? kDoc.uploadedAt.toDate().toLocaleString() : new Date(kDoc.uploadedAt).toLocaleString())
+            const uploadTime = fileGroup.uploadedAt
+              ? (fileGroup.uploadedAt.toDate ? fileGroup.uploadedAt.toDate().toLocaleString() : new Date(fileGroup.uploadedAt).toLocaleString())
               : "N/A";
 
-            const uploader = kDoc.uploadedBy || "System";
+            const uploader = fileGroup.uploadedBy || "System";
 
             tr.innerHTML = `
-              <td style="font-weight: 500;">📄 ${kDoc.filename || "Unnamed Document"}</td>
-              <td>${kDoc.text ? kDoc.text.length.toLocaleString() + " chars" : "0 chars"}</td>
+              <td style="font-weight: 500;">📄 ${fileGroup.filename}</td>
+              <td>${fileGroup.totalLength.toLocaleString()} chars <span style="font-size:0.85rem; color:var(--text-secondary); font-weight:normal;">(${fileGroup.chunkCount} chunks)</span></td>
               <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${uploader}">${uploader.length > 20 ? uploader.substring(0, 18) + "..." : uploader}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary);">${uploadTime}</td>
               <td>
-                <button class="btn-danger btn-delete-knowledge" data-id="${kDoc.id}">Delete</button>
+                <button class="btn-danger btn-delete-knowledge" data-ids="${fileGroup.docIds.join(',')}">Delete</button>
               </td>
             `;
             allKnowledgeTbody.appendChild(tr);
@@ -3124,11 +3385,15 @@
           // Bind delete actions
           allKnowledgeTbody.querySelectorAll(".btn-delete-knowledge").forEach((btn) => {
             btn.onclick = async (e) => {
-              const docId = e.target.getAttribute("data-id");
-              if (confirm("Are you sure you want to remove this knowledge document from the AI base? This action cannot be undone.")) {
+              const docIdsStr = btn.getAttribute("data-ids");
+              if (!docIdsStr) return;
+              const docIds = docIdsStr.split(",");
+              
+              if (confirm(`Are you sure you want to remove this knowledge document (${docIds.length} chunks) from the AI base? This action cannot be undone.`)) {
                 try {
-                  await deleteDoc(doc(db, "knowledge", docId));
-                  alert("Knowledge document deleted successfully!");
+                  const deletePromises = docIds.map(docId => deleteDoc(doc(db, "knowledge", docId)));
+                  await Promise.all(deletePromises);
+                  alert("Knowledge document and all associated chunks deleted successfully!");
                   loadAllKnowledgeDocs();
                 } catch (err) {
                   alert("Failed to delete knowledge document: " + err.message);
@@ -3144,6 +3409,123 @@
         }
       }
 
+      function escapeHTML(str) {
+        if (!str) return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      let cachedContactMessages = [];
+
+      async function loadContactMessages() {
+        if (!getCurrentUser()) return;
+        contactMessagesLoading.style.display = "block";
+        contactMessagesTableWrapper.style.display = "none";
+        contactMessagesTbody.innerHTML = "";
+
+        try {
+          const contactCol = collection(db, "contact_messages");
+          const snapshot = await getDocs(contactCol);
+
+          cachedContactMessages = [];
+          snapshot.forEach((docSnap) => {
+            cachedContactMessages.push({ id: docSnap.id, ...docSnap.data() });
+          });
+
+          // Sort by timestamp descending
+          cachedContactMessages.sort((a, b) => {
+            const dateA = a.timestamp ? (a.timestamp.toDate ? a.timestamp.toDate().getTime() : new Date(a.timestamp).getTime()) : 0;
+            const dateB = b.timestamp ? (b.timestamp.toDate ? b.timestamp.toDate().getTime() : new Date(b.timestamp).getTime()) : 0;
+            return dateB - dateA;
+          });
+
+          renderContactMessages(cachedContactMessages);
+          contactMessagesLoading.style.display = "none";
+        } catch (error) {
+          console.error("Error loading contact messages:", error);
+          contactMessagesLoading.innerHTML = `<span style="color: red;">Error loading contact messages: ${error.message}</span>`;
+        }
+      }
+
+      function renderContactMessages(messages) {
+        contactMessagesTbody.innerHTML = "";
+        
+        if (messages.length === 0) {
+          contactMessagesTbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No contact messages found.</td></tr>`;
+          contactMessagesTableWrapper.style.display = "block";
+          return;
+        }
+
+        messages.forEach((msg) => {
+          const tr = document.createElement("tr");
+          
+          let dateStr = "N/A";
+          if (msg.timestamp) {
+            const date = msg.timestamp.toDate ? msg.timestamp.toDate() : new Date(msg.timestamp);
+            dateStr = date.toLocaleString();
+          }
+
+          tr.innerHTML = `
+            <td style="font-weight: 600;">${escapeHTML(msg.name || "")}</td>
+            <td><a href="mailto:${msg.email || ""}" style="color: var(--accent); text-decoration: underline;">${escapeHTML(msg.email || "")}</a></td>
+            <td>${escapeHTML(msg.phone || "N/A")}</td>
+            <td style="font-weight: 500;">${escapeHTML(msg.subject || "")}</td>
+            <td style="white-space: pre-wrap; max-width: 300px; font-size: 0.9rem;">${escapeHTML(msg.message || "")}</td>
+            <td style="font-size: 0.8rem; color: var(--text-secondary);">${dateStr}</td>
+            <td>
+              <button class="btn-danger btn-delete-message" data-id="${msg.id}">Delete</button>
+            </td>
+          `;
+
+          tr.querySelector(".btn-delete-message").onclick = async () => {
+            if (confirm("Are you sure you want to delete this message?")) {
+              try {
+                await deleteDoc(doc(db, "contact_messages", msg.id));
+                loadContactMessages();
+              } catch (err) {
+                alert("Failed to delete message: " + err.message);
+              }
+            }
+          };
+
+          contactMessagesTbody.appendChild(tr);
+        });
+
+        contactMessagesTableWrapper.style.display = "block";
+      }
+
+      // Live search filter
+      if (contactMessagesSearch) {
+        contactMessagesSearch.oninput = () => {
+          const queryText = contactMessagesSearch.value.toLowerCase().trim();
+          if (!queryText) {
+            renderContactMessages(cachedContactMessages);
+            return;
+          }
+          const filtered = cachedContactMessages.filter((msg) => {
+            return (
+              (msg.name && msg.name.toLowerCase().includes(queryText)) ||
+              (msg.email && msg.email.toLowerCase().includes(queryText)) ||
+              (msg.phone && msg.phone.toLowerCase().includes(queryText)) ||
+              (msg.subject && msg.subject.toLowerCase().includes(queryText)) ||
+              (msg.message && msg.message.toLowerCase().includes(queryText))
+            );
+          });
+          renderContactMessages(filtered);
+        };
+      }
+
+      if (btnClearContactFilters) {
+        btnClearContactFilters.onclick = () => {
+          contactMessagesSearch.value = "";
+          renderContactMessages(cachedContactMessages);
+        };
+      }
+
       // Main reload trigger for everything
       window.loadDashboard = function() {
         if (!getCurrentUser()) return;
@@ -3155,6 +3537,9 @@
           }
           if (tabAllKnowledge.classList.contains("active")) {
             loadAllKnowledgeDocs();
+          }
+          if (tabContactMessages.classList.contains("active")) {
+            loadContactMessages();
           }
         }
       }
@@ -3333,6 +3718,111 @@
           }
       };
 
+      // Auto-expand textareas for Title, Cost, Target Audience, Venue, Description
+      const expandableIds = ["ev-title", "ev-cost", "ev-audience", "ev-venue", "ev-desc"];
+      expandableIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          const autoExpand = () => {
+            el.style.height = "auto";
+            el.style.height = el.scrollHeight + "px";
+          };
+          el.addEventListener("input", autoExpand);
+          el.addEventListener("focus", autoExpand);
+          setTimeout(autoExpand, 200);
+        }
+      });
+
+      // Populate time dropdowns with 15-minute intervals
+      function populateTimeDropdowns() {
+        const startSelect = document.getElementById("ev-start-time");
+        const endSelect = document.getElementById("ev-end-time");
+        if (!startSelect || !endSelect) return;
+
+        // Clear existing options
+        startSelect.innerHTML = '<option value="">Select Start Time</option>';
+        endSelect.innerHTML = '<option value="">Select End Time</option>';
+
+        // Generate 15-minute interval options
+        for (let h = 0; h < 24; h++) {
+          for (let m = 0; m < 60; m += 15) {
+            const hh = String(h).padStart(2, "0");
+            const mm = String(m).padStart(2, "0");
+            const value = `${hh}:${mm}`;
+            
+            const ampm = h >= 12 ? "PM" : "AM";
+            const displayHour = h % 12 === 0 ? 12 : h % 12;
+            const displayText = `${displayHour}:${mm} ${ampm}`;
+
+            const optStart = document.createElement("option");
+            optStart.value = value;
+            optStart.textContent = displayText;
+            startSelect.appendChild(optStart);
+
+            const optEnd = document.createElement("option");
+            optEnd.value = value;
+            optEnd.textContent = displayText;
+            endSelect.appendChild(optEnd);
+          }
+        }
+      }
+
+      function formatToAMPM(hhmm) {
+        if (!hhmm) return "";
+        const parts = hhmm.split(":");
+        let hours = parseInt(parts[0], 10);
+        const minutes = parts[1] || "00";
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      function setSelectTime(elementId, timeVal) {
+        const selectEl = document.getElementById(elementId);
+        if (!selectEl) return;
+        const formattedVal = formatTimeToHHMM(timeVal);
+        if (!formattedVal) {
+          selectEl.value = "";
+          return;
+        }
+        
+        let exists = false;
+        for (let option of selectEl.options) {
+          if (option.value === formattedVal) {
+            exists = true;
+            break;
+          }
+        }
+        if (!exists) {
+          const opt = document.createElement("option");
+          opt.value = formattedVal;
+          opt.textContent = formatToAMPM(formattedVal);
+          selectEl.appendChild(opt);
+        }
+        selectEl.value = formattedVal;
+      }
+
+      // Initialize dropdowns
+      populateTimeDropdowns();
+
+      // Ensure End Date can never be less than Start Date
+      const startDateEl = document.getElementById("ev-start-date");
+      const endDateEl = document.getElementById("ev-end-date");
+      if (startDateEl && endDateEl) {
+        startDateEl.addEventListener("change", () => {
+          endDateEl.min = startDateEl.value;
+          if (endDateEl.value && endDateEl.value < startDateEl.value) {
+            endDateEl.value = startDateEl.value;
+          }
+        });
+        endDateEl.addEventListener("change", () => {
+          if (startDateEl.value && endDateEl.value && endDateEl.value < startDateEl.value) {
+            endDateEl.value = startDateEl.value;
+          }
+        });
+      }
+
       document.getElementById("upload-btn").onclick = async () => {
         const fileInput = document.getElementById("excel-file");
         if (!fileInput.files.length) {
@@ -3427,13 +3917,13 @@
       document.getElementById("upload-pdf-btn").onclick = async () => {
         const fileInput = document.getElementById("pdf-file");
         if (!fileInput.files.length) {
-          pdfStatusDiv.innerHTML = `<span style="color: red;">Please select a PDF file first.</span>`;
+          pdfStatusDiv.innerHTML = `<span style="color: red;">Please select a PDF or Word file first.</span>`;
           return;
         }
 
         const file = fileInput.files[0];
         pdfStatusDiv.innerHTML =
-          "Extracting text and uploading... (may take a minute for large PDFs)";
+          "Extracting text and uploading... (may take a minute for large files)";
 
         try {
           const currentUser = getCurrentUser();
@@ -3468,10 +3958,10 @@
 
           const formData = new FormData();
           formData.append("token", token);
-          formData.append("file", blob, file.name || "knowledge.pdf");
+          formData.append("file", blob, file.name || "knowledge_doc");
 
           pdfStatusDiv.innerHTML =
-            "Extracting text on server... (may take a minute for large PDFs)";
+            "Extracting text on server... (may take a minute for large files)";
           const response = await fetch("/api/upload_knowledge", {
             method: "POST",
             body: formData,
@@ -3510,6 +4000,77 @@
           pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during upload: ${error.message}</span>`;
         }
       };
+
+      // Webpage URL Scraper Logic
+      const urlStatusDiv = document.getElementById("url-status");
+      const scrapeUrlBtn = document.getElementById("scrape-url-btn");
+      if (scrapeUrlBtn) {
+        scrapeUrlBtn.onclick = async () => {
+          const urlInput = document.getElementById("knowledge-url");
+          const urlVal = urlInput.value.trim();
+          if (!urlVal) {
+            urlStatusDiv.innerHTML = `<span style="color: red;">Please enter a webpage URL first.</span>`;
+            return;
+          }
+
+          urlStatusDiv.innerHTML = "Fetching and scraping webpage text... (may take a moment)";
+
+          try {
+            const currentUser = getCurrentUser();
+            if (!currentUser) {
+              urlStatusDiv.innerHTML = `❌ <span style="color:red;">You must be logged in to scrape.</span>`;
+              return;
+            }
+
+            let token;
+            try {
+              token = await currentUser.getIdToken();
+            } catch (tokenErr) {
+              urlStatusDiv.innerHTML = `❌ <span style="color:red;">Firebase authentication token error: ${tokenErr.message}. Try logging out and logging in again.</span>`;
+              return;
+            }
+
+            const response = await fetch("/api/add_url_knowledge", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({ token, url: urlVal }),
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+              urlStatusDiv.innerHTML = "Text scraped and embedded. Writing chunks to database...";
+              try {
+                const batch = writeBatch(db);
+                let chunkCount = 0;
+                for (const chunk of result.chunks) {
+                  const newDocRef = doc(collection(db, "knowledge"));
+                  batch.set(newDocRef, {
+                     filename: result.filename,
+                     text: chunk.text,
+                     embeddingVector: chunk.embeddingVector,
+                     uploadedAt: serverTimestamp(),
+                     uploadedBy: currentUser ? currentUser.email : ""
+                  });
+                  chunkCount++;
+                }
+                await batch.commit();
+                
+                urlStatusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully scraped and saved webpage: ${result.filename}. It was split into ${chunkCount} chunks. Total chars: ${result.fullTextLength}</span>`;
+                urlInput.value = ""; // clear after success
+                if (window.loadDashboard) window.loadDashboard();
+              } catch (fsErr) {
+                urlStatusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
+              }
+            } else {
+              urlStatusDiv.innerHTML = `❌ <span style="color:red;">Scrape failed: ${result.detail || result.message}</span>`;
+            }
+          } catch (error) {
+            urlStatusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during scrape: ${error.message}</span>`;
+          }
+        };
+      }
 
       const singleEventForm = document.getElementById("single-event-form");
       const singleEventStatus = document.getElementById("single-event-status");
@@ -3589,6 +4150,11 @@
           if (scheduleType === "one-time") {
             const startDt = document.getElementById("ev-start-date").value;
             const endDt = document.getElementById("ev-end-date").value;
+
+            if (startDt && endDt && endDt < startDt) {
+              singleEventStatus.innerHTML = `❌ <span style="color:red;">End Date can never be less than Start Date.</span>`;
+              return;
+            }
 
             dates =
               startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
@@ -3741,5 +4307,6 @@
         }
       });
     </script>
+    <script src="/common.js" type="module"></script>
   </body>
 </html>
