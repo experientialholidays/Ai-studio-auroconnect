@@ -35,7 +35,7 @@ COPY --from=builder /app/submit.html ./submit.html
 COPY --from=builder /app/dashboard.html ./dashboard.html
 COPY --from=builder /app/contact.html ./contact.html
 COPY --from=builder /app/common.js ./common.js
-COPY --from=builder /app/firebase-applet-config.json* ./
+COPY --from=builder /app/package.json /app/firebase-applet-config.json* ./
 COPY --from=builder /app/assets ./assets
 
 # Expose port (Cloud Run will inject PORT at runtime, but we declare the default here)
