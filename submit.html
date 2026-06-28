@@ -1381,7 +1381,7 @@
         </p>
 
         <!-- Tab 1 Search/Filter Row -->
-        <div class="filters-panel" style="display: none !important;">
+        <div class="filters-panel" id="my-events-filters" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
             <span style="font-weight: 600; font-size: 0.95rem; color: var(--text);">🔍 Filter & Search My Events</span>
             <button class="btn-clear-filters" onclick="clearMyFilters()" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Clear All Filters</button>
@@ -1621,6 +1621,7 @@
                 <th>Location</th>
                 <th>Source</th>
                 <th>Submitted By</th>
+                <th>Submitted At</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -2949,7 +2950,7 @@
           allEventsLoading.style.display = "none";
 
           if (events.length === 0) {
-            allEventsTbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
+            allEventsTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
             allEventsTableWrapper.style.display = "block";
             return;
           }
@@ -2966,6 +2967,7 @@
 
             const submitter = ev.submittedBy || "Anonymous";
             const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
+            const submittedAtStr = ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A";
 
             tr.innerHTML = `
               <td style="text-align: center;" onclick="event.stopPropagation();">
@@ -2982,6 +2984,7 @@
               <td>${ev.venue || "N/A"}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
               <td style="white-space: nowrap;" onclick="event.stopPropagation();">
                 <button class="btn btn-secondary btn-edit-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
                 <button class="btn-danger btn-delete-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
@@ -3010,7 +3013,7 @@
               : (ev.posterUrl ? `<a href="${ev.posterUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Poster File</a>` : "None");
 
             detailsTr.innerHTML = `
-              <td colspan="8" style="padding: 1rem 1.5rem;">
+              <td colspan="9" style="padding: 1rem 1.5rem;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
                   
                   <!-- Column 1: General & Schedule -->
@@ -3399,6 +3402,7 @@
 
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
+          const myEventsFilters = document.getElementById("my-events-filters");
           if (currentUser.email === "info.experientialholidays@gmail.com") {
             adminOnlySection.style.display = "flex";
             userStatusDiv.innerHTML = `Admin: ${currentUser.email}`;
@@ -3408,6 +3412,7 @@
             dashboardRoleBadge.innerHTML = "Admin Mode";
             dashboardRoleBadge.className = "badge badge-admin";
             dashboardTabsRow.style.display = "flex";
+            if (myEventsFilters) myEventsFilters.style.setProperty("display", "flex", "important");
           } else {
             adminOnlySection.style.display = "none";
             userStatusDiv.innerHTML = `User: ${currentUser.email}`;
@@ -3417,6 +3422,7 @@
             dashboardRoleBadge.innerHTML = "User Mode";
             dashboardRoleBadge.className = "badge badge-user";
             dashboardTabsRow.style.display = "none";
+            if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
 
           // Automatically default to my-events view
@@ -3621,8 +3627,139 @@
         selectEl.value = formattedVal;
       }
 
+      // Autosave/Persistence logic for form in submit.html
+      const AUTOSAVE_KEY = "auroconnect_submit_form_autosave";
+
+      window.saveFormAutosave = function() {
+        try {
+          // Do not save if we are in editing mode (to avoid overwriting raw unsaved work with a different event's edit info)
+          if (typeof editingEventId !== "undefined" && editingEventId) return;
+
+          const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
+          const checkedWeekdays = Array.from(
+            document.querySelectorAll('input[name="ev-weekdays"]:checked')
+          ).map((cb) => cb.value);
+
+          const linkInputs = document.querySelectorAll(".ev-link");
+          const links = Array.from(linkInputs).map((inp) => inp.value);
+
+          const data = {
+            title: document.getElementById("ev-title")?.value || "",
+            type: document.getElementById("ev-type")?.value || "",
+            scheduleType: scheduleTypeInput ? scheduleTypeInput.value : "one-time",
+            startDate: document.getElementById("ev-start-date")?.value || "",
+            endDate: document.getElementById("ev-end-date")?.value || "",
+            weekdays: checkedWeekdays,
+            startTime: document.getElementById("ev-start-time")?.value || "",
+            endTime: document.getElementById("ev-end-time")?.value || "",
+            venue: document.getElementById("ev-venue")?.value || "",
+            cost: document.getElementById("ev-cost")?.value || "",
+            audience: document.getElementById("ev-audience")?.value || "",
+            contactPerson: document.getElementById("ev-contact-person")?.value || "",
+            contactCode: document.getElementById("ev-contact-code")?.value || "+91",
+            contact: document.getElementById("ev-contact")?.value || "",
+            whatsappCode: document.getElementById("ev-whatsapp-code")?.value || "+91",
+            whatsapp: document.getElementById("ev-whatsapp")?.value || "",
+            email: document.getElementById("ev-email")?.value || "",
+            desc: document.getElementById("ev-desc")?.value || "",
+            links: links
+          };
+
+          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+        } catch (e) {
+          console.error("Autosave save error:", e);
+        }
+      };
+
+      window.loadFormAutosave = function() {
+        try {
+          const saved = localStorage.getItem(AUTOSAVE_KEY);
+          if (!saved) return;
+          const data = JSON.parse(saved);
+
+          if (data.title && document.getElementById("ev-title")) document.getElementById("ev-title").value = data.title;
+          if (data.type && document.getElementById("ev-type")) document.getElementById("ev-type").value = data.type;
+          
+          if (data.scheduleType) {
+            const radio = document.querySelector(`input[name="ev-schedule-type"][value="${data.scheduleType}"]`);
+            if (radio) {
+              radio.checked = true;
+              const oneTimeContainer = document.getElementById("one-time-container");
+              const recurringContainer = document.getElementById("recurring-container");
+              if (oneTimeContainer && recurringContainer) {
+                if (data.scheduleType === "one-time") {
+                  oneTimeContainer.style.display = "flex";
+                  recurringContainer.style.display = "none";
+                } else {
+                  oneTimeContainer.style.display = "none";
+                  recurringContainer.style.display = "flex";
+                }
+              }
+            }
+          }
+
+          if (data.startDate && document.getElementById("ev-start-date")) document.getElementById("ev-start-date").value = data.startDate;
+          if (data.endDate && document.getElementById("ev-end-date")) document.getElementById("ev-end-date").value = data.endDate;
+
+          if (data.weekdays) {
+            document.querySelectorAll('input[name="ev-weekdays"]').forEach((cb) => {
+              cb.checked = data.weekdays.includes(cb.value);
+            });
+          }
+
+          if (data.startTime && document.getElementById("ev-start-time")) document.getElementById("ev-start-time").value = data.startTime;
+          if (data.endTime && document.getElementById("ev-end-time")) document.getElementById("ev-end-time").value = data.endTime;
+          if (data.venue && document.getElementById("ev-venue")) document.getElementById("ev-venue").value = data.venue;
+          if (data.cost && document.getElementById("ev-cost")) document.getElementById("ev-cost").value = data.cost;
+          if (data.audience && document.getElementById("ev-audience")) document.getElementById("ev-audience").value = data.audience;
+          if (data.contactPerson && document.getElementById("ev-contact-person")) document.getElementById("ev-contact-person").value = data.contactPerson;
+          if (data.contactCode && document.getElementById("ev-contact-code")) document.getElementById("ev-contact-code").value = data.contactCode;
+          if (data.contact && document.getElementById("ev-contact")) document.getElementById("ev-contact").value = data.contact;
+          if (data.whatsappCode && document.getElementById("ev-whatsapp-code")) document.getElementById("ev-whatsapp-code").value = data.whatsappCode;
+          if (data.whatsapp && document.getElementById("ev-whatsapp")) document.getElementById("ev-whatsapp").value = data.whatsapp;
+          if (data.email && document.getElementById("ev-email")) document.getElementById("ev-email").value = data.email;
+          if (data.desc && document.getElementById("ev-desc")) document.getElementById("ev-desc").value = data.desc;
+
+          if (data.links && data.links.length > 0) {
+            const linksContainer = document.getElementById("links-container");
+            if (linksContainer) {
+              linksContainer.innerHTML = "";
+              data.links.forEach((linkVal) => {
+                const input = document.createElement("input");
+                input.type = "url";
+                input.className = "ev-link";
+                input.placeholder = "https://";
+                input.value = linkVal;
+                input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); height: 38px; box-sizing: border-box;";
+                linksContainer.appendChild(input);
+              });
+            }
+          }
+        } catch (e) {
+          console.error("Autosave load error:", e);
+        }
+      };
+
+      window.clearFormAutosave = function() {
+        try {
+          localStorage.removeItem(AUTOSAVE_KEY);
+        } catch (e) {
+          console.error("Autosave clear error:", e);
+        }
+      };
+
       // Initialize dropdowns
       populateTimeDropdowns();
+
+      // Load saved form work
+      loadFormAutosave();
+
+      // Attach listeners on the single-event-form
+      const singleEventFormElem = document.getElementById("single-event-form");
+      if (singleEventFormElem) {
+        singleEventFormElem.addEventListener("input", saveFormAutosave);
+        singleEventFormElem.addEventListener("change", saveFormAutosave);
+      }
 
       // Ensure End Date can never be less than Start Date
       const startDateEl = document.getElementById("ev-start-date");
@@ -4108,6 +4245,7 @@
               
               singleEventStatus.innerHTML = `✅ <span style="color:var(--text);">Successfully submitted event.</span>`;
               singleEventForm.reset();
+              if (window.clearFormAutosave) window.clearFormAutosave();
               // Reset custom views manually
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
