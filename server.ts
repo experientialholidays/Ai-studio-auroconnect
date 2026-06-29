@@ -9,7 +9,7 @@ import { read, utils } from "xlsx";
 import { initializeApp as initAdminApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -295,8 +295,9 @@ app.post("/api/upload_events", upload.single("file"), async (req, res) => {
         const textToEmbed = `${cleanedEvent.title || ''} ${cleanedEvent.description || ''} ${cleanedEvent.category || ''} ${cleanedEvent.type || ''} ${cleanedEvent.venue || ''} ${cleanedEvent.days || ''} ${cleanedEvent.cost || ''} ${cleanedEvent.audience || ''} ${cleanedEvent.contactPerson || ''} ${cleanedEvent.contact || ''} ${cleanedEvent.email || ''}`.replace(/\s+/g, " ").trim();
         if (textToEmbed) {
           const embeddingRes = await ai.models.embedContent({
-              model: "text-embedding-004",
+              model: "gemini-embedding-2-preview",
               contents: textToEmbed,
+              config: { outputDimensionality: 768 }
           });
           cleanedEvent.embeddingVector = embeddingRes.embeddings?.[0]?.values || null;
         }
@@ -354,8 +355,9 @@ app.post("/api/submit_event", async (req, res) => {
       const textToEmbed = `${eventData.title || ''} ${eventData.description || ''} ${eventData.category || ''} ${eventData.type || ''} ${eventData.venue || ''} ${eventData.days || ''} ${eventData.cost || ''} ${eventData.audience || ''} ${eventData.contactPerson || ''} ${eventData.contact || ''} ${eventData.email || ''}`.replace(/\s+/g, " ").trim();
       if (textToEmbed) {
         const embeddingRes = await ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: textToEmbed,
+            config: { outputDimensionality: 768 }
         });
         eventData.embeddingVector = embeddingRes.embeddings?.[0]?.values || null;
       }
@@ -426,7 +428,8 @@ app.get("/api/events/:id", async (req, res) => {
   }
 });
 
-// GET Database Status Summary Endpoint
+
+
 app.get("/api/db_status", async (req, res) => {
   try {
     const eventsCol = collection(db, "events");
@@ -523,8 +526,9 @@ app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
        if (!chunkText.trim()) continue;
        try {
            const embeddingRes = await ai.models.embedContent({
-               model: "text-embedding-004",
+               model: "gemini-embedding-2-preview",
                contents: chunkText,
+               config: { outputDimensionality: 768 }
            });
            chunkData.push({
                text: chunkText,
@@ -621,8 +625,9 @@ app.post("/api/add_url_knowledge", async (req, res) => {
        if (!chunkText.trim()) continue;
        try {
            const embeddingRes = await ai.models.embedContent({
-               model: "text-embedding-004",
+               model: "gemini-embedding-2-preview",
                contents: chunkText,
+               config: { outputDimensionality: 768 }
            });
            chunkData.push({
                text: chunkText,
@@ -852,8 +857,9 @@ async function searchAurovilleEvents(searchQuery: string, specificity: string, f
         try {
             // Generate embedding for the search query
             const embedRes = await ai.models.embedContent({
-                model: "text-embedding-004",
+                model: "gemini-embedding-2-preview",
                 contents: searchQuery,
+                config: { outputDimensionality: 768 }
             });
             const queryVector = embedRes.embeddings?.[0]?.values;
 
@@ -1162,8 +1168,9 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
                 let queryEmbedding: number[] | null = null;
                 try {
                     const embedRes = await ai.models.embedContent({
-                        model: "text-embedding-004",
+                        model: "gemini-embedding-2-preview",
                         contents: searchQuery || message,
+                        config: { outputDimensionality: 768 }
                     });
                     queryEmbedding = embedRes.embeddings?.[0]?.values || null;
                 } catch (embedErr) {
@@ -1185,6 +1192,7 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
                     });
 
                     if (queryEmbedding) {
+                        console.log(`[RAG] queryEmbedding generated with length ${queryEmbedding.length}`);
                         // Compute similarity for all documents (chunks)
                         const scoredDocs = docs.map(doc => {
                             let score = 0;
@@ -1203,6 +1211,8 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
                         // Sort by similarity score descending
                         scoredDocs.sort((a, b) => b.score - a.score);
                         
+                        console.log(`[RAG] Top 3 chunks scores:`, scoredDocs.slice(0, 3).map(d => ({ file: d.filename, chunk: d.chunkIndex, score: d.score })));
+
                         // Get top 8 chunks
                         const topChunks = scoredDocs.slice(0, 10);
                         
@@ -1242,10 +1252,6 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
                             const combinedText = fileChunks.map(c => `[Chunk ${c.chunkIndex}]\n${c.text}`).join("\n...\n");
                             return `DOCUMENT: ${filename}\n${combinedText}`;
                         }).join("\n\n---\n\n");
-                    } else {
-                        // Fallback to first 15 chunks
-                        const topDocs = docs.slice(0, 15);
-                        knowledgeContext = topDocs.map(doc => `DOCUMENT: ${doc.filename} [Chunk ${doc.chunkIndex}]\n${doc.text}`).join("\n\n---\n\n");
                     }
                 }
              } catch (e) {
@@ -1309,8 +1315,9 @@ async function createServer() {
         if (!text) return res.status(400).json({ error: "Missing text" });
         
         const embeddingRes = await ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: text,
+            config: { outputDimensionality: 768 }
         });
         
         res.json({ embedding: embeddingRes.embeddings?.[0]?.values || [] });
