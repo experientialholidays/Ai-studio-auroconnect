@@ -1038,7 +1038,7 @@ function getCurrentAurovilleTimeInfo() {
 }
 
 // Websocket logic mimicking Python streaming chat
-async function handleStreamingChat(message: string, ws: WebSocket) {
+async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: any[]) {
     try {
         const timeInfo = getCurrentAurovilleTimeInfo();
         
@@ -1046,22 +1046,29 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
         ws.send(JSON.stringify({ type: "start_stream" }));
         ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Analyzing query...</i>" }));
 
+        // Convert chat history to text for classifier
+        const recentHistory = chatHistory.slice(-7);
+        const historyText = recentHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join("\n");
+
         // 2. Classifier Fast Call using json object response
         const classifierPrompt = `
-        You are an AI assistant designed to classify user queries for an event search system.
+        You are an AI assistant designed to classify user queries for AuroConnect, an overall guide for Auroville that provides information about both Events and General Knowledge.
         Today's date is: ${timeInfo.formattedNow}.
 
-        Analyze the user query: "${message}"
+        Recent Chat History (for context):
+        ${historyText || "No previous history."}
+
+        Analyze the user query: "${message}" (use history for context if the query is a follow-up or ambiguous)
         
         Categorize it into one of these buckets:
-        "A": Date and time specific query (no specific event word like 'yoga', 'dance', 'music'). Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm".
-        "B": Event topic search with specific topic keywords. Example: "Yoga classes on Friday", "Sound healing".
-        "C": General conversational questions NOT looking for events. Example: "What is Auroville?", "Hi".
+        "A": Broad event search based on date/time only. The user wants to see what events are happening but doesn't specify a topic. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm".
+        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?".
+        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
 
         Return ONLY a valid JSON object matching this schema:
         {
             "bucket": "A", 
-            "search_query": "Cleaned query for semantic DB search (if A or B)",
+            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
             "intro_text": "A friendly ONE SENTENCE intro for the user (only needed for bucket A)",
             "filter_date": "YYYY-MM-DD",
             "filter_day": "Monday",
@@ -1095,12 +1102,17 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
         if (bucket === "A") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" }));
              const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true);
+             let botReply = "";
              if (Array.isArray(rawEvents)) {
                  const output = formatCategorizedEvents(rawEvents, introText);
+                 botReply = output;
                  ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
              } else {
-                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: (introText ? introText + "\n\n" : "") + rawEvents }));
+                 botReply = (introText ? introText + "\n\n" : "") + String(rawEvents);
+                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
              }
+             chatHistory.push({ role: "user", text: message });
+             chatHistory.push({ role: "model", text: botReply });
         }
         else if (bucket === "B") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" }));
@@ -1123,7 +1135,10 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
 
              const stream = await ai.models.generateContentStream({
                  model: MODEL,
-                 contents: [{ role: "user", parts: [{ text: curationPrompt }] }],
+                 contents: [
+                     ...recentHistory.map((h: any) => ({ role: h.role, parts: [{ text: h.text }] })),
+                     { role: "user", parts: [{ text: curationPrompt }] }
+                 ],
                  config: { temperature: 0.3 }
              });
 
@@ -1135,6 +1150,9 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
                  }
              }
 
+             chatHistory.push({ role: "user", text: message });
+             chatHistory.push({ role: "model", text: textAccumulator });
+
         } else {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>💭 Processing general question...</i>\n\n" }));
              
@@ -1145,7 +1163,7 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
                 try {
                     const embedRes = await ai.models.embedContent({
                         model: "text-embedding-004",
-                        contents: message,
+                        contents: searchQuery || message,
                     });
                     queryEmbedding = embedRes.embeddings?.[0]?.values || null;
                 } catch (embedErr) {
@@ -1161,40 +1179,98 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
                         return {
                             filename: data.filename || "Unknown",
                             text: data.text || "",
-                            embeddingVector: data.embeddingVector || null
+                            embeddingVector: data.embeddingVector || null,
+                            chunkIndex: data.chunkIndex || 0
                         };
                     });
 
                     if (queryEmbedding) {
-                        // Compute similarity for all documents
+                        // Compute similarity for all documents (chunks)
                         const scoredDocs = docs.map(doc => {
                             let score = 0;
                             if (doc.embeddingVector) {
-                                score = cosineSimilarity(queryEmbedding!, doc.embeddingVector);
+                                let docVec = doc.embeddingVector;
+                                if (docVec && typeof docVec.toArray === 'function') {
+                                    docVec = docVec.toArray();
+                                }
+                                if (Array.isArray(docVec) && docVec.length === queryEmbedding!.length) {
+                                    score = cosineSimilarity(queryEmbedding!, docVec);
+                                }
                             }
                             return { ...doc, score };
                         });
+                        
                         // Sort by similarity score descending
                         scoredDocs.sort((a, b) => b.score - a.score);
                         
-                        // Select top 8 most similar chunks to get high precision and coverage
-                        const topDocs = scoredDocs.slice(0, 8);
+                        // Get top 8 chunks
+                        const topChunks = scoredDocs.slice(0, 10);
                         
-                        knowledgeContext = topDocs.map(doc => `DOCUMENT: ${doc.filename} (Relevance: ${doc.score.toFixed(3)})\n${doc.text}`).join("\n\n---\n\n");
+                        // To provide good context, let's include surrounding chunks (idx - 1, idx, idx + 1) for each top chunk
+                        const chunksToInclude = new Set<number>();
+                        const docMap = new Map<string, typeof docs[0]>();
+                        
+                        // Create a map to quickly look up chunks by filename and chunkIndex
+                        docs.forEach(doc => {
+                            const key = `${doc.filename}_${doc.chunkIndex}`;
+                            docMap.set(key, doc);
+                        });
+                        
+                        const finalChunks: typeof docs = [];
+                        const addedKeys = new Set<string>();
+                        
+                        topChunks.forEach(chunk => {
+                            const indices = [chunk.chunkIndex - 1, chunk.chunkIndex, chunk.chunkIndex + 1];
+                            indices.forEach(idx => {
+                                const key = `${chunk.filename}_${idx}`;
+                                if (!addedKeys.has(key) && docMap.has(key)) {
+                                    addedKeys.add(key);
+                                    finalChunks.push(docMap.get(key)!);
+                                }
+                            });
+                        });
+                        
+                        // Group final chunks by file, then sort by chunkIndex so they are in order
+                        const chunksByFile: Record<string, typeof docs> = {};
+                        finalChunks.forEach(c => {
+                            if (!chunksByFile[c.filename]) chunksByFile[c.filename] = [];
+                            chunksByFile[c.filename].push(c);
+                        });
+                        
+                        knowledgeContext = Object.entries(chunksByFile).map(([filename, fileChunks]) => {
+                            fileChunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
+                            const combinedText = fileChunks.map(c => `[Chunk ${c.chunkIndex}]\n${c.text}`).join("\n...\n");
+                            return `DOCUMENT: ${filename}\n${combinedText}`;
+                        }).join("\n\n---\n\n");
                     } else {
-                        // Fallback to first 5 if embedding failed
-                        knowledgeContext = docs.slice(0, 5).map(doc => `DOCUMENT: ${doc.filename}\n${doc.text}`).join("\n\n---\n\n");
+                        // Fallback to first 15 chunks
+                        const topDocs = docs.slice(0, 15);
+                        knowledgeContext = topDocs.map(doc => `DOCUMENT: ${doc.filename} [Chunk ${doc.chunkIndex}]\n${doc.text}`).join("\n\n---\n\n");
                     }
                 }
              } catch (e) {
                  console.error("Error fetching knowledge docs", e);
              }
 
+             const fullPrompt = `You are a helpful assistant for AuroConnect, an overall guide to Auroville. The user asked a general question about Auroville or an unstructured query.
+
+Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents. 
+
+IMPORTANT: If the user's query is ambiguous and it is unclear if they are looking for general information OR if they are looking for specific events (e.g., they just say "Matrimandir" or "volunteering"), provide a brief, helpful general answer AND politely ask them to clarify if they were looking for events related to that topic or just general information.
+
+### REFERENCE DOCUMENTS ###
+${knowledgeContext}
+
+### USER QUERY ###
+${message}`;
+
              const stream = await ai.models.generateContentStream({
                  model: MODEL,
-                 contents: [{ role: "user", parts: [{ text: message }] }],
+                 contents: [
+                     ...recentHistory.map((h: any) => ({ role: h.role, parts: [{ text: h.text }] })),
+                     { role: "user", parts: [{ text: fullPrompt }] }
+                 ],
                  config: { 
-                     systemInstruction: `You are a helpful assistant for AuroConnect. The user asked a general question about Auroville or an unstructured query.\n\nUse the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents.\n\n### REFERENCE DOCUMENTS ###\n${knowledgeContext}`,
                      temperature: 0.6 
                  }
              });
@@ -1206,6 +1282,9 @@ async function handleStreamingChat(message: string, ws: WebSocket) {
                      ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
                  }
              }
+
+             chatHistory.push({ role: "user", text: message });
+             chatHistory.push({ role: "model", text: textAccumulator });
         }
     } catch (err: any) {
         console.error("Stream error:", err);
@@ -1278,6 +1357,9 @@ async function createServer() {
     const sessionMatch = req.url?.match(/\/ws\/chat\/(.+)/);
     const sessionId = sessionMatch ? sessionMatch[1] : `sess_${Math.random()}`;
 
+    // Initialize per-session chat history
+    const chatHistory: any[] = [];
+
     // Send welcome 
     ws.send(JSON.stringify({ 
         type: "welcome", 
@@ -1308,22 +1390,29 @@ async function createServer() {
                 ws.send(JSON.stringify({ type: "start_stream" }));
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" }));
                 const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true);
+                let botReply = "";
                 if (Array.isArray(rawEvents)) {
                     const output = formatDailyEventsOnly(rawEvents);
+                    botReply = output;
                     ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
                 } else {
-                    ws.send(JSON.stringify({ type: "stream_chunk", chunk: "Failed to load daily events." }));
+                    botReply = "Failed to load daily events.";
+                    ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
                 }
+                chatHistory.push({ role: "user", text: text });
+                chatHistory.push({ role: "model", text: botReply });
                 return;
             }
 
             if (lowerText === "no, thank you" || lowerText === "no" || lowerText === "no thanks" || lowerText === "no, thanks") {
                 ws.send(JSON.stringify({ type: "start_stream" }));
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "No problem! Let me know if you need help finding any other events." }));
+                chatHistory.push({ role: "user", text: text });
+                chatHistory.push({ role: "model", text: "No problem! Let me know if you need help finding any other events." });
                 return;
             }
 
-            await handleStreamingChat(text, ws);
+            await handleStreamingChat(text, ws, chatHistory);
         } catch (e) {
             console.error("WS Parse Error:", e);
         }

@@ -3936,7 +3936,8 @@
                    text: chunk.text,
                    embeddingVector: chunk.embeddingVector,
                    uploadedAt: serverTimestamp(),
-                   uploadedBy: currentUser ? currentUser.email : ""
+                   uploadedBy: currentUser ? currentUser.email : "",
+                   chunkIndex: chunkCount
                 });
                 chunkCount++;
               }
