@@ -16,6 +16,7 @@ export interface AuroEvent {
   audience?: string;
   pageNo?: number;
   posterUrl?: string;
+  mediaUrls?: string[];
   source: string; // filename source
 }
 

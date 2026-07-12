@@ -116,11 +116,13 @@
 
     #chat-window { 
         flex: 1; 
-        overflow-y: auto; 
+        overflow-y: auto;
+        overflow-x: hidden; 
         padding: 1.25rem 5%; 
         display: flex; 
         flex-direction: column; 
         gap: 1.25rem; 
+        position: relative;
     }
     
     .msg { max-width: 95%; line-height: 1.6; }
@@ -146,6 +148,45 @@
         text-underline-offset: 4px;
     }
 
+    /* EVENT CARD STYLE */
+    .event-card {
+        color: var(--text);
+        font-size: 0.95rem;
+        display: block;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        margin: 8px 0 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+        line-height: 1.35;
+        position: relative;
+    }
+    .event-card:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+    .event-card strong {
+        font-size: 1.05rem;
+        color: var(--accent);
+        display: block;
+        margin-bottom: 0px !important;
+        line-height: 1.25;
+    }
+    .event-card strong + br {
+        display: none !important;
+    }
+    .event-card a {
+        text-decoration: none !important;
+        color: var(--accent) !important;
+    }
+    .event-card br {
+        display: block;
+        content: "";
+        margin: 2px 0 0 0 !important;
+    }
     /* COMPACT FOOTER NAVIGATION */
 
     .input-area { 
@@ -193,7 +234,8 @@
         max-width: 37.5rem; 
         width: 90%; 
         max-height: 80vh; 
-        overflow-y: auto; 
+        overflow-y: auto;
+        overflow-x: hidden; 
         position: relative;
     }
     .close-btn { 
@@ -305,9 +347,13 @@
     const chatWin = document.getElementById('chat-window');
 
     function openModal(content) {
-        document.getElementById('modal-body').innerHTML = marked.parse(content, { breaks: true });
-        document.getElementById('modal').style.display = 'flex';
-        history.pushState({ modalOpen: true }, "");
+        if (window.openDetails) {
+            window.openDetails(content);
+        } else {
+            document.getElementById('modal-body').innerHTML = marked.parse(content, { breaks: true });
+            document.getElementById('modal').style.display = 'flex';
+            history.pushState({ modalOpen: true }, "");
+        }
     }
 
     function closeModal() {
@@ -357,10 +403,66 @@
             else if (data.type === "stream_chunk") {
                 if (currentBotDiv) {
                     currentBotDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
-                    chatWin.scrollTop = chatWin.scrollHeight;
+                    currentBotDiv.querySelectorAll('p').forEach(p => {
+                        if (p.querySelector('a[href^="#DETAILS::"]')) {
+                            p.classList.add('event-card');
+                            addSwipeLogic(p);
+                            p.onclick = function(e) {
+                                if (e.target.tagName !== 'A') {
+                                    const link = p.querySelector('a');
+                                    if (link) link.click();
+                                }
+                            };
+                        }
+                    });
+                    // Do not auto-scroll to the bottom during streaming to let the user scroll by themselves
                 }
             }
         };
+    }
+
+    function addSwipeLogic(el) {
+        if (el.dataset.swipeAdded) return;
+        el.dataset.swipeAdded = "true";
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        
+        el.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+            el.style.transition = 'none';
+        }, {passive: true});
+        
+        el.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            const diffX = e.touches[0].clientX - startX;
+            // Only allow swiping left
+            if (diffX < 0) {
+                currentX = diffX;
+                el.style.transform = `translateX(${currentX}px)`;
+            }
+        }, {passive: true});
+        
+        el.addEventListener('touchend', (e) => {
+            if (!isDragging) return;
+            isDragging = false;
+            el.style.transition = 'transform 0.3s ease';
+            if (currentX < -80) { // Swiped enough to trigger
+                el.style.transform = 'translateX(-100vw)';
+                setTimeout(() => {
+                    const link = el.querySelector('a');
+                    if (link) link.click();
+                    // Reset position after clicking
+                    setTimeout(() => {
+                        el.style.transform = 'translateX(0)';
+                    }, 100);
+                }, 200);
+            } else {
+                el.style.transform = 'translateX(0)';
+            }
+            currentX = 0;
+        }, {passive: true});
     }
 
     function appendMsg(role, text) {
@@ -368,8 +470,29 @@
         const div = document.createElement('div');
         div.className = `msg ${role}`;
         div.innerHTML = marked.parse(text || "", { breaks: true });
+        
+        div.querySelectorAll('p').forEach(p => {
+            if (p.querySelector('a[href^="#DETAILS::"]')) {
+                p.classList.add('event-card');
+                
+                // Clicking anywhere on the card should trigger the link
+                addSwipeLogic(p);
+                p.onclick = function(e) {
+                    if (e.target.tagName !== 'A') {
+                        const link = p.querySelector('a');
+                        if (link) link.click();
+                    }
+                };
+            }
+        });
+        
         chatWin.appendChild(div);
-        chatWin.scrollTop = chatWin.scrollHeight;
+        if (role === 'user') {
+            chatWin.scrollTop = chatWin.scrollHeight;
+        } else {
+            // Scroll to the start/top of the bot's reply so the user starts reading from the top
+            chatWin.scrollTop = div.offsetTop - 20;
+        }
         return div;
     }
 
@@ -381,7 +504,10 @@
             connect();
             while (ws.readyState !== WebSocket.OPEN) await new Promise(r => setTimeout(r, 50));
             if (!msg) appendMsg('user', text);
-            ws.send(JSON.stringify({ message: text }));
+            ws.send(JSON.stringify({ 
+                message: text, 
+                timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
+            }));
         } catch (err) {
             appendMsg('bot', '⚠️ Error connecting.');
         }
@@ -402,6 +528,7 @@
     document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
     connect();
 </script>
+<script src="/details.js" type="module"></script>
 <script src="/common.js" type="module"></script>
 </body>
 </html>

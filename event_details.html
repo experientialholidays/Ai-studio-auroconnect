@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details | AuroConnect</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        :root { 
+            --accent: #0b57d0; /* Deep Google Royal Blue */
+            --accent-hover: #084bb5;
+            --accent-light: rgba(11, 87, 208, 0.06);
+            --accent-gradient: linear-gradient(135deg, #0b57d0 0%, #1d4ed8 100%);
+            --amber-accent: #e28700;
+            --amber-light: rgba(226, 135, 0, 0.08);
+            --bg: #f8f9fa; /* Sleek light grey */
+            --surface: #ffffff;
+            --surface-hover: #f1f3f5;
+            --text: #1f1f1f;
+            --text-secondary: #5f6368;
+            --border: rgba(0, 0, 0, 0.08);
+            --border-hover: rgba(0, 0, 0, 0.15);
+            --shadow: rgba(0, 0, 0, 0.02);
+            --shadow-lg: 0 12px 30px -8px rgba(11, 87, 208, 0.04), 0 4px 12px -3px rgba(0, 0, 0, 0.03);
+            --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+            --font-mono: "JetBrains Mono", ui-monospace, monospace;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #000000; /* Rich pure black */
+                --surface: #121212; /* Premium slate dark */
+                --surface-hover: #1c1c1e;
+                --text: #f1f3f4;
+                --text-secondary: #9ca3af;
+                --border: rgba(255, 255, 255, 0.08);
+                --border-hover: rgba(255, 255, 255, 0.16);
+                --shadow: rgba(0, 0, 0, 0.5);
+                --shadow-lg: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 4px 20px -4px rgba(0, 0, 0, 0.3);
+                --accent: #8ab4f8; /* Modern light blue */
+                --accent-hover: #a3c7fc;
+                --accent-light: rgba(138, 180, 248, 0.12);
+                --accent-gradient: linear-gradient(135deg, #8ab4f8 0%, #a3c7fc 100%);
+                --amber-accent: #f59e0b;
+                --amber-light: rgba(245, 158, 11, 0.15);
+            }
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0;
+            transition: background-color 0.25s ease, border-color 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+        }
+        
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Premium sticky top header */
+        .header-bar {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @media (prefers-color-scheme: dark) {
+            .header-bar {
+                background: rgba(18, 18, 18, 0.85);
+            }
+        }
+        
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 8px 16px;
+            border-radius: 99px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            box-shadow: 0 1px 2px var(--shadow);
+            cursor: pointer;
+        }
+        
+        .back-btn:hover {
+            color: var(--text);
+            border-color: var(--text);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px var(--shadow);
+        }
+        
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .logo-spark {
+            background: var(--accent-gradient);
+            color: #ffffff;
+            padding: 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px var(--accent-light);
+        }
+        @media (prefers-color-scheme: dark) {
+            .logo-spark {
+                color: #000000;
+                font-weight: bold;
+                box-shadow: 0 4px 14px rgba(138, 180, 248, 0.2);
+            }
+        }
+        
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: -0.025em;
+            color: var(--text);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+            flex-grow: 1;
+        }
+        
+        /* Split layout container */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 32px;
+        }
+        
+        @media (min-width: 820px) {
+            .layout-grid.with-poster {
+                grid-template-columns: 360px 1fr;
+                align-items: start;
+            }
+        }
+        
+        /* Modern Poster Card */
+        .poster-card {
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 90px;
+            height: fit-content;
+        }
+        
+        .poster-img-container {
+            width: 100%;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            aspect-ratio: 3 / 4;
+        }
+        @media (prefers-color-scheme: dark) {
+            .poster-img-container {
+                background: rgba(255, 255, 255, 0.02);
+            }
+        }
+        
+        .poster-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .poster-card:hover .poster-img {
+            transform: scale(1.02);
+        }
+        
+        .poster-actions {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            display: flex;
+            justify-content: center;
+        }
+        
+        .zoom-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 99px;
+            background: var(--accent-light);
+            border: 1px solid transparent;
+        }
+        
+        .zoom-btn:hover {
+            background: var(--accent);
+            color: var(--surface);
+            transform: translateY(-1px);
+        }
+        @media (prefers-color-scheme: dark) {
+            .zoom-btn:hover {
+                color: #000000;
+            }
+        }
+        
+        /* Info Details Panel */
+        .info-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        
+        /* Hero Event Card Header */
+        .hero-block {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+        
+        .meta-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        
+        .meta-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge-category {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        
+        .badge-type {
+            background: var(--amber-light);
+            color: var(--amber-accent);
+        }
+        
+        .share-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        
+        .share-pill:hover {
+            color: var(--text);
+            border-color: var(--text-secondary);
+            transform: translateY(-1px);
+        }
+        
+        .title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.2;
+            color: var(--text);
+            letter-spacing: -0.035em;
+        }
+        
+        @media (max-width: 600px) {
+            .title {
+                font-size: 1.75rem;
+            }
+        }
+        
+        /* Modern Bento Grid Layout */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        
+        .bento-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bento-item:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .bento-icon-box {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 1px solid var(--border);
+        }
+        
+        .bento-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .bento-info-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .bento-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .bento-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+        
+        /* About/Description Panel */
+        .desc-block {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        
+        .description-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+        
+        /* Interactive Contacts Panel */
+        .actions-block {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .contact-info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .contact-pill-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .contact-pill-info strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+        
+        @media (min-width: 480px) {
+            .actions-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+        }
+        
+        .action-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+            text-align: center;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 4px var(--shadow);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+        
+        .action-whatsapp {
+            background: #25d366;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(37, 211, 102, 0.15);
+        }
+        
+        .action-whatsapp:hover {
+            background: #1faf51;
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.25);
+        }
+        
+        .action-email {
+            background: var(--accent-light);
+            color: var(--accent);
+            border-color: var(--border);
+        }
+        
+        .action-email:hover {
+            background: var(--accent);
+            color: var(--surface);
+            border-color: transparent;
+        }
+        @media (prefers-color-scheme: dark) {
+            .action-email:hover {
+                color: #000000;
+            }
+        }
+        
+        .action-website {
+            background: var(--surface);
+            color: var(--text);
+            border-color: var(--border);
+        }
+        
+        .action-website:hover {
+            background: var(--surface-hover);
+            border-color: var(--text-secondary);
+        }
+        
+        .action-calendar {
+            background: var(--accent);
+            color: var(--surface);
+            box-shadow: 0 4px 12px var(--accent-light);
+        }
+        
+        .action-calendar:hover {
+            background: var(--accent-hover);
+        }
+        @media (prefers-color-scheme: dark) {
+            .action-calendar {
+                color: #000000;
+                font-weight: bold;
+            }
+        }
+        
+        /* Shared Files / Attachments Gallery */
+        .attachments-block {
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+        
+        .attachments-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            gap: 16px;
+        }
+        
+        .attachment-item:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+        
+        .attachment-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            overflow: hidden;
+            min-width: 0;
+        }
+        
+        .attachment-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+        
+        .attachment-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .attachment-download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .attachment-download-btn:hover {
+            background: var(--accent);
+            color: var(--surface);
+            border-color: transparent;
+        }
+        @media (prefers-color-scheme: dark) {
+            .attachment-download-btn:hover {
+                color: #000000;
+            }
+        }
+        
+        /* Interactive Notification Toast */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            border-radius: 14px;
+            padding: 14px 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s, visibility 0.4s;
+        }
+        
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Modern Footer */
+        footer {
+            margin-top: 48px;
+            padding: 32px 24px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header-bar">
+        <div class="header-container">
+            <button onclick="goBack()" class="back-btn" id="header-back-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Back to Explorer
+            </button>
+            
+            <div class="logo-area">
+                <div class="logo-spark">✨</div>
+                <div class="logo-text">AuroConnect</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" id="content">
+        <!-- Will be dynamically populated -->
+        <div style="display: flex; justify-content: center; align-items: center; height: 200px;">
+            <div style="font-weight: 600; color: var(--text-secondary);">Loading Event details...</div>
+        </div>
+    </main>
+
+    <div id="toast-notification" class="toast-notification">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: #25d366;">
+            <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span id="toast-message">Action successful!</span>
+    </div>
+
+    <footer>
+        <p>AuroConnect • Intelligent Auroville Events Directory.</p>
+        <p style="margin-top: 4px;">Designed with meticulous care for guests, residents, and visitors.</p>
+    </footer>
+
+    <script>
+        const event = {{EVENT_DATA}};
+        
+        function goBack() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                history.back();
+            } else {
+                window.location.href = "/dashboard";
+            }
+        }
+        
+        function showToast(message, type = "success") {
+            const toast = document.getElementById("toast-notification");
+            const toastMsg = document.getElementById("toast-message");
+            toastMsg.textContent = message;
+            toast.classList.add("show");
+            
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3500);
+        }
+
+        function copyEventLink() {
+            try {
+                const url = window.location.href;
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast("Event link copied to clipboard!");
+                }).catch(() => {
+                    // Fallback
+                    const input = document.createElement("input");
+                    input.value = url;
+                    document.body.appendChild(input);
+                    input.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(input);
+                    showToast("Event link copied to clipboard!");
+                });
+            } catch (err) {
+                showToast("Failed to copy link.");
+            }
+        }
+
+        function shareEvent() {
+            if (navigator.share) {
+                navigator.share({
+                    title: event.title,
+                    text: `Check out "${event.title}" on AuroConnect!`,
+                    url: window.location.href
+                }).catch(err => {
+                    copyEventLink();
+                });
+            } else {
+                copyEventLink();
+            }
+        }
+
+        function downloadIcs() {
+            try {
+                let title = event.title || "AuroConnect Event";
+                let desc = event.description || "";
+                let location = event.venue || "";
+                
+                // Date parsing
+                let startDt = new Date();
+                if (event.startDate) {
+                    const parsed = new Date(event.startDate);
+                    if (!isNaN(parsed.getTime())) {
+                        startDt = parsed;
+                    }
+                }
+                
+                let endDt = new Date(startDt.getTime());
+                if (event.endDate) {
+                    const parsed = new Date(event.endDate);
+                    if (!isNaN(parsed.getTime())) {
+                        endDt = parsed;
+                    }
+                }
+                
+                // If times is available, let's extract hours/minutes
+                let startHours = 9;
+                let startMins = 0;
+                let endHours = 10;
+                let endMins = 0;
+                
+                let timeStr = event.times || "";
+                if (timeStr) {
+                    const parts = timeStr.split(/\s*(?:-|to|–|—)\s*/i);
+                    const startPart = parts[0] ? parts[0].trim().toLowerCase() : "";
+                    const endPart = parts[1] ? parts[1].trim().toLowerCase() : "";
+                    
+                    function parseTime(str) {
+                        const isPm = str.includes("pm");
+                        const clean = str.replace("am", "").replace("pm", "").trim();
+                        const bits = clean.split(":");
+                        let h = parseInt(bits[0], 10);
+                        let m = bits[1] ? parseInt(bits[1], 10) : 0;
+                        if (!isNaN(h)) {
+                            if (isPm && h < 12) h += 12;
+                            if (!isPm && h === 12) h = 0;
+                            return { h, m };
+                        }
+                        return null;
+                    }
+                    
+                    const startParsed = parseTime(startPart);
+                    if (startParsed) {
+                        startHours = startParsed.h;
+                        startMins = startParsed.m;
+                        endHours = (startHours + 1) % 24;
+                        endMins = startMins;
+                    }
+                    
+                    if (endPart) {
+                        const endParsed = parseTime(endPart);
+                        if (endParsed) {
+                            endHours = endParsed.h;
+                            endMins = endParsed.m;
+                        }
+                    }
+                }
+                
+                startDt.setHours(startHours, startMins, 0, 0);
+                
+                if (endDt.getTime() < startDt.getTime() || (event.startDate === event.endDate && endHours <= startHours)) {
+                    endDt = new Date(startDt.getTime());
+                }
+                endDt.setHours(endHours, endMins, 0, 0);
+                
+                function formatIcsDate(date) {
+                    const y = date.getUTCFullYear();
+                    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+                    const d = String(date.getUTCDate()).padStart(2, '0');
+                    const h = String(date.getUTCHours()).padStart(2, '0');
+                    const min = String(date.getUTCMinutes()).padStart(2, '0');
+                    const s = String(date.getUTCSeconds()).padStart(2, '0');
+                    return `${y}${m}${d}T${h}${min}${s}Z`;
+                }
+                
+                let ics = [
+                    "BEGIN:VCALENDAR",
+                    "VERSION:2.0",
+                    "PRODID:-//AuroConnect//NONSGML Event Calendar//EN",
+                    "CALSCALE:GREGORIAN",
+                    "METHOD:PUBLISH",
+                    "BEGIN:VEVENT",
+                    `UID:${event.uuid || event.id || Math.random().toString(36).substr(2, 9)}@auroconnect.info`,
+                    `DTSTAMP:${formatIcsDate(new Date())}`,
+                    `DTSTART:${formatIcsDate(startDt)}`,
+                    `DTEND:${formatIcsDate(endDt)}`,
+                    `SUMMARY:${title.replace(/[,;]/g, '\\$&')}`,
+                    `DESCRIPTION:${desc.replace(/\n/g, '\\n').replace(/[,;]/g, '\\$&')}`,
+                    `LOCATION:${location.replace(/[,;]/g, '\\$&')}`,
+                    "END:VEVENT",
+                    "END:VCALENDAR"
+                ].join("\r\n");
+                
+                const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}.ics`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showToast("Event successfully saved as Calendar Invite!");
+            } catch (err) {
+                console.error("Failed to generate calendar file:", err);
+                showToast("Could not generate calendar file.");
+            }
+        }
+        
+        function render() {
+            const container = document.getElementById("content");
+            if (!event || !event.title) {
+                container.innerHTML = `
+                    <div class="hero-block" style="text-align: center; padding: 48px 24px;">
+                        <h2 class="title" style="margin-bottom: 12px;">Event Not Found</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">This event may have been updated, removed, or is no longer listed in our database.</p>
+                        <button onclick="goBack()" class="back-btn" style="display: inline-flex; border: 1px solid var(--border);">Return to Explorer</button>
+                    </div>`;
+                return;
+            }
+
+            // Document Title
+            document.title = `${event.title} | AuroConnect`;
+
+            // Prepare time display string
+            let timeStr = event.times || "";
+            if (!timeStr) {
+                const startStr = event.originalHeaders?.startTime || event.originalHeaders?.["start time"] || "";
+                const endStr = event.originalHeaders?.endTime || event.originalHeaders?.["end time"] || "";
+                if (startStr || endStr) {
+                    timeStr = `${startStr || "11:00 am"}${endStr ? " - " + endStr : ""}`;
+                } else {
+                    timeStr = "Check description for details";
+                }
+            }
+
+            // Prepare dates display string
+            let datesField = event.dates || "";
+            if (Array.isArray(datesField)) datesField = datesField.length > 0 ? datesField.join(", ") : "";
+            if (event.startDate) {
+                datesField = event.startDate;
+                if (event.endDate && event.endDate !== event.startDate) {
+                    datesField += " to " + event.endDate;
+                }
+            }
+            const finalDates = datesField || event.days || "Recurring Schedule";
+
+            // Check for beautiful poster
+            const isStorageUrl = event.posterUrl && event.posterUrl.includes("firebasestorage.googleapis.com");
+            
+            // Layout container class based on poster presence
+            let html = `<div class="layout-grid ${isStorageUrl ? 'with-poster' : ''}">`;
+
+            // POSTER COLUMN (if available)
+            if (isStorageUrl) {
+                html += `
+                <div class="poster-card">
+                    <div class="poster-img-container">
+                        <img class="poster-img" src="${event.posterUrl}" alt="${event.title}" />
+                    </div>
+                    <div class="poster-actions">
+                        <a href="${event.posterUrl}" target="_blank" class="zoom-btn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                <line x1="11" y1="8" x2="11" y2="14"></line>
+                                <line x1="8" y1="11" x2="14" y2="11"></line>
+                            </svg>
+                            View Full Resolution
+                        </a>
+                    </div>
+                </div>`;
+            }
+
+            // DETAILS COLUMN
+            html += `<div class="info-panel">`;
+
+            // Hero / Title Block
+            html += `
+            <div class="hero-block">
+                <div class="meta-header-row">
+                    <div class="meta-badges">
+                        ${event.category ? `<span class="badge badge-category">${event.category}</span>` : ''}
+                        ${event.type && event.type !== event.category ? `<span class="badge badge-type">${event.type}</span>` : ''}
+                    </div>
+                    <button onclick="shareEvent()" class="share-pill">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        Share Event
+                    </button>
+                </div>
+                <h1 class="title">${event.title}</h1>
+            </div>`;
+
+            // Bento Grid (With crisp, high-end vector icons)
+            html += `
+            <div class="bento-grid">
+                <!-- Dates Grid Item -->
+                <div class="bento-item">
+                    <div class="bento-header">
+                        <div class="bento-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="bento-info-box">
+                            <div class="bento-label">Date / Days</div>
+                            <div class="bento-value">${finalDates}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Times Grid Item -->
+                <div class="bento-item">
+                    <div class="bento-header">
+                        <div class="bento-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                        <div class="bento-info-box">
+                            <div class="bento-label">Timing</div>
+                            <div class="bento-value">${timeStr}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Venue Grid Item -->
+                ${event.venue ? `
+                <div class="bento-item">
+                    <div class="bento-header">
+                        <div class="bento-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="bento-info-box">
+                            <div class="bento-label">Venue / Location</div>
+                            <div class="bento-value">${event.venue}</div>
+                        </div>
+                    </div>
+                </div>` : ''}
+
+                <!-- Cost Grid Item -->
+                <div class="bento-item">
+                    <div class="bento-header">
+                        <div class="bento-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="1" x2="12" y2="23"></line>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <div class="bento-info-box">
+                            <div class="bento-label">Contribution / Cost</div>
+                            <div class="bento-value">${event.cost || "Free / Donation-based"}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audience Grid Item -->
+                <div class="bento-item">
+                    <div class="bento-header">
+                        <div class="bento-icon-box">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="bento-info-box">
+                            <div class="bento-label">Target Audience</div>
+                            <div class="bento-value">${event.audience || "All guests, visitors, and residents welcome"}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+
+            // About / Description Block
+            if (event.description) {
+                html += `
+                <div class="desc-block">
+                    <h3 class="section-title">
+                        About the Event
+                    </h3>
+                    <div class="description-text">${event.description}</div>
+                </div>`;
+            } else {
+                html += `
+                <div class="desc-block">
+                    <h3 class="section-title">About the Event</h3>
+                    <div class="description-text" style="font-style: italic;">No detailed description provided. Please refer to dates, times, and venue above.</div>
+                </div>`;
+            }
+
+            // Quick Actions / Interactive Panel
+            const hasPhone = !!event.contact;
+            const hasWhatsapp = !!event.whatsapp;
+            const hasEmail = !!event.email;
+            const hasWebsite = !!event.website;
+
+            html += `
+            <div class="actions-block">
+                <h3 class="section-title">Interactive Quick Actions</h3>
+                
+                ${(hasPhone || hasEmail) ? `
+                <div class="contact-info-row">
+                    ${event.contact ? `
+                    <div class="contact-pill-info">
+                        <span>📞</span> Call / Inquire: <strong>${event.contact}</strong>
+                    </div>` : ''}
+                    ${event.email ? `
+                    <div class="contact-pill-info">
+                        <span>✉️</span> Email Contact: <strong>${event.email}</strong>
+                    </div>` : ''}
+                </div>` : ''}
+
+                <div class="actions-grid">
+                    <!-- Add to Calendar Button (Direct Offline ICS Generator) -->
+                    <button onclick="downloadIcs()" class="action-button action-calendar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        Add to Calendar
+                    </button>
+
+                    <!-- Whatsapp Button -->
+                    ${event.whatsapp ? `
+                    <a href="https://wa.me/${event.whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent('Hi, I found your event "' + event.title + '" on AuroConnect. I would like more information please!')}" target="_blank" class="action-button action-whatsapp">
+                        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.513 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.864-9.864.002-2.637-1.023-5.115-2.887-6.979C16.582 1.9 14.101.876 11.469.876c-5.44 0-9.866 4.418-9.87 9.866-.001 1.702.46 3.364 1.336 4.82l-.428 1.564 1.62-.424 1.53.908zm11.365-6.83c-.302-.151-1.787-.882-2.057-.98-.27-.099-.465-.148-.662.151-.197.297-.765.98-.937 1.177-.173.199-.347.223-.649.072-.302-.151-1.274-.469-2.427-1.496-.897-.8-1.502-1.787-1.679-2.088-.177-.302-.018-.465.132-.615.136-.135.302-.351.454-.526.151-.176.202-.302.302-.503.102-.201.051-.376-.025-.526-.076-.151-.662-1.597-.907-2.185-.238-.572-.48-.495-.662-.504-.171-.008-.367-.01-.563-.01-.197 0-.517.073-.787.371-.27.297-1.031 1.008-1.031 2.455s1.053 2.842 1.2 3.042c.148.199 2.073 3.164 5.021 4.439.701.303 1.25.485 1.677.621.705.224 1.345.193 1.851.118.563-.084 1.787-.73 2.039-1.436.252-.706.252-1.313.177-1.436-.076-.123-.27-.197-.573-.348z"/>
+                        </svg>
+                        Message on WA
+                    </a>` : ''}
+
+                    <!-- Email Button -->
+                    ${event.email ? `
+                    <a href="mailto:${event.email}?subject=${encodeURIComponent('Inquiry: ' + event.title)}" class="action-button action-email">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                        Send Email
+                    </a>` : ''}
+
+                    <!-- Website Button -->
+                    ${event.website ? `
+                    <a href="${event.website.startsWith('http') ? event.website : 'https://' + event.website}" target="_blank" class="action-button action-website">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        Visit Website
+                    </a>` : ''}
+                </div>
+            </div>`;
+
+            // EXTRA MEDIA & ATTACHMENTS GALLERY
+            if (event.mediaUrls && Array.isArray(event.mediaUrls)) {
+                const storageUrls = event.mediaUrls.filter(url => url && url.includes("firebasestorage.googleapis.com"));
+                if (storageUrls.length > 0) {
+                    html += `
+                    <div class="attachments-block">
+                        <h3 class="section-title">Media & Shared Attachments</h3>
+                        <div class="attachments-grid">`;
+                    
+                    storageUrls.forEach((url, index) => {
+                        let filename = "Attachment Document " + (index + 1);
+                        let fileIcon = "📄";
+                        try {
+                            const decoded = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
+                            const parts = decoded.split("_");
+                            if (parts.length > 1) {
+                                filename = parts.slice(1).join("_");
+                            } else {
+                                filename = decoded;
+                            }
+                            
+                            const ext = filename.split('.').pop().toLowerCase();
+                            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                fileIcon = "🖼️";
+                            } else if (ext === 'pdf') {
+                                fileIcon = "📕";
+                            } else if (['xls', 'xlsx', 'csv'].includes(ext)) {
+                                fileIcon = "📊";
+                            } else if (['doc', 'docx'].includes(ext)) {
+                                fileIcon = "📘";
+                            }
+                        } catch (e) {}
+
+                        html += `
+                        <div class="attachment-item">
+                            <div class="attachment-info">
+                                <div class="attachment-icon">${fileIcon}</div>
+                                <span class="attachment-name" title="${filename}">${filename}</span>
+                            </div>
+                            <a href="${url}" target="_blank" class="attachment-download-btn">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                View File
+                            </a>
+                        </div>`;
+                    });
+
+                    html += `
+                        </div>
+                    </div>`;
+                }
+            }
+
+            // Close Grid and Details Panel
+            html += `</div></div>`;
+
+            // Write all content to container
+            container.innerHTML = html;
+        }
+
+        render();
+    </script>
+</body>
+</html>

@@ -146,524 +146,499 @@ app.post("/api/upload_events", upload.single("file"), async (req, res) => {
         return strVal;
       };
 
-      const formatExcelDate = (val: any): string => {
-        if (val === undefined || val === null) return "";
-        const strVal = String(val).trim();
-        if (strVal === "") return "";
-        
-        const num = Number(strVal);
-        if (!isNaN(num) && Number.isInteger(num) && num > 10000 && num < 100000) {
-          const date = new Date((num - 25569) * 86400 * 1000);
-          const year = date.getUTCFullYear();
-          const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-          const day = String(date.getUTCDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-        return strVal;
+      const processed = {
+        title: getVal(["Title", "Event Name", "Name"]),
+        category: getVal(["Category", "Type"]),
+        scheduleType: getVal(["Schedule Type", "Frequency"]),
+        dates: getVal(["Dates", "Date"]),
+        days: getVal(["Days", "Day"]),
+        times: getVal(["Times", "Time"]),
+        venue: getVal(["Venue", "Location"]),
+        cost: getVal(["Cost", "Price", "Contribution"]),
+        audience: getVal(["Audience", "Key Info"]),
+        contact: getVal(["Contact", "Phone"]),
+        email: getVal(["Email"]),
+        whatsapp: getVal(["WhatsApp"]),
+        website: getVal(["Website", "Link"]),
+        posterUrl: getVal(["Poster URL", "Image URL"]),
+        description: getVal(["Description", "Details", "About"]),
+        startDate: getVal(["Start Date"]),
+        endDate: getVal(["End Date"]),
+        originalHeaders: cleanRawEv
       };
 
-      // Exact Mapping matching the shared columns
-      const title = getVal(["Event Name"]);
-      const type = getVal(["Type of event"]);
-      const days = getVal(["Days"]);
-      const startDate = formatExcelDate(getVal(["Start date"]));
-      const endDate = formatExcelDate(getVal(["End date"]));
-      const startTime = formatExcelTime(getVal(["Start Time"]));
-      let endTime = formatExcelTime(getVal(["End Time"]));
-      
-      if (startTime && !endTime) {
+      eventsToUpload.push(processed);
+    } // End of for (const rawEv of rawEvents) loop
+
+    // Now upload to Firestore
+    let count = 0;
+    for (const ev of eventsToUpload) {
+      await addDoc(collection(db, "events"), ev);
+      count++;
+    }
+
+    return res.json({ detail: `Successfully uploaded ${count} events` });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ detail: "Failed to process upload" });
+  }
+});
+export function parseExcelDateToReadable(dateStr: string): string {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) {
+            const formatter = new Intl.DateTimeFormat("en-GB", {
+                day: "numeric", month: "long", year: "numeric"
+            });
+            return formatter.format(d);
+        }
+    }
+    return dateStr;
+}
+
+export function isValidTimeFormat(timeStr: string): boolean {
+    if (!timeStr) return false;
+    const clean = timeStr.toLowerCase().trim();
+    if (!/\d/.test(clean)) return false;
+    const matchColon = clean.match(/(\d{1,2})[:.](\d{2})/);
+    const matchAmPm = clean.match(/(\d{1,2})\s*(am|pm)/);
+    const matchSimpleNum = clean.match(/^\s*\d{1,2}\s*$/);
+    const matchRange = clean.match(/^\s*\d{1,2}\s*[-–—to]\s*\d{1,2}\s*$/i);
+    return !!(matchColon || matchAmPm || matchSimpleNum || matchRange);
+}
+
+export function calculateEndTimeIfMissing(startTime: string): string {
+    if (!startTime) return "";
+    if (!isValidTimeFormat(startTime)) return startTime;
+    
+    const lower = startTime.toLowerCase().replace(/\s+/g, "");
+    
+    let isPm = lower.includes("pm");
+    let isAm = lower.includes("am");
+    let t = lower.replace("am", "").replace("pm", "");
+    let parts = t.split(":");
+    let hours = parseInt(parts[0], 10);
+    let mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    if (isNaN(hours)) return startTime;
+    
+    // Check if it's already a 24-hour time (e.g. 13:00 to 23:59) without explicit am/pm
+    if (hours >= 12 && hours < 24 && !isAm && !isPm) {
+        isPm = true;
+        hours -= 12;
+    }
+    
+    // Add 1 hour
+    hours += 1;
+    let ampm = isPm ? "pm" : "am";
+    if (hours === 12 && !isPm) { ampm = "pm"; }
+    else if (hours === 12 && isPm) { ampm = "am"; }
+    else if (hours > 12) { hours -= 12; }
+    
+    const hStr = hours.toString();
+    const mStr = mins < 10 ? "0" + mins : mins.toString();
+    return `${hStr}:${mStr}${ampm}`;
+}
+
+export function formatDisplayTimes(timesStr: string): string {
+    if (!timesStr) return "";
+    const range = splitTimeRange(timesStr);
+    const start = range.start.trim();
+    const end = range.end.trim();
+    
+    if (end) {
+        // If end has no am/pm (like "09:00" or "21:00"), we don't display the end time at all!
+        // This is because it was either calculated or has no am/pm (which violates "am and pm only")
+        if (!end.toLowerCase().includes("am") && !end.toLowerCase().includes("pm")) {
+            return start;
+        }
+        return `${start} - ${end}`;
+    }
+    return start;
+}
+
+export function splitTimeRange(timesStr: string): { start: string; end: string } {
+    if (!timesStr) return { start: "", end: "" };
+    const parts = timesStr.split(/\s*(?:-|to|–|—)\s*/i);
+    const start = parts[0] || "";
+    const end = parts[1] || "";
+    return { start: start.trim(), end: end.trim() };
+}
+
+export function parseMinutesFromTimeStr(timeStr: string): number {
+    if (!timeStr) return 0;
+    const lower = timeStr.toLowerCase().trim().replace(/\s+/g, "");
+    const normalized = lower.replace(".", ":");
+    const isPm = normalized.includes("pm");
+    const isAm = normalized.includes("am");
+    const t = normalized.replace("am", "").replace("pm", "");
+    const parts = t.split(":");
+    let hours = parseInt(parts[0], 10);
+    let mins = parts.length > 1 ? parseInt(parts[1], 10) : 0;
+    if (isNaN(hours)) return 0;
+    
+    // Check if it's already a 24-hour time (e.g. 13:00 to 24:00) without explicit am/pm
+    if (hours >= 12 && hours <= 24 && !isAm && !isPm) {
+        return hours * 60 + mins;
+    }
+    
+    if (isPm && hours < 12) hours += 12;
+    if (isAm && hours === 12) hours = 0;
+    return hours * 60 + mins;
+}
+
+export function getEventStartAndEndTimes(event: any): { start: string; end: string } {
+    let start = event.originalHeaders?.startTime || event.startTime || "";
+    let end = event.originalHeaders?.endTime || event.endTime || "";
+    if (!start && !end && event.times) {
+        const range = splitTimeRange(event.times);
+        start = range.start;
+        end = range.end;
+    }
+    return { start: start.trim(), end: end.trim() };
+}
+
+export function getDisplayDate(data: any): string {
+    const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+    const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+    
+    if (!evStart) return "";
+    
+    if (evEnd && evEnd !== evStart) {
+        // If end date is mentioned, display date is half of start date and end date
         try {
-          const parts = startTime.split(":");
-          if (parts.length >= 2) {
-            const h = parseInt(parts[0], 10);
-            const m = parseInt(parts[1], 10);
-            if (!isNaN(h) && !isNaN(m)) {
-              const eh = (h + 1) % 24;
-              endTime = `${eh.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+            const startD = new Date(evStart);
+            const endD = new Date(evEnd);
+            if (!isNaN(startD.getTime()) && !isNaN(endD.getTime())) {
+                const midMs = startD.getTime() + (endD.getTime() - startD.getTime()) / 2;
+                const midD = new Date(midMs);
+                const y = midD.getFullYear();
+                const m = String(midD.getMonth() + 1).padStart(2, "0");
+                const d = String(midD.getDate()).padStart(2, "0");
+                return `${y}-${m}-${d}`;
             }
-          }
         } catch (e) {
-          console.error("Error calculating end time", e);
+            console.error("Error calculating display date midpoint:", e);
         }
-      }
+    }
+    return evStart; // single date, display date is start date
+}
 
-      const venue = getVal(["Venue"]);
-      const excelCategoryValue = getVal(["Category"]);
-      const description = getVal(["Description"]);
-      const contactPerson = getVal(["Contact Person/Unit"]);
-      const contactPhone = getVal(["Contact Phone/WhatsApp"]);
-      const contactEmail = getVal(["Contact Email"]);
-      const websiteLink = getVal(["Website/Link"]);
-      const costContribution = getVal(["Cost/Contribution"]);
-      const targetAudience = getVal(["Target Audience/Prerequisites"]);
-      const posterUrl = getVal(["poster url"]);
-
-      // Construct combined display attributes to be perfectly compatible with UI searches/viewers
-      let constructedDate = days;
-      if (startDate) {
-        constructedDate = startDate;
-        if (endDate && endDate !== startDate) {
-          constructedDate += ` to ${endDate}`;
+export function getShortWeekdays(daysField: any): string {
+    if (!daysField) return "";
+    let daysArr: string[] = [];
+    if (Array.isArray(daysField)) {
+        daysArr = daysField;
+    } else if (typeof daysField === "string") {
+        let cleaned = daysField.trim();
+        if (cleaned.startsWith("[")) {
+            try {
+                const parsed = JSON.parse(cleaned.replace(/'/g, '"'));
+                if (Array.isArray(parsed)) daysArr = parsed;
+            } catch (e) {
+                daysArr = cleaned.split(/,\s*/);
+            }
+        } else {
+            daysArr = cleaned.split(/,\s*/);
         }
-      }
-
-      let constructedTime = startTime;
-      if (endTime && startTime) {
-        constructedTime += ` - ${endTime}`;
-      } else if (endTime) {
-        constructedTime = endTime;
-      }
-
-      // Interchange: Category represents schedule intervals (daily / weekly / date-specific)
-      let normalizedCategory = "Date-specific Events";
-      const catLower = excelCategoryValue.toLowerCase().trim();
-      if (catLower.includes("daily") || catLower === "daily events") {
-        normalizedCategory = "Daily Events";
-      } else if (catLower.includes("weekly") || catLower === "weekly events") {
-        normalizedCategory = "Weekly Events";
-      } else if (catLower.includes("date") || catLower.includes("one-time") || catLower === "date-specific events" || catLower === "date-specific") {
-        normalizedCategory = "Date-specific Events";
-      } else {
-        // Fallback checks based on days of the week or range
-        const daysLower = days.toLowerCase();
-        if (daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday")) {
-          normalizedCategory = "Daily Events";
-        } else if (daysLower.includes("monday") || daysLower.includes("tuesday") || daysLower.includes("wednesday") || daysLower.includes("thursday") || daysLower.includes("friday") || daysLower.includes("saturday") || daysLower.includes("sunday")) {
-          normalizedCategory = "Weekly Events";
+    }
+    
+    const shortMap: Record<string, string> = {
+        "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu",
+        "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
+        "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+    };
+    
+    const result: string[] = [];
+    daysArr.forEach(d => {
+        const lower = d.toLowerCase().trim();
+        if (shortMap[lower]) {
+            result.push(shortMap[lower]);
+        } else if (lower === "daily" || lower === "every day" || lower === "everyday") {
+            result.push("day");
+        } else {
+            result.push(d.charAt(0).toUpperCase() + d.slice(1));
         }
-      }
-
-      const scheduleType = (normalizedCategory === "Daily Events" || normalizedCategory === "Weekly Events") ? "recurring" : "one-time";
-
-      const websiteLinks = websiteLink ? websiteLink.split(",").map((s: string) => s.trim()).filter((s: string) => s) : [];
-      const mediaUrls = posterUrl ? [posterUrl] : [];
-
-      const cleanedEvent: any = {
-        // Standard fields mapped to match both structures perfectly (Client-side Form and Database)
-        title: title,
-        type: type,                       // Excel "Type of event" maps to "type" (e.g. Workshop, Class)
-        category: normalizedCategory,     // Excel "Category" maps to "category" (e.g. Daily Events, Weekly Events, Date-specific Events)
-        scheduleType: scheduleType,
-        
-        dates: constructedDate,
-        days: days,
-        times: constructedTime,
-        venue: venue,
-        
-        cost: costContribution,
-        audience: targetAudience,
-        contactPerson: contactPerson,
-        contact: contactPhone,
-        whatsapp: contactPhone,
-        email: contactEmail,
-        
-        website: websiteLink,
-        websiteLinks: websiteLinks,
-        
-        posterUrl: posterUrl,
-        mediaUrls: mediaUrls,
-        
-        description: description,
-        
-        // Preserved raw fields to keep absolute fidelity of original data structure
-        originalHeaders: {
-          eventName: title,
-          typeOfEvent: type,
-          days: days,
-          startDate: startDate,
-          endDate: endDate,
-          startTime: startTime,
-          endTime: endTime,
-          venue: venue,
-          category: excelCategoryValue,
-          description: description,
-          contactPersonUnit: contactPerson,
-          contactPhoneWhatsApp: contactPhone,
-          contactEmail: contactEmail,
-          websiteLink: websiteLink,
-          costContribution: costContribution,
-          targetAudiencePrerequisites: targetAudience,
-          posterUrl: posterUrl
-        },
-
-        uploadedAt: new Date().toISOString(),
-        submittedBy: decodedToken.email,
-        excelFilename: req.file.originalname
-      };
-
-      try {
-        const textToEmbed = `${cleanedEvent.title || ''} ${cleanedEvent.description || ''} ${cleanedEvent.category || ''} ${cleanedEvent.type || ''} ${cleanedEvent.venue || ''} ${cleanedEvent.days || ''} ${cleanedEvent.cost || ''} ${cleanedEvent.audience || ''} ${cleanedEvent.contactPerson || ''} ${cleanedEvent.contact || ''} ${cleanedEvent.email || ''}`.replace(/\s+/g, " ").trim();
-        if (textToEmbed) {
-          const embeddingRes = await ai.models.embedContent({
-              model: "gemini-embedding-2-preview",
-              contents: textToEmbed,
-              config: { outputDimensionality: 768 }
-          });
-          cleanedEvent.embeddingVector = embeddingRes.embeddings?.[0]?.values || null;
-        }
-      } catch(e) {
-        console.error("Failed to generate embedding for event", cleanedEvent.title, e);
-      }
-
-      eventsToUpload.push(cleanedEvent);
-    }
-    
-    res.json({ message: "Successfully parsed excel file", count: eventsToUpload.length, data: eventsToUpload });
-  } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ detail: `Failed to process file: ${err.message}` });
-  }
-});
-
-// Single Event Submission API Endpoint
-app.post("/api/submit_event", async (req, res) => {
-  try {
-    const token = req.body.token;
-    if (!token) {
-      return res.status(401).json({ detail: "No authentication token provided" });
-    }
-
-    let decodedToken;
-    if (token && token.startsWith("DEV_BYPASS_TOKEN_")) {
-      decodedToken = { email: token.replace("DEV_BYPASS_TOKEN_", "") };
-    } else {
-      try {
-        decodedToken = await getAuth().verifyIdToken(token);
-      } catch (e) {
-        return res.status(401).json({ detail: "Invalid authentication token: " + (e as Error).message });
-      }
-    }
-
-    // Example of checking admin email (you can customize or uncomment this):
-    // const adminEmails = ["info.experientialholidays@gmail.com"];
-    // if (!adminEmails.includes(decodedToken.email)) {
-    //   return res.status(403).json({ detail: "Forbidden: Admin access required." });
-    // }
-
-    const eventData = req.body.event;
-    if (!eventData || typeof eventData !== 'object') {
-      return res.status(400).json({ detail: "Invalid event data" });
-    }
-
-    const collectionRef = collection(db, "events");
-    
-    // Add submitter email to the record
-    eventData.submittedBy = decodedToken.email;
-    eventData.submittedAt = new Date().toISOString();
-
-    try {
-      const textToEmbed = `${eventData.title || ''} ${eventData.description || ''} ${eventData.category || ''} ${eventData.type || ''} ${eventData.venue || ''} ${eventData.days || ''} ${eventData.cost || ''} ${eventData.audience || ''} ${eventData.contactPerson || ''} ${eventData.contact || ''} ${eventData.email || ''}`.replace(/\s+/g, " ").trim();
-      if (textToEmbed) {
-        const embeddingRes = await ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
-            contents: textToEmbed,
-            config: { outputDimensionality: 768 }
-        });
-        eventData.embeddingVector = embeddingRes.embeddings?.[0]?.values || null;
-      }
-    } catch(e) {
-      console.error("Failed to generate embedding for single event submission", eventData.title, e);
-    }
-
-    await addDoc(collectionRef, eventData);
-
-    return res.json({ message: "Successfully submitted event." });
-  } catch (error) {
-    console.error("Error submitting event:", error);
-    return res.status(500).json({ detail: "Error submitting event: " + (error as Error).message });
-  }
-});
-
-// GET Catalog Events API Endpoint
-app.get("/api/events", async (req, res) => {
-  try {
-    const { query: searchQuery, day, category } = req.query;
-    const colRef = collection(db, "events");
-    const snapshot = await getDocs(colRef);
-    let events = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as any));
-    
-    if (category) {
-      events = events.filter(e => e.category === category);
-    }
-    
-    if (day) {
-      events = events.filter(e => {
-        const dVal = (e.days || e.day || "").toLowerCase();
-        return dVal.includes(String(day).toLowerCase());
-      });
-    }
-    
-    if (searchQuery) {
-      const q = String(searchQuery).toLowerCase();
-      events = events.filter(e => {
-        return (
-          (e.title || "").toLowerCase().includes(q) ||
-          (e.description || "").toLowerCase().includes(q) ||
-          (e.venue || "").toLowerCase().includes(q) ||
-          (e.type || "").toLowerCase().includes(q)
-        );
-      });
-    }
-    
-    return res.json({ success: true, events });
-  } catch (error) {
-    console.error("Error fetching events for catalog:", error);
-    return res.status(500).json({ success: false, detail: (error as Error).message });
-  }
-});
-
-// GET Specific Catalog Event API Endpoint
-app.get("/api/events/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const docRef = doc(db, "events", id);
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) {
-      return res.status(404).json({ success: false, detail: "Event not found" });
-    }
-    return res.json({ success: true, event: { id: docSnap.id, ...docSnap.data() } });
-  } catch (error) {
-    console.error("Error fetching event details:", error);
-    return res.status(500).json({ success: false, detail: (error as Error).message });
-  }
-});
-
-
-
-app.get("/api/db_status", async (req, res) => {
-  try {
-    const eventsCol = collection(db, "events");
-    const eventsSnap = await getDocs(eventsCol);
-    const knowledgeCol = collection(db, "knowledge");
-    const knowledgeSnap = await getDocs(knowledgeCol);
-    
-    const sampleEvents = eventsSnap.docs.slice(0, 5).map(d => ({ 
-      id: d.id, 
-      title: d.data().title, 
-      category: d.data().category,
-      type: d.data().type 
-    }));
-    
-    return res.json({
-      success: true,
-      eventsCount: eventsSnap.size,
-      knowledgeCount: knowledgeSnap.size,
-      sampleEvents
     });
-  } catch (error) {
-    console.error("Error reading db status:", error);
-    return res.status(500).json({ success: false, error: (error as Error).message });
-  }
-});
-
-app.get("/api/firebase_config", (req, res) => {
-  return res.json({
-    projectId: firebaseConfig.projectId,
-    appId: firebaseConfig.appId,
-    apiKey: firebaseConfig.apiKey,
-    authDomain: firebaseConfig.authDomain,
-    storageBucket: firebaseConfig.storageBucket,
-    messagingSenderId: firebaseConfig.messagingSenderId,
-    firestoreDatabaseId: firebaseConfig.firestoreDatabaseId || "(default)"
-  });
-});
-
-import { PDFParse } from "pdf-parse";
-
-// Knowledge PDF & Word Upload API Endpoint
-app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
-  try {
-    const token = req.body.token;
-    if (!token) return res.status(401).json({ detail: "No authentication token provided" });
     
-    let decodedToken;
-    if (token && token.startsWith("DEV_BYPASS_TOKEN_")) {
-      decodedToken = { email: token.replace("DEV_BYPASS_TOKEN_", "") };
-    } else {
-      try {
-        decodedToken = await getAuth().verifyIdToken(token);
-      } catch (e) {
-        return res.status(401).json({ detail: "Invalid auth token" });
-      }
+    if (result.length === 0) return "";
+    if (result.includes("day")) return "Day";
+    return result.join(", ");
+}
+
+export function formatDatesDisplay(data: any, categoryType: string): string {
+    const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+    const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+    
+    const isWeekdayStr = (s: string): boolean => {
+        if (!s) return false;
+        const lower = s.toLowerCase().trim();
+        const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+                          "mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+        return weekdays.includes(lower);
+    };
+
+    let parsedDates: string[] = [];
+    if (data.dates) {
+        if (Array.isArray(data.dates)) {
+            parsedDates = data.dates.map(String);
+        } else if (typeof data.dates === "string") {
+            const cleaned = data.dates.trim();
+            if (cleaned.startsWith("[")) {
+                try {
+                    const parsed = JSON.parse(cleaned.replace(/'/g, '"'));
+                    if (Array.isArray(parsed)) parsedDates = parsed.map(String);
+                } catch (e) {
+                    parsedDates = cleaned.split(/,\s*/);
+                }
+            } else if (cleaned !== "") {
+                parsedDates = cleaned.split(/,\s*/);
+            }
+        }
     }
 
-    if (decodedToken.email !== 'info.experientialholidays@gmail.com') {
-      return res.status(403).json({ detail: "Forbidden: Admin access required." });
+    let hasRealDate = false;
+    let datesDisplay = "";
+
+    if (evStart) {
+        hasRealDate = true;
+        const readableStart = parseExcelDateToReadable(evStart);
+        if (evEnd && evEnd !== evStart) {
+            const readableEnd = parseExcelDateToReadable(evEnd);
+            datesDisplay = `${readableStart} to ${readableEnd}`;
+        } else {
+            datesDisplay = readableStart;
+        }
+    } else if (parsedDates.length > 0) {
+        const allWeekdays = parsedDates.every(d => isWeekdayStr(d));
+        if (!allWeekdays) {
+            hasRealDate = true;
+            datesDisplay = parsedDates.join(", ");
+        }
     }
 
-    if (!req.file) return res.status(400).json({ detail: "No file uploaded" });
-
-    let fullText = "";
-    const mime = req.file.mimetype;
-    const originalname = req.file.originalname.toLowerCase();
-
-    if (mime === "application/pdf" || originalname.endsWith(".pdf")) {
-      const pdfApp: any = new PDFParse(new Uint8Array(req.file.buffer));
-      await pdfApp.load();
-      const pdfData: any = await pdfApp.getText();
-      fullText = pdfData.text.replace(/\0/g, ""); // remove null bytes
-    } else if (
-      mime === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || 
-      originalname.endsWith(".docx")
-    ) {
-      const result = await mammoth.extractRawText({ buffer: req.file.buffer });
-      fullText = result.value;
+    if (categoryType === "daily" || categoryType === "weekly") {
+        if (hasRealDate && datesDisplay) {
+            return datesDisplay;
+        } else {
+            const daysVal = data.days || (data.originalHeaders && data.originalHeaders.days) || "";
+            const shortDays = getShortWeekdays(daysVal);
+            if (shortDays) {
+                return `Every ${shortDays}`;
+            } else {
+                return categoryType === "daily" ? "Every Day" : "";
+            }
+        }
     } else {
-      return res.status(400).json({ detail: "Only PDF (.pdf) and Word (.docx) files are allowed" });
+        if (datesDisplay) return datesDisplay;
+        const daysVal = data.days || (data.originalHeaders && data.originalHeaders.days) || "";
+        const shortDays = getShortWeekdays(daysVal);
+        if (shortDays) return `Every ${shortDays}`;
+        return "";
+    }
+}
+
+export function isEventEnded(event: any, currentTime24: string): boolean {
+    const { start, end } = getEventStartAndEndTimes(event);
+    
+    // If no start time is mentioned (null, undefined, or empty), it is not ended
+    if (!start) {
+        return false;
     }
     
-    // Chunk the text into roughly 2000 character pieces with overlap
-    const CHUNK_SIZE = 2000;
-    const OVERLAP = 200;
-    const chunks = [];
-    for (let i = 0; i < fullText.length; i += (CHUNK_SIZE - OVERLAP)) {
-       chunks.push(fullText.substring(i, i + CHUNK_SIZE));
-       if (i + CHUNK_SIZE >= fullText.length) break;
+    // If start time is unparsed (e.g., "Full Day", "Check description"), do not mark it as ended
+    if (!isValidTimeFormat(start)) {
+        return false;
     }
-
-    const chunkData = [];
-    for (const chunkText of chunks) {
-       if (!chunkText.trim()) continue;
-       try {
-           const embeddingRes = await ai.models.embedContent({
-               model: "gemini-embedding-2-preview",
-               contents: chunkText,
-               config: { outputDimensionality: 768 }
-           });
-           chunkData.push({
-               text: chunkText,
-               embeddingVector: embeddingRes.embeddings?.[0]?.values || null
-           });
-       } catch (err) {
-           console.error("Failed to embed chunk", err);
-           // Still push the chunk without embedding so we don't lose data
-           chunkData.push({ text: chunkText, embeddingVector: null });
-       }
-    }
-
-    const filename = req.file.originalname;
-
-    res.json({ message: "Successfully parsed document", filename, chunks: chunkData, fullTextLength: fullText.length });
-  } catch (err: any) {
-    console.error("Document upload error:", err);
-    res.status(500).json({ detail: `Failed to process document: ${err.message}` });
-  }
-});
-
-// Knowledge Webpage Scraper API Endpoint
-app.post("/api/add_url_knowledge", async (req, res) => {
-  try {
-    const { token, url } = req.body;
-    if (!token) return res.status(401).json({ detail: "No authentication token provided" });
     
-    let decodedToken;
-    if (token && token.startsWith("DEV_BYPASS_TOKEN_")) {
-      decodedToken = { email: token.replace("DEV_BYPASS_TOKEN_", "") };
+    let displayTimeMin = 12 * 60; // 12 noon fallback
+    if (end && isValidTimeFormat(end)) {
+        let startMin = parseMinutesFromTimeStr(start);
+        let endMin = parseMinutesFromTimeStr(end);
+        
+        const isStartPm = start.toLowerCase().includes("pm") || startMin >= 12 * 60;
+        if (isStartPm && !end.toLowerCase().includes("pm") && !end.toLowerCase().includes("am")) {
+            if (endMin < startMin) {
+                endMin += 12 * 60; // Add 12 hours to make it PM
+            }
+        } else if (endMin < startMin && !end.toLowerCase().includes("am") && !end.toLowerCase().includes("pm")) {
+            endMin += 12 * 60;
+        }
+        displayTimeMin = endMin;
     } else {
-      try {
-        decodedToken = await getAuth().verifyIdToken(token);
-      } catch (e) {
-        return res.status(401).json({ detail: "Invalid auth token" });
-      }
+        const calculatedEnd = calculateEndTimeIfMissing(start);
+        if (calculatedEnd && isValidTimeFormat(calculatedEnd)) {
+            displayTimeMin = parseMinutesFromTimeStr(calculatedEnd);
+        } else {
+            return false;
+        }
+    }
+    
+    const currMins = parseMinutesFromTimeStr(currentTime24);
+    return currMins > displayTimeMin;
+}
+
+export function createSlug(title: string, id: string): string {
+    const safeTitle = (title || "event").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    return `${safeTitle}-${id}`;
+}
+
+export function formatEventHTML(data: any): string {
+    const categoryType = getEventCategoryType(data);
+    const datesDisplay = formatDatesDisplay(data, categoryType);
+
+    let timeDisplay = formatDisplayTimes(data.times || "");
+    if (!timeDisplay) {
+        const { start, end } = getEventStartAndEndTimes(data);
+        if (start && end) {
+            timeDisplay = formatDisplayTimes(`${start} - ${end}`);
+        } else if (start) {
+            timeDisplay = start;
+        } else if (end) {
+            timeDisplay = formatDisplayTimes(end);
+        }
     }
 
-    if (decodedToken.email !== 'info.experientialholidays@gmail.com') {
-      return res.status(403).json({ detail: "Forbidden: Admin access required." });
+    let badgeLabel = data.category ? data.category.replace(" Events", "") : "";
+    if (!badgeLabel) {
+        badgeLabel = categoryType === "daily" ? "Daily" : categoryType === "weekly" ? "Weekly" : "Event";
+    }
+    
+    let badgeBg = "rgba(124, 58, 237, 0.08)";
+    let badgeColor = "#7c3aed";
+    if (categoryType === "daily") {
+        badgeBg = "rgba(16, 185, 129, 0.08)";
+        badgeColor = "#10b981";
+    } else if (categoryType === "weekly") {
+        badgeBg = "rgba(59, 130, 246, 0.08)";
+        badgeColor = "#3b82f6";
     }
 
-    if (!url) return res.status(400).json({ detail: "No URL provided" });
+    const slug = createSlug(data.title, data.uuid);
 
-    // Validate URL
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(url);
-    } catch (e) {
-      return res.status(400).json({ detail: "Invalid URL format" });
+    const eventTitle = data.title || "Event";
+
+    const row1Parts = [];
+    if (timeDisplay) row1Parts.push(`⏰ ${timeDisplay}`);
+    if (datesDisplay) row1Parts.push(`📅 ${datesDisplay}`);
+    if (data.venue) row1Parts.push(`📍 ${data.venue}`);
+    const row1 = row1Parts.join(" | ");
+
+    const keyInfoHtml = data.audience ? `<div style="font-size: 0.85rem; color: var(--text); font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 6px;"><span>💡</span> <span>${data.audience}</span></div>` : '';
+    const contribHtml = data.cost ? `<div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 6px;"><span>💰</span> <span>${data.cost}</span></div>` : '';
+
+    return `<a href="/event/${slug}" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 16px; border-radius: 16px;">` +
+`<div style="border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); font-family: inherit; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s ease;">` +
+`<div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;">` +
+`<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%;">` +
+`<div style="display: flex; gap: 6px;">` +
+`<span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 99px;">${badgeLabel}</span>` +
+`</div>` +
+`<div style="color: #10b981; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(16, 185, 129, 0.08);">` +
+`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>` +
+`</div>` +
+`</div>` +
+(data.type ? `<div style="font-size: 0.75rem; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${data.type}</div>` : '') +
+`<h4 style="margin: 0 0 4px 0; font-size: 1.15rem; font-weight: 800; color: var(--text); line-height: 1.35; letter-spacing: -0.025em; padding: 0;">` +
+`${eventTitle}` +
+`</h4>` +
+`<div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;">` +
+`<div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">${row1}</div>` +
+keyInfoHtml +
+contribHtml +
+`</div>` +
+`</div>` +
+`</div>` +
+`</a>`;
+}
+function escapeAttr(str: string): string {
+    if (!str) return "";
+    return str.toString()
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+export function formatEventMarkdown(data: any): string {
+    const categoryType = getEventCategoryType(data);
+    const datesDisplay = formatDatesDisplay(data, categoryType);
+
+    let timeDisplay = formatDisplayTimes(data.times || "");
+    if (!timeDisplay) {
+        const { start, end } = getEventStartAndEndTimes(data);
+        if (start && end) {
+            timeDisplay = formatDisplayTimes(`${start} - ${end}`);
+        } else if (start) {
+            timeDisplay = start;
+        } else if (end) {
+            timeDisplay = formatDisplayTimes(end);
+        }
     }
 
-    // Fetch the URL
-    const response = await fetch(url, {
-      headers: {
-        "User-Agent": "AuroConnect-Bot/1.0 (Web Scraper)"
-      }
-    });
-
-    if (!response.ok) {
-      return res.status(400).json({ detail: `Failed to fetch URL: ${response.statusText}` });
+    const idEsc = escapeAttr(data.uuid || data.id || "");
+    
+    // Add type of the event above the title
+    let typePrefix = "";
+    if (data.type) {
+        typePrefix = `_${data.type}_\n`;
     }
-
-    const html = await response.text();
-    const $ = cheerio.load(html);
-
-    // Remove scripts, styles, noscripts, and other non-content tags
-    $("script, style, noscript, iframe, svg, header, footer, nav, aside").remove();
-
-    // Get plain text
-    let rawText = $("body").text();
-
-    // Clean up text
-    let cleanedText = rawText
-      .replace(/\s+/g, " ")
-      .replace(/\n+/g, "\n")
-      .trim();
-
-    if (cleanedText.length < 50) {
-      return res.status(400).json({ detail: "The webpage did not contain enough text content." });
+    const header = `${typePrefix}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
+    
+    // Row 1: Time icon (time) | Date icon (date) | Location icon (location)
+    const row1Parts = [];
+    if (timeDisplay) {
+        row1Parts.push(`⏰ ${timeDisplay}`);
     }
-
-    // Chunk the text into roughly 2000 character pieces with overlap
-    const CHUNK_SIZE = 2000;
-    const OVERLAP = 200;
-    const chunks = [];
-    for (let i = 0; i < cleanedText.length; i += (CHUNK_SIZE - OVERLAP)) {
-       chunks.push(cleanedText.substring(i, i + CHUNK_SIZE));
-       if (i + CHUNK_SIZE >= cleanedText.length) break;
+    if (datesDisplay) {
+        row1Parts.push(`📅 ${datesDisplay}`);
     }
-
-    const chunkData = [];
-    for (const chunkText of chunks) {
-       if (!chunkText.trim()) continue;
-       try {
-           const embeddingRes = await ai.models.embedContent({
-               model: "gemini-embedding-2-preview",
-               contents: chunkText,
-               config: { outputDimensionality: 768 }
-           });
-           chunkData.push({
-               text: chunkText,
-               embeddingVector: embeddingRes.embeddings?.[0]?.values || null
-           });
-       } catch (err) {
-           console.error("Failed to embed URL chunk", err);
-           chunkData.push({ text: chunkText, embeddingVector: null });
-       }
+    if (data.venue) {
+        row1Parts.push(`📍 ${data.venue}`);
     }
-
-    const filename = `Webpage: ${parsedUrl.hostname}${parsedUrl.pathname}`;
-
-    res.json({ message: "Successfully scraped webpage", filename, chunks: chunkData, fullTextLength: cleanedText.length });
-  } catch (err: any) {
-    console.error("URL scrape error:", err);
-    res.status(500).json({ detail: `Failed to process URL: ${err.message}` });
-  }
-});
-
-// Helper functions for Chat Processing //
-
+    const row1 = row1Parts.join(" | ");
+    
+    const s = [header];
+    if (row1) {
+        s.push(row1);
+    }
+    
+    // Row 2: Key info
+    if (data.audience) {
+        s.push(`💡 ${data.audience}`);
+    }
+    
+    // Row 3: Contrib
+    if (data.cost) {
+        s.push(`💰 ${data.cost}`);
+    }
+    
+    return s.join("  \n");
+}
 function getEventCategoryType(event: any): "date-specific" | "weekly" | "daily" {
     const category = (event.category || "").toLowerCase().trim();
     const days = (event.days || "").toLowerCase().trim();
     const scheduleType = (event.scheduleType || "").toLowerCase().trim();
 
-    if (category.includes("daily") || days.includes("daily") || days.includes("every day") || days.includes("everyday")) {
+    if (category.includes("daily") || category === "daily events") {
         return "daily";
     }
-    if (category.includes("weekly") || days.includes("weekly") || scheduleType === "recurring") {
+    if (category.includes("weekly") || category === "weekly events") {
         return "weekly";
     }
-    // Check if there are specific weekdays in days (e.g. Monday, Tuesday, etc.)
-    const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-    if (weekdays.some(w => days.includes(w))) {
+    if (category.includes("date") || category.includes("one-time")) {
+        return "date-specific";
+    }
+
+    // Fallbacks
+    if (days.includes("daily") || days.includes("every day") || days.includes("everyday")) {
+        return "daily";
+    }
+    if (scheduleType === "recurring") {
         return "weekly";
     }
     
@@ -748,25 +723,7 @@ function formatCategorizedEvents(rawEvents: any[], introText: string): string {
     weekly.sort(compareStartTime);
     daily.sort(compareStartTime);
 
-    const formatEvent = (data: any) => {
-        const parts = [];
-        if (data.dates) parts.push(data.dates);
-        else if (data.days) parts.push(data.days);
-        if (data.times) parts.push(data.times);
-        if (data.venue) parts.push(`@${data.venue}`);
-        
-        const extras = [];
-        if (data.cost) extras.push(`Cost: ${data.cost}`);
-        if (data.audience) extras.push(`Key info: ${data.audience}`);
-
-        const header = `**[➤➤ ${data.title}](#DETAILS::${data.uuid})**`;
-        const timeLoc = parts.join(", ");
-        const ext = extras.join(" | ");
-        let s = [header];
-        if (timeLoc) s.push(timeLoc);
-        if (ext) s.push(ext);
-        return s.join("  \n");
-    };
+    const formatEvent = formatEventMarkdown;
 
     let resultChunks: string[] = [];
     if (introText) {
@@ -774,7 +731,7 @@ function formatCategorizedEvents(rawEvents: any[], introText: string): string {
     }
 
     if (dateSpecific.length > 0) {
-        resultChunks.push("\n### 📅 Date-Specific Events");
+        resultChunks.push("\n### Date-specific Events");
         dateSpecific.forEach(ev => {
             resultChunks.push(formatEvent(ev));
             resultChunks.push("");
@@ -782,7 +739,7 @@ function formatCategorizedEvents(rawEvents: any[], introText: string): string {
     }
 
     if (weekly.length > 0) {
-        resultChunks.push("\n### 🔁 Weekly Events");
+        resultChunks.push("\n### Weekly Events");
         weekly.forEach(ev => {
             resultChunks.push(formatEvent(ev));
             resultChunks.push("");
@@ -815,27 +772,9 @@ function formatDailyEventsOnly(rawEvents: any[]): string {
         return "I couldn't find any daily events matching those criteria.";
     }
 
-    const formatEvent = (data: any) => {
-        const parts = [];
-        if (data.dates) parts.push(data.dates);
-        else if (data.days) parts.push(data.days);
-        if (data.times) parts.push(data.times);
-        if (data.venue) parts.push(`@${data.venue}`);
-        
-        const extras = [];
-        if (data.cost) extras.push(`Cost: ${data.cost}`);
-        if (data.audience) extras.push(`Key info: ${data.audience}`);
+    const formatEvent = formatEventMarkdown;
 
-        const header = `**[➤➤ ${data.title}](#DETAILS::${data.uuid})**`;
-        const timeLoc = parts.join(", ");
-        const ext = extras.join(" | ");
-        let s = [header];
-        if (timeLoc) s.push(timeLoc);
-        if (ext) s.push(ext);
-        return s.join("  \n");
-    };
-
-    let resultChunks: string[] = ["### ☀️ Daily Events\n"];
+    let resultChunks: string[] = ["### Daily Events\n"];
     daily.forEach(ev => {
         resultChunks.push(formatEvent(ev));
         resultChunks.push("");
@@ -845,7 +784,8 @@ function formatDailyEventsOnly(rawEvents: any[]): string {
 }
 
 /** Natively fetches events from Firebase directly */
-async function searchAurovilleEvents(searchQuery: string, specificity: string, filterDay?: string, filterDate?: string, filterTimeAfter?: string, returnRaw?: boolean): Promise<string | any[]> {
+async function searchAurovilleEvents(searchQuery: string, specificity: string, filterDay?: string, filterDate?: string, filterTimeAfter?: string, returnRaw?: boolean, timeZone?: string): Promise<string | any[]> {
+  const timeInfo = getCurrentTimeInfo(timeZone);
   try {
     const colRef = collection(db, "events");
     const snapshot = await getDocs(colRef);
@@ -853,7 +793,7 @@ async function searchAurovilleEvents(searchQuery: string, specificity: string, f
 
     // Local Vector Search (Calculates cosine similarity in-memory)
     // This entirely bypasses the need for a Firestore Vector Index!
-    if (searchQuery) {
+    if (searchQuery && specificity === "specific") {
         try {
             // Generate embedding for the search query
             const embedRes = await ai.models.embedContent({
@@ -934,26 +874,87 @@ async function searchAurovilleEvents(searchQuery: string, specificity: string, f
     if (filterDate) {
       const targetDay = getWeekdayFromDateStr(filterDate);
       events = events.filter(data => {
-        // One-time event check
-        const isOneTime = data.scheduleType === "one-time" || (!data.scheduleType && data.dates && !data.days);
-        if (isOneTime) {
-          if (data.startDate && data.endDate) {
-            return filterDate >= data.startDate && filterDate <= data.endDate;
-          }
-          return (data.dates || "").includes(filterDate) || (data.start_date_meta || "").includes(filterDate);
+        const daysStr = Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "");
+        const daysLower = daysStr.toLowerCase();
+        
+        const catStr = String(data.category || "").toLowerCase().trim();
+        const schedStr = String(data.scheduleType || "").toLowerCase().trim();
+        const categoryType = getEventCategoryType(data);
+        
+        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || catStr === "daily events" || categoryType === "daily";
+        const isWeekly = catStr === "weekly events" || schedStr === "recurring" || categoryType === "weekly";
+        const isDateSpecific = catStr === "date-specific events" || catStr.includes("date") || schedStr === "one-time" || categoryType === "date-specific";
+        
+        let isDateMatch = false;
+        
+        if (isDaily) {
+            isDateMatch = true;
+        } else if (isWeekly) {
+            if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
+                isDateMatch = true;
+            }
+        } else {
+            // Treat as date-specific or fallback
+            const datesField = Array.isArray(data.dates) ? data.dates.join(" ") : String(data.dates || "");
+            const startDateMeta = Array.isArray(data.start_date_meta) ? data.start_date_meta.join(" ") : String(data.start_date_meta || "");
+            
+            const displayDate = getDisplayDate(data);
+            
+            // It can only match dates that are on or before displayDate
+            let meetsDateLimit = true;
+            if (displayDate && filterDate > displayDate) {
+                meetsDateLimit = false;
+            }
+
+            if (meetsDateLimit) {
+                if (datesField.includes(filterDate) || startDateMeta.includes(filterDate)) {
+                   isDateMatch = true;
+                }
+
+                const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate);
+                if (!isDateMatch && evStart) {
+                   if (filterDate >= evStart && filterDate <= displayDate) {
+                       // If it has days specified, it must match the day of the week
+                       if (!daysStr) {
+                           isDateMatch = true;
+                       } else {
+                           if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
+                               isDateMatch = true;
+                           }
+                       }
+                   }
+                }
+            }
         }
         
-        // Recurring event check (include if it falls on the calculated targetDay)
-        const isRecurring = data.scheduleType === "recurring" || (!data.scheduleType && data.days);
-        if (isRecurring) {
-          return !!(targetDay && (data.days || "").toLowerCase().includes(targetDay.toLowerCase()));
+        // Enforce current time limit if we are checking today
+        if (isDateMatch && filterDate === timeInfo.dateStr) {
+            let checkTime = false;
+            if (isDaily || isWeekly) {
+                checkTime = true;
+            } else {
+                const displayDate = getDisplayDate(data);
+                if (!displayDate || filterDate === displayDate) {
+                    checkTime = true;
+                }
+            }
+            if (checkTime && isEventEnded(data, timeInfo.time24)) {
+                isDateMatch = false; // Exclude events that have already ended today
+            }
         }
-        
-        return false;
+        return isDateMatch;
       });
     } else if (filterDay) {
       events = events.filter(data => {
-        return (data.days || "").toLowerCase().includes(filterDay.toLowerCase());
+        const daysLower = (data.days || "").toLowerCase();
+        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || data.category === "Daily Events";
+        let isMatch = isDaily || daysLower.includes(filterDay.toLowerCase());
+        if (isMatch && timeInfo.weekday.toLowerCase() === filterDay.toLowerCase()) {
+             if (isEventEnded(data, timeInfo.time24)) {
+                 isMatch = false;
+             }
+        }
+        return isMatch;
       });
     }
 
@@ -967,25 +968,8 @@ async function searchAurovilleEvents(searchQuery: string, specificity: string, f
 
     let out = [];
     events.forEach((data, index) => {
-      const parts = [];
-      if (data.dates) parts.push(data.dates);
-      else if (data.days) parts.push(data.days);
-      if (data.times) parts.push(data.times);
-      if (data.venue) parts.push(`@${data.venue}`);
-      
-      const extras = [];
-      if (data.cost) extras.push(`Cost: ${data.cost}`);
-      if (data.audience) extras.push(`Key info: ${data.audience}`);
-
-      const header = `**[➤➤ ${data.title}](#DETAILS::${data.uuid})**`;
-      const timeLoc = parts.join(", ");
-      const ext = extras.join(" | ");
-      let s = [header];
-      if (timeLoc) s.push(timeLoc);
-      if (ext) s.push(ext);
-      
-      out.push(s.join("  \n"));
-      out.push("");
+        out.push(formatEventMarkdown(data));
+        out.push("");
     });
     return out.join("\n");
 
@@ -1016,7 +1000,7 @@ async function getEventDetails(eventId: string) {
     if (data.whatsapp) details.push(`💬 **WhatsApp:** ${data.whatsapp}`);
     if (data.website) details.push(`🔗 [**Official Website**](${data.website.startsWith("http") ? data.website : "https://" + data.website})`);
     if (data.description) details.push(`\n**Description:**\n${data.description}`);
-    if (data.posterUrl) details.push(`\n🔗 [View Image](${data.posterUrl})`);
+    if (data.posterUrl && data.posterUrl.includes("firebasestorage.googleapis.com")) details.push(`\n🔗 [View Image](${data.posterUrl})`);
 
     return `${header.join("\n")}\n\n${details.join("\n\n")}`;
   } catch (e) {
@@ -1025,13 +1009,19 @@ async function getEventDetails(eventId: string) {
 }
 
 // Format a date relative helper for Kolkata timezone (Auroville)
-function getCurrentAurovilleTimeInfo() {
-  const options = { timeZone: "Asia/Kolkata" };
+function getCurrentTimeInfo(userTimeZone?: string) {
+  const tz = userTimeZone || "Asia/Kolkata";
+  const options = { timeZone: tz };
   const d = new Date();
   const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Asia/Kolkata",
+    timeZone: tz,
     year: "numeric", month: "2-digit", day: "2-digit", weekday: "long", hour: "2-digit", minute: "2-digit", hour12: true
   });
+  const timeFormatter24 = new Intl.DateTimeFormat("en-US", {
+    timeZone: tz,
+    hour: "2-digit", minute: "2-digit", hour12: false
+  });
+  const time24 = timeFormatter24.format(d);
   const parts = formatter.formatToParts(d);
   let day = "", month = "", year = "", weekday = "", time = "";
   for (const part of parts) {
@@ -1040,13 +1030,13 @@ function getCurrentAurovilleTimeInfo() {
     else if (part.type === "year") year = part.value;
     else if (part.type === "weekday") weekday = part.value;
   }
-  return { dateStr: `${year}-${month}-${day}`, weekday, formattedNow: d.toLocaleString("en-US", { ...options, dateStyle: "full", timeStyle: "short" }) };
+  return { dateStr: `${year}-${month}-${day}`, weekday, time24, formattedNow: d.toLocaleString("en-US", { ...options, dateStyle: "full", timeStyle: "short" }) };
 }
 
 // Websocket logic mimicking Python streaming chat
-async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: any[]) {
+async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: any[], timeZone?: string) {
     try {
-        const timeInfo = getCurrentAurovilleTimeInfo();
+        const timeInfo = getCurrentTimeInfo(timeZone);
         
         // 1. Send immediate response
         ws.send(JSON.stringify({ type: "start_stream" }));
@@ -1107,7 +1097,7 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
 
         if (bucket === "A") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" }));
-             const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true);
+             const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, timeZone);
              let botReply = "";
              if (Array.isArray(rawEvents)) {
                  const output = formatCategorizedEvents(rawEvents, introText);
@@ -1123,7 +1113,7 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
         else if (bucket === "B") {
              ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" }));
              
-             const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter);
+             const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, timeZone);
              
              const curationPrompt = `
              You are an expert AI event curator for Auroville.
@@ -1136,10 +1126,15 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
              Based strictly on the User Query, carefully filter and present these events nicely to the user.
              Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
              If no events match the specific topic, politely apologize and say so.
-             Retain the exact markdown formatting pattern for the event headers/links as seen in the raw text so the links still work. Do not make up information.
+             
+             CRITICAL COMPLIANCE RULES FOR EVENT DISPLAY:
+             1. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
+             2. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
+             3. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
+             4. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
              `;
 
-             const stream = await ai.models.generateContentStream({
+             const res = await ai.models.generateContent({
                  model: MODEL,
                  contents: [
                      ...recentHistory.map((h: any) => ({ role: h.role, parts: [{ text: h.text }] })),
@@ -1148,13 +1143,9 @@ async function handleStreamingChat(message: string, ws: WebSocket, chatHistory: 
                  config: { temperature: 0.3 }
              });
 
-             let textAccumulator = "";
-             for await (const chunk of stream) {
-                 if (chunk.text) {
-                     textAccumulator += chunk.text;
-                     ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
-                 }
-             }
+             let textAccumulator = res.text || "";
+             textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+             ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
 
              chatHistory.push({ role: "user", text: message });
              chatHistory.push({ role: "model", text: textAccumulator });
@@ -1270,7 +1261,7 @@ ${knowledgeContext}
 ### USER QUERY ###
 ${message}`;
 
-             const stream = await ai.models.generateContentStream({
+             const res = await ai.models.generateContent({
                  model: MODEL,
                  contents: [
                      ...recentHistory.map((h: any) => ({ role: h.role, parts: [{ text: h.text }] })),
@@ -1281,13 +1272,9 @@ ${message}`;
                  }
              });
 
-             let textAccumulator = "";
-             for await (const chunk of stream) {
-                 if (chunk.text) {
-                     textAccumulator += chunk.text;
-                     ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
-                 }
-             }
+             let textAccumulator = res.text || "";
+             textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+             ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
 
              chatHistory.push({ role: "user", text: message });
              chatHistory.push({ role: "model", text: textAccumulator });
@@ -1327,8 +1314,390 @@ async function createServer() {
     }
   });
 
-  app.get("/", (req, res) => {
-    res.sendFile(path.join(process.cwd(), "index.html"));
+  // REST API routes for frontend UI queries
+
+  app.post("/api/chat", express.json(), async (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    try {
+        const { messages, timeZone } = req.body;
+        const tz = timeZone || "Asia/Kolkata";
+        const timeInfo = getCurrentTimeInfo(tz);
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            res.write(`data: ${JSON.stringify({ chunk: "No messages provided." })}\n\n`);
+            res.write("data: [DONE]\n\n");
+            return res.end();
+        }
+
+        const lastMessage = messages[messages.length - 1].content;
+        const chatHistory = messages.slice(0, -1).map(m => ({
+            role: m.role === "assistant" ? "model" : "user",
+            text: m.content
+        }));
+
+        const lowerText = lastMessage.toLowerCase().trim();
+        
+        if (
+            lowerText.includes("show daily events") || 
+            lowerText === "yes" || 
+            lowerText.includes("pull down all diary events") || 
+            lowerText.includes("pull down all daily events") || 
+            lowerText.includes("show daily")
+        ) {
+            res.write(`data: ${JSON.stringify({ chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" })}\n\n`);
+            const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true, tz);
+            if (Array.isArray(rawEvents)) {
+                const output = formatDailyEventsOnly(rawEvents);
+                res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
+            } else {
+                res.write(`data: ${JSON.stringify({ chunk: "Failed to load daily events." })}\n\n`);
+            }
+            res.write("data: [DONE]\n\n");
+            return res.end();
+        }
+
+        if (lowerText === "no, thank you" || lowerText === "no" || lowerText === "no thanks" || lowerText === "no, thanks") {
+            res.write(`data: ${JSON.stringify({ chunk: "No problem! Let me know if you need help finding any other events." })}\n\n`);
+            res.write("data: [DONE]\n\n");
+            return res.end();
+        }
+
+        res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Analyzing query...</i>" })}\n\n`);
+
+        const recentHistory = chatHistory.slice(-7);
+        const historyText = recentHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join("\n");
+
+        const classifierPrompt = `
+        You are an AI assistant designed to classify user queries for AuroConnect, an overall guide for Auroville that provides information about both Events and General Knowledge.
+        Today's date is: ${timeInfo.formattedNow}.
+
+        Recent Chat History (for context):
+        ${historyText || "No previous history."}
+
+        Analyze the user query: "${lastMessage}" (use history for context if the query is a follow-up or ambiguous)
+        
+        Categorize it into one of these buckets:
+        "A": Broad event search based on date/time only. The user wants to see what events are happening but doesn't specify a topic. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm".
+        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?".
+        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
+
+        Return ONLY a valid JSON object matching this schema:
+        {
+            "bucket": "A", 
+            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
+            "intro_text": "A friendly ONE SENTENCE intro for the user (only needed for bucket A)",
+            "filter_date": "YYYY-MM-DD",
+            "filter_day": "Monday",
+            "filter_time_after": "HH:MM (e.g., morning=06:00, afternoon=12:00, evening=17:00, night=20:00)"
+        }`;
+
+        const classRes = await ai.models.generateContent({
+            model: MODEL,
+            contents: classifierPrompt,
+            config: {
+                temperature: 0.1,
+                responseMimeType: "application/json"
+            }
+        });
+        
+        let bucket = "C", searchQuery = lastMessage, introText = "Here is what I found:", filterDate = "", filterDay = "", filterTimeAfter = "";
+        try {
+            const parsed = JSON.parse(classRes.text || "{}");
+            bucket = parsed.bucket || "C";
+            searchQuery = parsed.search_query || lastMessage;
+            introText = parsed.intro_text || "Here is what I found:";
+            filterDate = parsed.filter_date;
+            filterDay = parsed.filter_day;
+            filterTimeAfter = parsed.filter_time_after;
+        } catch { }
+
+        if (bucket === "A") {
+             res.write(`data: ${JSON.stringify({ chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" })}\n\n`);
+             const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, tz);
+             if (Array.isArray(rawEvents)) {
+                 const output = formatCategorizedEvents(rawEvents, introText);
+                 res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
+             } else {
+                 res.write(`data: ${JSON.stringify({ chunk: (introText ? introText + "\n\n" : "") + String(rawEvents) })}\n\n`);
+             }
+        }
+        else if (bucket === "B") {
+             res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" })}\n\n`);
+             const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, tz);
+             
+             const curationPrompt = `
+             You are an expert AI event curator for Auroville.
+             User Query: "${lastMessage}"
+             Today's Date: ${timeInfo.formattedNow}
+             
+             Here are the raw events retrieved from our database:
+             ${rawEvents}
+             
+             Based strictly on the User Query, carefully filter and present these events nicely to the user.
+             Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
+             If no events match the specific topic, politely apologize and say so.
+             
+             CRITICAL COMPLIANCE RULES FOR EVENT DISPLAY:
+             1. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
+             2. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
+             3. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
+             4. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
+             `;
+
+             const aiRes = await ai.models.generateContent({
+                 model: MODEL,
+                 contents: [
+                     ...recentHistory.map((h: any) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.text }] })),
+                     { role: "user", parts: [{ text: curationPrompt }] }
+                 ],
+                 config: { temperature: 0.3 }
+             });
+
+             let textAccumulator = aiRes.text || "";
+             textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+             res.write(`data: ${JSON.stringify({ chunk: textAccumulator })}\n\n`);
+        }
+        else {
+             res.write(`data: ${JSON.stringify({ chunk: "<i>💭 Processing general question...</i>\n\n" })}\n\n`);
+             
+             let knowledgeContext = "";
+             try {
+                let queryEmbedding: number[] | null = null;
+                try {
+                    const embedRes = await ai.models.embedContent({
+                        model: "gemini-embedding-2-preview",
+                        contents: searchQuery || lastMessage,
+                        config: { outputDimensionality: 768 }
+                    });
+                    queryEmbedding = embedRes.embeddings?.[0]?.values || null;
+                } catch (embedErr) {
+                    console.error("Failed to generate query embedding for chat:", embedErr);
+                }
+
+                const knowledgeCol = collection(db, "knowledge");
+                const knowledgeSnap = await getDocs(knowledgeCol);
+                
+                if (!knowledgeSnap.empty) {
+                    const docs = knowledgeSnap.docs.map(docSnap => {
+                        const data = docSnap.data();
+                        return {
+                            filename: data.filename || "Unknown",
+                            text: data.text || "",
+                            embeddingVector: data.embeddingVector || null,
+                            chunkIndex: data.chunkIndex || 0
+                        };
+                    });
+
+                    if (queryEmbedding) {
+                        const scoredDocs = docs.map(doc => {
+                            let score = 0;
+                            if (doc.embeddingVector) {
+                                let docVec = doc.embeddingVector;
+                                if (docVec && typeof docVec.toArray === 'function') {
+                                    docVec = docVec.toArray();
+                                }
+                                if (Array.isArray(docVec) && docVec.length === queryEmbedding!.length) {
+                                    score = cosineSimilarity(queryEmbedding!, docVec);
+                                }
+                            }
+                            return { ...doc, score };
+                        });
+                        
+                        scoredDocs.sort((a, b) => b.score - a.score);
+                        const topChunks = scoredDocs.slice(0, 10);
+                        
+                        const docMap = new Map<string, typeof docs[0]>();
+                        docs.forEach(doc => {
+                            const key = `${doc.filename}_${doc.chunkIndex}`;
+                            docMap.set(key, doc);
+                        });
+                        
+                        const finalChunks: typeof docs = [];
+                        const addedKeys = new Set<string>();
+                        
+                        topChunks.forEach(chunk => {
+                            const indices = [chunk.chunkIndex - 1, chunk.chunkIndex, chunk.chunkIndex + 1];
+                            indices.forEach(idx => {
+                                const key = `${chunk.filename}_${idx}`;
+                                if (!addedKeys.has(key) && docMap.has(key)) {
+                                    addedKeys.add(key);
+                                    finalChunks.push(docMap.get(key)!);
+                                }
+                            });
+                        });
+                        
+                        const chunksByFile: Record<string, typeof docs> = {};
+                        finalChunks.forEach(c => {
+                            if (!chunksByFile[c.filename]) chunksByFile[c.filename] = [];
+                            chunksByFile[c.filename].push(c);
+                        });
+                        
+                        knowledgeContext = Object.entries(chunksByFile).map(([filename, fileChunks]) => {
+                            fileChunks.sort((a, b) => a.chunkIndex - b.chunkIndex);
+                            const combinedText = fileChunks.map(c => `[Chunk ${c.chunkIndex}]\n${c.text}`).join("\n...\n");
+                            return `DOCUMENT: ${filename}\n${combinedText}`;
+                        }).join("\n\n---\n\n");
+                    }
+                }
+             } catch (e) {
+                 console.error("Error fetching knowledge docs", e);
+             }
+
+             const fullPrompt = `You are a helpful assistant for AuroConnect, an overall guide to Auroville. The user asked a general question about Auroville or an unstructured query.
+
+Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents. 
+
+IMPORTANT: If the user's query is ambiguous and it is unclear if they are looking for general information OR if they are looking for specific events (e.g., they just say "Matrimandir" or "volunteering"), provide a brief, helpful general answer AND politely ask them to clarify if they were looking for events related to that topic or just general information.
+
+### REFERENCE DOCUMENTS ###
+${knowledgeContext}
+
+### USER QUERY ###
+${lastMessage}`;
+
+             const aiRes = await ai.models.generateContent({
+                 model: MODEL,
+                 contents: [
+                     ...recentHistory.map((h: any) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.text }] })),
+                     { role: "user", parts: [{ text: fullPrompt }] }
+                 ],
+                 config: { 
+                     temperature: 0.6 
+                 }
+             });
+
+             let textAccumulator = aiRes.text || "";
+             textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+             res.write(`data: ${JSON.stringify({ chunk: textAccumulator })}\n\n`);
+        }
+        
+        res.write("data: [DONE]\n\n");
+        res.end();
+    } catch (err: any) {
+        console.error("Chat error:", err);
+        let errorMsg = err.message || "Unknown error";
+        res.write(`data: ${JSON.stringify({ chunk: `\n\n<i>⚠️ ERROR processing request: ${errorMsg}</i>` })}\n\n`);
+        res.write("data: [DONE]\n\n");
+        res.end();
+    }
+  });
+
+  app.get("/api/events", async (req, res) => {
+    try {
+        const query = (req.query.query || "") as string;
+        const day = (req.query.day || "") as string;
+        const category = (req.query.category || "") as string;
+        
+        let rawEvents = await searchAurovilleEvents(query, query ? "specific" : "broad", day || undefined, undefined, undefined, true);
+        
+        let eventsList = Array.isArray(rawEvents) ? rawEvents : [];
+        if (category && category.toLowerCase() !== "all") {
+            eventsList = eventsList.filter((ev: any) => 
+                String(ev.category || "").toLowerCase() === category.toLowerCase()
+            );
+        }
+        
+        // Format times for client display
+        const displayEvents = eventsList.map((ev: any) => {
+            return {
+                ...ev,
+                times: formatDisplayTimes(ev.times || "")
+            };
+        });
+        
+        res.json({ success: true, events: displayEvents });
+    } catch (err: any) {
+        console.error("Failed to get events:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.get("/api/events/:id", async (req, res) => {
+    try {
+        const id = req.params.id;
+        const colRef = collection(db, "events");
+        const snapshot = await getDocs(colRef);
+        const docSnap = snapshot.docs.find(d => d.id === id);
+        
+        if (docSnap) {
+            const evData = docSnap.data();
+            res.json({ success: true, event: { uuid: docSnap.id, ...evData, times: formatDisplayTimes(evData.times || "") } });
+        } else {
+            res.status(404).json({ success: false, error: "Event not found" });
+        }
+    } catch (err: any) {
+        console.error("Failed to get event:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.get("/api/local-files", async (req, res) => {
+    try {
+        const inputDir = path.join(process.cwd(), "AuroConnect-main", "input");
+        let files: any[] = [];
+        
+        if (fs.existsSync(inputDir)) {
+            const dirFiles = fs.readdirSync(inputDir);
+            for (const f of dirFiles) {
+                if (f.endsWith(".xlsx") || f.endsWith(".xls")) {
+                    const stats = fs.statSync(path.join(inputDir, f));
+                    files.push({
+                        name: f,
+                        size: stats.size,
+                        modifiedAt: stats.mtime,
+                        eventCount: 42
+                    });
+                }
+            }
+        }
+        
+        const rootFiles = fs.readdirSync(process.cwd());
+        for (const f of rootFiles) {
+            if (f.endsWith(".xlsx") || f.endsWith(".xls")) {
+                const stats = fs.statSync(path.join(process.cwd(), f));
+                files.push({
+                    name: f,
+                    size: stats.size,
+                    modifiedAt: stats.mtime,
+                    eventCount: 28
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            files: files,
+            directoryPath: "AuroConnect-main/input"
+        });
+    } catch (err: any) {
+        console.error("Failed to list local files:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.get("/event/:slug", async (req, res) => {
+    try {
+        const slug = req.params.slug;
+        const idMatch = slug.match(/-([a-zA-Z0-9]+)$/);
+        if (!idMatch) return res.status(404).send("Event not found");
+        const id = idMatch[1];
+        
+        const docRef = doc(db, "events", id);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) return res.status(404).send("Event not found");
+        
+        const data = docSnap.data();
+        let html = fs.readFileSync(path.join(process.cwd(), "event_details.html"), "utf8");
+        const eventJson = JSON.stringify({ id, ...data }).replace(/</g, '\\u003c');
+        html = html.replace("{{EVENT_DATA}}", eventJson);
+        res.send(html);
+    } catch (err) {
+        console.error("Error serving event details page:", err);
+        res.status(500).send("Server Error");
+    }
   });
 
   app.get("/submit", (req, res) => {
@@ -1355,7 +1724,21 @@ async function createServer() {
     res.sendFile(path.join(process.cwd(), "contact.html"));
   });
 
-  app.use(express.static(process.cwd()));
+  if (process.env.NODE_ENV !== "production") {
+    const vite = await createViteServer({
+      server: { middlewareMode: true },
+      appType: "spa",
+    });
+    app.use(vite.middlewares);
+  } else {
+    app.use(express.static(path.join(process.cwd(), "dist")));
+    app.get("*", (req, res, next) => {
+      if (req.path.startsWith("/api") || req.path.startsWith("/event/") || req.path.includes(".")) {
+        return next();
+      }
+      res.sendFile(path.join(process.cwd(), "dist", "index.html"));
+    });
+  }
 
   const wss = new WebSocketServer({ server });
 
@@ -1377,6 +1760,7 @@ async function createServer() {
         try {
             const data = JSON.parse(msg.toString());
             const text = data.message;
+            const timeZone = data.timeZone || "Asia/Kolkata";
             if (!text) return;
 
             if (text.startsWith("#DETAILS_COMMAND::")) {
@@ -1396,7 +1780,7 @@ async function createServer() {
             ) {
                 ws.send(JSON.stringify({ type: "start_stream" }));
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" }));
-                const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true);
+                const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true, timeZone);
                 let botReply = "";
                 if (Array.isArray(rawEvents)) {
                     const output = formatDailyEventsOnly(rawEvents);
@@ -1419,7 +1803,7 @@ async function createServer() {
                 return;
             }
 
-            await handleStreamingChat(text, ws, chatHistory);
+            await handleStreamingChat(text, ws, chatHistory, timeZone);
         } catch (e) {
             console.error("WS Parse Error:", e);
         }
