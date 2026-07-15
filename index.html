@@ -63,7 +63,7 @@
             --shadow: rgba(0,0,0,0.5);
         }
         .user { color: #ffffff !important; }
-        .bot a, #modal-body a { 
+        .bot a { 
             color: #8ab4f8 !important; 
             text-decoration: underline !important; 
             text-underline-offset: 4px;
@@ -118,28 +118,34 @@
         flex: 1; 
         overflow-y: auto;
         overflow-x: hidden; 
-        padding: 1.25rem 5%; 
         display: flex; 
         flex-direction: column; 
-        gap: 1.25rem; 
         position: relative;
     }
     
-    .msg { max-width: 95%; line-height: 1.6; }
+    .msg { 
+        width: 100%; 
+        line-height: 1.6; 
+        padding: 1.25rem 5%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .msg-content {
+        width: 100%;
+        max-width: 50rem;
+    }
     
     .user { 
-        align-self: flex-end; 
         background: var(--user-msg-bg); 
-        border-radius: 1.125rem; 
-        padding: 0.4rem 0.8rem; 
-        max-width: 80%; 
-        width: fit-content; 
-        word-wrap: break-word;
-        box-shadow: 0 1px 2px var(--shadow);
         color: var(--text);
     }
 
-    .bot { align-self: flex-start; width: 100%; color: var(--text); }
+    .bot { 
+        background: var(--bg);
+        color: var(--text); 
+    }
     .bot p { margin-top: 0; }
     .bot a { 
         color: var(--accent); 
@@ -153,6 +159,8 @@
         color: var(--text);
         font-size: 0.95rem;
         display: block;
+        width: 100%;
+        box-sizing: border-box;
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
@@ -168,11 +176,28 @@
         background: #f8fafc;
         border-color: #cbd5e1;
     }
+    .ec-topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 3px;
+        font-size: 0.85rem;
+    }
+    .ec-type {
+        color: #64748b;
+    }
+    .ec-date {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        color: #64748b;
+    }
     .event-card strong {
         font-size: 1.05rem;
         color: var(--accent);
         display: block;
-        margin-bottom: 0px !important;
+        margin-bottom: 3px !important;
         line-height: 1.25;
     }
     .event-card strong + br {
@@ -216,36 +241,7 @@
     }
     .send-btn { background: none; border: none; color: var(--accent); font-size: 1.5rem; cursor: pointer; }
 
-    .modal { 
-        display: none; 
-        position: fixed; 
-        inset: 0; 
-        background: rgba(0,0,0,0.75); 
-        backdrop-filter: blur(4px); 
-        justify-content: center; 
-        align-items: center; 
-        z-index: 1000; 
-    }
-    .modal-content { 
-        background: var(--surface); 
-        color: var(--text);
-        padding: 1.875rem; 
-        border-radius: 1.25rem; 
-        max-width: 37.5rem; 
-        width: 90%; 
-        max-height: 80vh; 
-        overflow-y: auto;
-        overflow-x: hidden; 
-        position: relative;
-    }
-    .close-btn { 
-        color: var(--text-secondary); 
-        float: right; 
-        font-size: 2rem; 
-        font-weight: bold; 
-        cursor: pointer; 
-        margin-top: -0.5rem; 
-    }
+
 
     .bot h3 { color: var(--accent); margin-top: 1rem; }
     .bot hr { border-top: 1px solid var(--border); margin: 1.25rem 0; }
@@ -308,6 +304,17 @@
         background: var(--bg);
         line-height: 1.2;
     }
+
+    @media (max-width: 600px) {
+        .msg {
+            padding: 1rem 4%;
+        }
+        .event-card {
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 6px 0 !important;
+        }
+    }
     </style>
 </head>
 <body>
@@ -327,13 +334,6 @@
     “AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”
 </div>
 
-<div id="modal" class="modal" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <div id="modal-body"></div>
-    </div>
-</div>
-
 <script>
     // Check for start new session requested from another page
     const urlParams = new URLSearchParams(window.location.search);
@@ -345,27 +345,6 @@
     let ws;
     let currentBotDiv = null;
     const chatWin = document.getElementById('chat-window');
-
-    function openModal(content) {
-        if (window.openDetails) {
-            window.openDetails(content);
-        } else {
-            document.getElementById('modal-body').innerHTML = marked.parse(content, { breaks: true });
-            document.getElementById('modal').style.display = 'flex';
-            history.pushState({ modalOpen: true }, "");
-        }
-    }
-
-    function closeModal() {
-        document.getElementById('modal').style.display = 'none';
-        if (history.state && history.state.modalOpen) {
-            history.back();
-        }
-    }
-
-    window.onpopstate = function(event) {
-        document.getElementById('modal').style.display = 'none';
-    };
 
     function startNewSession() {
         localStorage.removeItem("auro_session_id");
@@ -402,8 +381,9 @@
             } 
             else if (data.type === "stream_chunk") {
                 if (currentBotDiv) {
-                    currentBotDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
-                    currentBotDiv.querySelectorAll('p').forEach(p => {
+                    let targetDiv = currentBotDiv.querySelector('.msg-content') || currentBotDiv;
+                    targetDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
+                    targetDiv.querySelectorAll('p').forEach(p => {
                         if (p.querySelector('a[href^="#DETAILS::"]')) {
                             p.classList.add('event-card');
                             addSwipeLogic(p);
@@ -469,9 +449,12 @@
         if (!text && role !== 'bot') return;
         const div = document.createElement('div');
         div.className = `msg ${role}`;
-        div.innerHTML = marked.parse(text || "", { breaks: true });
         
-        div.querySelectorAll('p').forEach(p => {
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'msg-content';
+        contentDiv.innerHTML = marked.parse(text || "", { breaks: true });
+        
+        contentDiv.querySelectorAll('p').forEach(p => {
             if (p.querySelector('a[href^="#DETAILS::"]')) {
                 p.classList.add('event-card');
                 
@@ -485,6 +468,8 @@
                 };
             }
         });
+        
+        div.appendChild(contentDiv);
         
         chatWin.appendChild(div);
         if (role === 'user') {
@@ -518,7 +503,12 @@
         if (a && a.getAttribute('href')?.startsWith('#')) {
             e.preventDefault();
             const href = a.getAttribute('href');
-            if (href.startsWith('#DETAILS::')) send(`#DETAILS_COMMAND::${href.split('::')[1]}`);
+            if (href.startsWith('#DETAILS::')) {
+                const uuid = href.split('::')[1];
+                let eventTitle = a.textContent || "event";
+                let slug = eventTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                window.location.href = `/event/${slug}-${uuid}`;
+            }
             else if (href.includes('SHOWDAILY')) send('show daily events');
             else if (href.includes('NODAILY')) send('No, thank you');
         }
@@ -528,7 +518,6 @@
     document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
     connect();
 </script>
-<script src="/details.js" type="module"></script>
 <script src="/common.js" type="module"></script>
 </body>
 </html>

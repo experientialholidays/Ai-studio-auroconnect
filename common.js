@@ -147,7 +147,7 @@
         font-size: 0.65rem !important; 
         color: var(--text-secondary) !important; 
         text-align: center !important;
-        padding: 1rem !important; 
+        padding: 0.2rem 1rem 0.8rem 1rem !important; 
         background: var(--bg) !important;
         line-height: 1.2 !important;
         width: 100% !important;
@@ -161,14 +161,15 @@
 
   // 2. Default hardcoded Firebase config
   let firebaseConfig = {
-    projectId: "gen-lang-client-0039539258",
-    appId: "1:615927626963:web:af7cd31a3a9859919fe826",
-    apiKey: "AIzaSyBE_i3Y6SXSfmFfZ_ptMclJT0GySmA0dlM",
-    authDomain: "gen-lang-client-0039539258.firebaseapp.com",
-    storageBucket: "gen-lang-client-0039539258.firebasestorage.app",
-    messagingSenderId: "615927626963",
-    firestoreDatabaseId: "ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4"
-  };
+  apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
+  authDomain: "auro-connect.firebaseapp.com",
+  projectId: "auro-connect",
+  storageBucket: "auro-connect.firebasestorage.app",
+  messagingSenderId: "913005987760",
+  appId: "1:913005987760:web:57d4210ef370a817e33875",
+  measurementId: "G-S4L4Z530CS",
+  firestoreDatabaseId: "(default)"
+};
 
   // 3. Dynamic config fetch helper
   try {

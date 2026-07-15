@@ -9,9 +9,10 @@ import { read, utils } from "xlsx";
 import { initializeApp as initAdminApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc, vector } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
+import { PDFParse } from "pdf-parse";
 import * as cheerio from "cheerio";
 
 import dotenv from "dotenv";
@@ -31,17 +32,16 @@ function cosineSimilarity(a: number[], b: number[]) {
 }
 
 const configPath = path.join(process.cwd(), "firebase-applet-config.json");
-const firebaseConfig = fs.existsSync(configPath)
-  ? JSON.parse(fs.readFileSync(configPath, "utf8"))
-  : { 
-      projectId: process.env.FIREBASE_PROJECT_ID || "gen-lang-client-0039539258", 
-      appId: process.env.FIREBASE_APP_ID || "1:615927626963:web:af7cd31a3a9859919fe826",
-      apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBE_i3Y6SXSfmFfZ_ptMclJT0GySmA0dlM",
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || "gen-lang-client-0039539258.firebaseapp.com",
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "gen-lang-client-0039539258.firebasestorage.app",
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "615927626963",
-      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || "ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4" 
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
+  authDomain: "auro-connect.firebaseapp.com",
+  projectId: "auro-connect",
+  storageBucket: "auro-connect.firebasestorage.app",
+  messagingSenderId: "913005987760",
+  appId: "1:913005987760:web:57d4210ef370a817e33875",
+  measurementId: "G-S4L4Z530CS",
+  firestoreDatabaseId: "(default)"
+};
 
 try {
   initAdminApp({ projectId: firebaseConfig.projectId });
@@ -64,6 +64,114 @@ app.use(express.json());
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Excel Upload API Endpoint
+
+app.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
+    try {
+        const token = req.body.token;
+        if (!token) return res.status(401).json({ detail: "No authentication token provided" });
+        
+        try {
+           await getAuth().verifyIdToken(token);
+        } catch(e) {
+           return res.status(401).json({ detail: "Invalid token" });
+        }
+
+        if (!req.file) return res.status(400).json({ detail: "No file uploaded" });
+
+        const filename = req.file.originalname;
+        let text = "";
+
+        if (filename.toLowerCase().endsWith(".pdf")) {
+            const parser = new PDFParse({ data: req.file.buffer });
+            const parsed = await parser.getText();
+            text = parsed.text;
+        } else if (filename.toLowerCase().endsWith(".docx")) {
+            const docxData = await mammoth.extractRawText({ buffer: req.file.buffer });
+            text = docxData.value;
+        } else if (filename.toLowerCase().endsWith(".txt")) {
+            text = req.file.buffer.toString('utf-8');
+        } else {
+            return res.status(400).json({ detail: "Unsupported file type" });
+        }
+
+        if (!text || text.trim().length === 0) {
+             return res.status(400).json({ detail: "Could not extract text from file" });
+        }
+
+        const chunkSize = 1500;
+        const overlap = 200;
+        const chunks = [];
+        for (let i = 0; i < text.length; i += (chunkSize - overlap)) {
+            const chunkText = text.slice(i, i + chunkSize);
+            if (chunkText.trim().length > 0) {
+                 const embedRes = await ai.models.embedContent({
+                     model: "gemini-embedding-2-preview",
+                     contents: chunkText,
+                     config: { outputDimensionality: 768 }
+                 });
+                 chunks.push({
+                     text: chunkText,
+                     embeddingVector: embedRes.embeddings?.[0]?.values || []
+                 });
+            }
+        }
+
+        return res.json({ chunks, filename, fullTextLength: text.length });
+
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ detail: e.message || "Failed to process upload" });
+    }
+});
+
+app.post("/api/add_url_knowledge", express.json(), async (req, res) => {
+    try {
+        const { token, url } = req.body;
+        if (!token) return res.status(401).json({ detail: "No authentication token provided" });
+        
+        try {
+           await getAuth().verifyIdToken(token);
+        } catch(e) {
+           return res.status(401).json({ detail: "Invalid token" });
+        }
+        
+        if (!url) return res.status(400).json({ detail: "No URL provided" });
+
+        const htmlRes = await fetch(url);
+        const html = await htmlRes.text();
+        const $ = cheerio.load(html);
+        $("script, style, nav, footer, header").remove();
+        const text = $("body").text().replace(/\s+/g, " ").trim();
+
+        if (!text || text.length === 0) {
+             return res.status(400).json({ detail: "Could not extract text from URL" });
+        }
+
+        const chunkSize = 1500;
+        const overlap = 200;
+        const chunks = [];
+        for (let i = 0; i < text.length; i += (chunkSize - overlap)) {
+            const chunkText = text.slice(i, i + chunkSize);
+            if (chunkText.trim().length > 0) {
+                 const embedRes = await ai.models.embedContent({
+                     model: "gemini-embedding-2-preview",
+                     contents: chunkText,
+                     config: { outputDimensionality: 768 }
+                 });
+                 chunks.push({
+                     text: chunkText,
+                     embeddingVector: embedRes.embeddings?.[0]?.values || []
+                 });
+            }
+        }
+
+        return res.json({ chunks, filename: url, fullTextLength: text.length });
+    } catch (e) {
+        console.error(e);
+        return res.status(500).json({ detail: e.message || "Failed to process URL" });
+    }
+});
+
 app.post("/api/upload_events", upload.single("file"), async (req, res) => {
   try {
     const token = req.body.token;
@@ -173,6 +281,24 @@ app.post("/api/upload_events", upload.single("file"), async (req, res) => {
     // Now upload to Firestore
     let count = 0;
     for (const ev of eventsToUpload) {
+      // Generate automatic search embedding vector
+      const textToEmbed = `${ev.title || ''} ${ev.description || ''} ${ev.category || ''} ${ev.type || ''} ${ev.venue || ''} ${ev.days || ''} ${ev.cost || ''} ${ev.audience || ''} ${ev.contactPerson || ''} ${ev.contact || ''} ${ev.email || ''}`.replace(/\s+/g, " ").trim();
+      if (textToEmbed) {
+        try {
+          const embeddingRes = await ai.models.embedContent({
+            model: "gemini-embedding-2-preview",
+            contents: textToEmbed,
+            config: { outputDimensionality: 768 }
+          });
+          const values = embeddingRes.embeddings?.[0]?.values;
+          if (values && values.length > 0) {
+            ev.embeddingVector = vector(values);
+          }
+        } catch (embedErr) {
+          console.warn(`Failed to generate embedding during upload for "${ev.title}":`, embedErr);
+        }
+      }
+      
       await addDoc(collection(db, "events"), ev);
       count++;
     }
@@ -582,20 +708,17 @@ export function formatEventMarkdown(data: any): string {
 
     const idEsc = escapeAttr(data.uuid || data.id || "");
     
-    // Add type of the event above the title
-    let typePrefix = "";
-    if (data.type) {
-        typePrefix = `_${data.type}_\n`;
+    // Add type and date above the title
+    let topBar = "";
+    if (data.type || datesDisplay) {
+        topBar = `<span class="ec-topbar"><span class="ec-type">${data.type ? `*${escapeAttr(data.type)}*` : ""}</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
     }
-    const header = `${typePrefix}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
+    const header = `${topBar}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
     
-    // Row 1: Time icon (time) | Date icon (date) | Location icon (location)
+    // Row 1: Time icon (time) | Location icon (location)
     const row1Parts = [];
     if (timeDisplay) {
         row1Parts.push(`⏰ ${timeDisplay}`);
-    }
-    if (datesDisplay) {
-        row1Parts.push(`📅 ${datesDisplay}`);
     }
     if (data.venue) {
         row1Parts.push(`📍 ${data.venue}`);
@@ -987,22 +1110,25 @@ async function getEventDetails(eventId: string) {
     const data = docRef.data() as any;
     const header = [];
     header.push(`### ${data.title}`);
-    if (data.category) header.push(`*${data.category}*`);
+    if (data.type || data.category) header.push(`_${data.type || data.category}_`);
 
     const details = [];
-    if (data.dates || data.days) details.push(`📅 **Date:** ${data.dates || data.days}`);
-    if (data.times) details.push(`⏰ **Time:** ${data.times}`);
-    if (data.venue) details.push(`📍 **Location:** ${data.venue}`);
-    if (data.cost) details.push(`💰 **Cost/Contribution:** ${data.cost}`);
-    if (data.audience) details.push(`👥 **Key info:** ${data.audience}`);
-    if (data.contact) details.push(`📞 **Contact:** ${data.contact}`);
-    if (data.email) details.push(`✉️ **Email:** ${data.email}`);
-    if (data.whatsapp) details.push(`💬 **WhatsApp:** ${data.whatsapp}`);
-    if (data.website) details.push(`🔗 [**Official Website**](${data.website.startsWith("http") ? data.website : "https://" + data.website})`);
-    if (data.description) details.push(`\n**Description:**\n${data.description}`);
-    if (data.posterUrl && data.posterUrl.includes("firebasestorage.googleapis.com")) details.push(`\n🔗 [View Image](${data.posterUrl})`);
+    if (data.dates || data.days) details.push(`**Date:** ${data.dates || data.days}`);
+    if (data.times) details.push(`**Time:** ${data.times}`);
+    if (data.venue) details.push(`**Location:** ${data.venue}`);
+    if (data.cost) details.push(`**Cost/Contribution:** ${data.cost}`);
+    if (data.audience) details.push(`**Key info:** ${data.audience}`);
+    if (data.contact) details.push(`**Phone:** ${data.contact}`);
+    if (data.email) details.push(`**Email:** ${data.email}`);
+    if (data.whatsapp) {
+      const waNumber = data.whatsapp.replace(/[^0-9]/g, '');
+      details.push(`💬 [Message on WhatsApp](https://wa.me/${waNumber})`);
+    }
+    if (data.website) details.push(`🔗 [Official Website](${data.website.startsWith("http") ? data.website : "https://" + data.website})`);
+    if (data.description) details.push(`**Description:**\n${data.description}`);
+    if (data.posterUrl && data.posterUrl.includes("firebasestorage.googleapis.com")) details.push(`🔗 [View Image](${data.posterUrl})`);
 
-    return `${header.join("\n")}\n\n${details.join("\n\n")}`;
+    return `${header.join("\n\n")}\n\n${details.join("\n\n")}`;
   } catch (e) {
     return "Error loading details.";
   }
@@ -1314,6 +1440,56 @@ async function createServer() {
     }
   });
 
+  app.post("/api/backfill-embeddings", express.json(), async (req, res) => {
+    try {
+        const colRef = collection(db, "events");
+        const snapshot = await getDocs(colRef);
+        
+        let backfilledCount = 0;
+        let failedCount = 0;
+        
+        for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            
+            // Determine if the embedding is missing or invalid
+            const isMissing = !data.embeddingVector || 
+                              (!Array.isArray(data.embeddingVector) && 
+                               typeof data.embeddingVector.toArray !== 'function');
+                               
+            if (isMissing) {
+                const textToEmbed = `${data.title || ''} ${data.description || ''} ${data.category || ''} ${data.type || ''} ${data.venue || ''} ${data.days || ''} ${data.cost || ''} ${data.audience || ''} ${data.contactPerson || ''} ${data.contact || ''} ${data.email || ''}`.replace(/\s+/g, " ").trim();
+                
+                if (textToEmbed) {
+                    try {
+                        const embeddingRes = await ai.models.embedContent({
+                            model: "gemini-embedding-2-preview",
+                            contents: textToEmbed,
+                            config: { outputDimensionality: 768 }
+                        });
+                        
+                        const values = embeddingRes.embeddings?.[0]?.values;
+                        if (values && values.length > 0) {
+                            const vec = vector(values);
+                            await updateDoc(doc(db, "events", docSnap.id), {
+                                embeddingVector: vec
+                            });
+                            backfilledCount++;
+                        }
+                    } catch (embedErr) {
+                        console.error(`Failed to backfill document ${docSnap.id}:`, embedErr);
+                        failedCount++;
+                    }
+                }
+            }
+        }
+        
+        res.json({ success: true, backfilledCount, failedCount });
+    } catch (e: any) {
+        console.error("Backfill error:", e);
+        res.status(500).json({ success: false, error: e.message });
+    }
+  });
+
   // REST API routes for frontend UI queries
 
   app.post("/api/chat", express.json(), async (req, res) => {
@@ -1583,6 +1759,10 @@ ${lastMessage}`;
         res.write("data: [DONE]\n\n");
         res.end();
     }
+  });
+
+  app.get("/api/firebase_config", (req, res) => {
+    res.json(firebaseConfig);
   });
 
   app.get("/api/events", async (req, res) => {
