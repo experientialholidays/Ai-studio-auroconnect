@@ -707,6 +707,21 @@
                 Upload Excel to DB
               </button>
               <div id="status" style="align-self: flex-start"></div>
+              
+              <!-- Progress container -->
+              <div id="excel-progress-container" style="display: none; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                  <span id="excel-progress-label" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 180px;">Initializing...</span>
+                  <span id="excel-progress-pct" style="font-weight: 600;">0%</span>
+                </div>
+                <div style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div id="excel-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease;"></div>
+                </div>
+                <details style="margin-top: 0.35rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.02);">
+                  <summary style="cursor: pointer; color: var(--text-secondary); outline: none; font-size: 0.75rem; font-weight: 500;">Console Log Logbook</summary>
+                  <pre id="excel-progress-log" style="margin: 0.5rem 0 0 0; max-height: 120px; overflow-y: auto; background: var(--bg); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.35; text-align: left;"></pre>
+                </details>
+              </div>
             </div>
           </div>
 
@@ -722,6 +737,21 @@
                 Upload Document Knowledge
               </button>
               <div id="pdf-status" style="align-self: flex-start; margin-top: 0.5rem;"></div>
+              
+              <!-- Progress container -->
+              <div id="pdf-progress-container" style="display: none; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                  <span id="pdf-progress-label" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 180px;">Initializing...</span>
+                  <span id="pdf-progress-pct" style="font-weight: 600;">0%</span>
+                </div>
+                <div style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div id="pdf-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease;"></div>
+                </div>
+                <details style="margin-top: 0.35rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.02);">
+                  <summary style="cursor: pointer; color: var(--text-secondary); outline: none; font-size: 0.75rem; font-weight: 500;">Console Log Logbook</summary>
+                  <pre id="pdf-progress-log" style="margin: 0.5rem 0 0 0; max-height: 120px; overflow-y: auto; background: var(--bg); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.35; text-align: left;"></pre>
+                </details>
+              </div>
             </div>
           </div>
 
@@ -742,6 +772,21 @@
                 Read Webpage
               </button>
               <div id="url-status" style="align-self: flex-start; margin-top: 0.5rem;"></div>
+              
+              <!-- Progress container -->
+              <div id="url-progress-container" style="display: none; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                  <span id="url-progress-label" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 180px;">Initializing...</span>
+                  <span id="url-progress-pct" style="font-weight: 600;">0%</span>
+                </div>
+                <div style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div id="url-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease;"></div>
+                </div>
+                <details style="margin-top: 0.35rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.02);">
+                  <summary style="cursor: pointer; color: var(--text-secondary); outline: none; font-size: 0.75rem; font-weight: 500;">Console Log Logbook</summary>
+                  <pre id="url-progress-log" style="margin: 0.5rem 0 0 0; max-height: 120px; overflow-y: auto; background: var(--bg); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.35; text-align: left;"></pre>
+                </details>
+              </div>
             </div>
           </div>
         </div>
@@ -3952,6 +3997,67 @@
         });
       }
 
+      // Helper to read and render server-sent streaming progress JSON chunks
+      async function readStreamProgress(response, containerId, statusDiv, onSuccess) {
+        const container = document.getElementById(containerId);
+        const progressBar = document.getElementById(containerId.replace("-container", "-bar"));
+        const progressPct = document.getElementById(containerId.replace("-container", "-pct"));
+        const progressLabel = document.getElementById(containerId.replace("-container", "-label"));
+        const progressLog = document.getElementById(containerId.replace("-container", "-log"));
+
+        container.style.display = "flex";
+        if (progressLog) progressLog.textContent = "";
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop(); // Hold onto the last partial line
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            try {
+              const data = JSON.parse(line);
+              if (data.type === "progress") {
+                const pct = data.percent || 0;
+                if (progressBar) progressBar.style.width = pct + "%";
+                if (progressPct) progressPct.textContent = pct + "%";
+                if (progressLabel) progressLabel.textContent = data.message || "Processing...";
+                if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--text-secondary);">${data.message || "Processing..."}</span>`;
+                if (progressLog && data.log) {
+                  progressLog.textContent += `[${new Date().toLocaleTimeString()}] ${data.log}\n`;
+                  progressLog.scrollTop = progressLog.scrollHeight;
+                }
+              } else if (data.type === "success") {
+                if (progressBar) progressBar.style.width = "100%";
+                if (progressPct) progressPct.textContent = "100%";
+                if (progressLabel) progressLabel.textContent = "Completed!";
+                if (statusDiv) statusDiv.innerHTML = `✅ <span style="color:var(--text);">${data.message}</span>`;
+                if (progressLog && data.detail) {
+                  progressLog.textContent += `[SUCCESS] ${data.message}\n[DETAILS] ${data.detail}\n`;
+                  progressLog.scrollTop = progressLog.scrollHeight;
+                }
+                if (onSuccess) onSuccess();
+              } else if (data.type === "error") {
+                if (statusDiv) statusDiv.innerHTML = `❌ <span style="color:red;">Error: ${data.message}</span>`;
+                if (progressLog) {
+                  progressLog.textContent += `[ERROR] ${data.message}\n`;
+                  progressLog.scrollTop = progressLog.scrollHeight;
+                }
+              }
+            } catch (parseErr) {
+              console.warn("Error parsing stream line:", parseErr, line);
+            }
+          }
+        }
+      }
+
       document.getElementById("upload-btn").onclick = async () => {
         const fileInput = document.getElementById("excel-file");
         if (!fileInput.files.length) {
@@ -3977,7 +4083,6 @@
             return;
           }
 
-          // Workaround for Chrome on Android "Google Drive" fetch bug
           statusDiv.innerHTML = "Reading file...";
           let blob = file;
           try {
@@ -3997,48 +4102,24 @@
           formData.append("token", token);
           formData.append("file", blob, file.name || "upload.xlsx");
 
-          statusDiv.innerHTML = "Processing and parsing on server...";
+          statusDiv.innerHTML = "Connecting to server and initiating import...";
           const response = await fetch("/api/upload_events", {
             method: "POST",
             body: formData,
           });
 
-          const result = await response.json();
-          if (response.ok) {
-            statusDiv.innerHTML = "Server parsed successfully. Writing to database...";
-            try {
-              let docsCreated = 0;
-              let currentBatch = writeBatch(db);
-              const eventsArray = result.data;
-              
-              const currentUser = getCurrentUser();
-              for (const ev of eventsArray) {
-                const newDocRef = doc(collection(db, "events"));
-                ev.submittedBy = currentUser ? currentUser.email : "";
-                ev.submittedAt = new Date().toISOString();
-                currentBatch.set(newDocRef, ev);
-                docsCreated++;
-                
-                if (docsCreated % 450 === 0) {
-                  await currentBatch.commit();
-                  currentBatch = writeBatch(db);
-                }
-              }
-              if (docsCreated % 450 !== 0) {
-                await currentBatch.commit();
-              }
-              
-              statusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully inserted ${docsCreated} events to Firestore!</span>`;
-              fileInput.value = ""; // clear after success
-              if (window.loadDashboard) window.loadDashboard();
-            } catch (fsErr) {
-              statusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
-            }
-          } else {
-            statusDiv.innerHTML = `❌ <span style="color:red;">Parse failed: ${result.detail || result.message}</span>`;
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `Server returned code ${response.status}`);
           }
+
+          await readStreamProgress(response, "excel-progress-container", statusDiv, () => {
+            fileInput.value = "";
+            if (window.loadDashboard) window.loadDashboard();
+          });
+
         } catch (error) {
-          statusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during upload: ${error.message}</span>`;
+          statusDiv.innerHTML = `❌ <span style="color:red;">Upload failed: ${error.message}</span>`;
         }
       };
 
@@ -4051,8 +4132,7 @@
         }
 
         const file = fileInput.files[0];
-        pdfStatusDiv.innerHTML =
-          "Extracting text and uploading... (may take a minute for large files)";
+        pdfStatusDiv.innerHTML = "Processing and uploading...";
 
         try {
           const currentUser = getCurrentUser();
@@ -4069,7 +4149,6 @@
             return;
           }
 
-          // Workaround for Chrome on Android "Google Drive" fetch bug
           pdfStatusDiv.innerHTML = "Reading file from device...";
           let blob = file;
           try {
@@ -4089,45 +4168,24 @@
           formData.append("token", token);
           formData.append("file", blob, file.name || "knowledge_doc");
 
-          pdfStatusDiv.innerHTML =
-            "Extracting text on server... (may take a minute for large files)";
+          pdfStatusDiv.innerHTML = "Connecting to server and initiating ingestion...";
           const response = await fetch("/api/upload_knowledge", {
             method: "POST",
             body: formData,
           });
 
-          const result = await response.json();
-          if (response.ok) {
-            pdfStatusDiv.innerHTML = "Text extracted and embedded. Writing chunks to database...";
-            try {
-              const currentUser = getCurrentUser();
-              const batch = writeBatch(db);
-              let chunkCount = 0;
-              for (const chunk of result.chunks) {
-                const newDocRef = doc(collection(db, "knowledge"));
-                batch.set(newDocRef, {
-                   filename: result.filename,
-                   text: chunk.text,
-                   embeddingVector: chunk.embeddingVector,
-                   uploadedAt: serverTimestamp(),
-                   uploadedBy: currentUser ? currentUser.email : "",
-                   chunkIndex: chunkCount
-                });
-                chunkCount++;
-              }
-              await batch.commit();
-              
-              pdfStatusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully uploaded knowledge document: ${result.filename}. It was split into ${chunkCount} chunks. Total chars: ${result.fullTextLength}</span>`;
-              fileInput.value = ""; // clear after success
-              if (window.loadDashboard) window.loadDashboard();
-            } catch (fsErr) {
-              pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
-            }
-          } else {
-            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Parse failed: ${result.detail || result.message}</span>`;
+          if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `Server returned code ${response.status}`);
           }
+
+          await readStreamProgress(response, "pdf-progress-container", pdfStatusDiv, () => {
+            fileInput.value = "";
+            if (window.loadDashboard) window.loadDashboard();
+          });
+
         } catch (error) {
-          pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during upload: ${error.message}</span>`;
+          pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Upload failed: ${error.message}</span>`;
         }
       };
 
@@ -4143,7 +4201,7 @@
             return;
           }
 
-          urlStatusDiv.innerHTML = "Fetching and scraping webpage text... (may take a moment)";
+          urlStatusDiv.innerHTML = "Initiating webpage scrap...";
 
           try {
             const currentUser = getCurrentUser();
@@ -4168,36 +4226,18 @@
               body: JSON.stringify({ token, url: urlVal }),
             });
 
-            const result = await response.json();
-            if (response.ok) {
-              urlStatusDiv.innerHTML = "Text scraped and embedded. Writing chunks to database...";
-              try {
-                const batch = writeBatch(db);
-                let chunkCount = 0;
-                for (const chunk of result.chunks) {
-                  const newDocRef = doc(collection(db, "knowledge"));
-                  batch.set(newDocRef, {
-                     filename: result.filename,
-                     text: chunk.text,
-                     embeddingVector: chunk.embeddingVector,
-                     uploadedAt: serverTimestamp(),
-                     uploadedBy: currentUser ? currentUser.email : ""
-                  });
-                  chunkCount++;
-                }
-                await batch.commit();
-                
-                urlStatusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully scraped and saved webpage: ${result.filename}. It was split into ${chunkCount} chunks. Total chars: ${result.fullTextLength}</span>`;
-                urlInput.value = ""; // clear after success
-                if (window.loadDashboard) window.loadDashboard();
-              } catch (fsErr) {
-                urlStatusDiv.innerHTML = `❌ <span style="color:red;">Database write failed: ${fsErr.message}</span>`;
-              }
-            } else {
-              urlStatusDiv.innerHTML = `❌ <span style="color:red;">Scrape failed: ${result.detail || result.message}</span>`;
+            if (!response.ok) {
+              const text = await response.text();
+              throw new Error(text || `Server returned code ${response.status}`);
             }
+
+            await readStreamProgress(response, "url-progress-container", urlStatusDiv, () => {
+              urlInput.value = "";
+              if (window.loadDashboard) window.loadDashboard();
+            });
+
           } catch (error) {
-            urlStatusDiv.innerHTML = `❌ <span style="color:red;">Network or server error during scrape: ${error.message}</span>`;
+            urlStatusDiv.innerHTML = `❌ <span style="color:red;">Scrape failed: ${error.message}</span>`;
           }
         };
       }
