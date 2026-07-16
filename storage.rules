@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper function to check if the user is a logged-in authenticated user
+    function isAuthenticated() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+
+    // Helper function to check if the authenticated user is an admin
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "info.experientialholidays@gmail.com" ||
+        firestore.exists(/databases/ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4/documents/admins/$(request.auth.token.email))
+      );
+    }
+
+    // Rule for event-media uploads (e.g. event images, posters, and PDFs)
+    match /event-media/{fileName} {
+      // Anyone can view/read event images and PDFs
+      allow read: if true;
+
+      // Authenticated users can submit (upload) files up to 25MB (Images or PDFs)
+      allow create: if isAuthenticated()
+                    && request.resource.size < 25 * 1024 * 1024
+                    && (request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf')
+                    && request.resource.metadata.uploadedBy == request.auth.token.email;
+
+      // Only the user who submitted the file (or an Admin) can update or delete it
+      allow update, delete: if isAuthenticated() && (
+        isAdmin() ||
+        (resource != null && resource.metadata != null && resource.metadata.uploadedBy == request.auth.token.email)
+      );
+    }
+  }
+}

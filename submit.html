@@ -1,6 +1,35 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>
+      (function() {
+        const wrapConsole = (method) => {
+          const original = console[method];
+          if (!original) return;
+          console[method] = function(...args) {
+            const sanitizedArgs = args.map(arg => {
+              if (arg && typeof arg === "object") {
+                try {
+                  const constrName = arg.constructor ? arg.constructor.name : "";
+                  if (constrName === "Y" || constrName === "Ka" || constrName === "Ia" || constrName.includes("Firestore") || constrName.includes("Firebase")) {
+                    return `[Firebase/Firestore Object: ${constrName}]`;
+                  }
+                  JSON.stringify(arg);
+                  return arg;
+                } catch (e) {
+                  return `[Circular Object: ${arg.constructor ? arg.constructor.name : "Object"}]`;
+                }
+              }
+              return arg;
+            });
+            return original.apply(this, sanitizedArgs);
+          };
+        };
+        wrapConsole("log");
+        wrapConsole("warn");
+        wrapConsole("error");
+      })();
+    </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Submit Events | AuroConnect</title>
@@ -1678,6 +1707,7 @@
       } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-storage.js";
       import {
         getFirestore,
+        setLogLevel,
         writeBatch,
         collection,
         doc,
@@ -1694,14 +1724,16 @@
         vector
       } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
 
+      setLogLevel("silent");
+
       let firebaseConfig = {
-        projectId: "gen-lang-client-0039539258",
-        appId: "1:615927626963:web:af7cd31a3a9859919fe826",
-        apiKey: "AIzaSyBE_i3Y6SXSfmFfZ_ptMclJT0GySmA0dlM",
-        authDomain: "gen-lang-client-0039539258.firebaseapp.com",
-        storageBucket: "gen-lang-client-0039539258.firebasestorage.app",
-        messagingSenderId: "615927626963",
-        firestoreDatabaseId: "ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4"
+        projectId: "auro-connect",
+        appId: "1:913005987760:web:57d4210ef370a817e33875",
+        apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
+        authDomain: "auro-connect.firebaseapp.com",
+        storageBucket: "auro-connect.firebasestorage.app",
+        messagingSenderId: "913005987760",
+        firestoreDatabaseId: "(default)"
       };
 
       try {
@@ -1998,6 +2030,118 @@
         }
 
         return "";
+      }
+
+      function getShortWeekdaysJS(daysField) {
+        if (!daysField) return "";
+        let daysArr = [];
+        if (Array.isArray(daysField)) {
+          daysArr = daysField;
+        } else if (typeof daysField === "string") {
+          let cleaned = daysField.trim();
+          if (cleaned.startsWith("[")) {
+            try {
+              const parsed = JSON.parse(cleaned.replace(/'/g, '"'));
+              if (Array.isArray(parsed)) daysArr = parsed;
+            } catch (e) {
+              daysArr = cleaned.split(/,\s*/);
+            }
+          } else {
+            daysArr = cleaned.split(/,\s*/);
+          }
+        }
+        
+        const shortMap = {
+          "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu",
+          "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
+          "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+        };
+        
+        const result = [];
+        daysArr.forEach(d => {
+          const lower = String(d).toLowerCase().trim();
+          if (shortMap[lower]) {
+            result.push(shortMap[lower]);
+          } else if (lower === "daily" || lower === "every day" || lower === "everyday") {
+            result.push("day");
+          } else if (lower) {
+            result.push(d.charAt(0).toUpperCase() + d.slice(1));
+          }
+        });
+        
+        if (result.length === 0) return "";
+        if (result.includes("day")) return "Day";
+        return result.join(", ");
+      }
+
+      function formatEventSchedule(ev) {
+        const category = (ev.category || "").toLowerCase().trim();
+        const isRecurring = ev.scheduleType === "recurring" || category.includes("daily") || category.includes("weekly");
+        
+        let dateVal = ev.dates || "";
+        if (!dateVal && ev.startDate) {
+          dateVal = ev.startDate;
+          if (ev.endDate && ev.endDate !== ev.startDate) {
+            dateVal = `${ev.startDate} to ${ev.endDate}`;
+          }
+        }
+        
+        const isWeekdayStr = (s) => {
+          if (!s) return false;
+          const lower = String(s).toLowerCase().trim();
+          const weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+                            "mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+          return weekdays.includes(lower);
+        };
+
+        let parsedDates = [];
+        if (dateVal) {
+          if (Array.isArray(dateVal)) {
+            parsedDates = dateVal.map(String);
+          } else if (typeof dateVal === "string") {
+            const cleaned = dateVal.trim();
+            if (cleaned.startsWith("[")) {
+              try {
+                const parsed = JSON.parse(cleaned.replace(/'/g, '"'));
+                if (Array.isArray(parsed)) parsedDates = parsed.map(String);
+              } catch (e) {
+                parsedDates = cleaned.split(/,\s*/);
+              }
+            } else if (cleaned !== "") {
+              parsedDates = cleaned.split(/,\s*/);
+            }
+          }
+        }
+
+        let hasRealDate = false;
+        let datesDisplay = "";
+        if (parsedDates.length > 0) {
+          const allWeekdays = parsedDates.every(d => isWeekdayStr(d));
+          if (!allWeekdays) {
+            hasRealDate = true;
+            datesDisplay = parsedDates.join(", ");
+          }
+        }
+
+        if (isRecurring) {
+          if (hasRealDate && datesDisplay) {
+            return datesDisplay;
+          } else {
+            const daysVal = ev.days || "";
+            const shortDays = getShortWeekdaysJS(daysVal);
+            if (shortDays) {
+              let disp = `Every ${shortDays}`;
+              if (ev.times) disp += ` at ${ev.times}`;
+              return disp;
+            } else {
+              let disp = category.includes("daily") ? "Every Day" : "Recurring";
+              if (ev.times) disp += ` at ${ev.times}`;
+              return disp;
+            }
+          }
+        } else {
+          return datesDisplay || String(dateVal);
+        }
       }
 
       function formatTimeToHHMM(timeStr) {
@@ -2539,11 +2683,8 @@
             tr.setAttribute("data-id", ev.id);
             tr.style.cursor = "pointer";
 
-            // Format dates/schedule beautifully
-            let scheduleStr = ev.dates || "";
-            if (ev.scheduleType === "recurring") {
-              scheduleStr = `${ev.days || ""} at ${ev.times || ""}`;
-            }
+            // Format dates/schedule beautifully using our robust helper
+            let scheduleStr = formatEventSchedule(ev);
 
             tr.innerHTML = `
               <td style="text-align: center;" onclick="event.stopPropagation();">
@@ -2671,8 +2812,8 @@
           rowCheckboxes.forEach((chk) => {
             chk.onchange = (e) => {
               e.stopPropagation();
-              const docId = e.target.getAttribute("data-id");
-              if (e.target.checked) {
+              const docId = chk.getAttribute("data-id");
+              if (chk.checked) {
                 selectedMyEvents.add(docId);
               } else {
                 selectedMyEvents.delete(docId);
@@ -2707,7 +2848,7 @@
           myEventsTbody.querySelectorAll(".btn-edit-event").forEach((btn) => {
             btn.onclick = (e) => {
               e.stopPropagation();
-              const docId = e.target.getAttribute("data-id");
+              const docId = btn.getAttribute("data-id");
               const targetEv = events.find((item) => item.id === docId);
               if (targetEv) {
                 startEditEvent(targetEv);
@@ -2718,7 +2859,7 @@
           // Bind single delete actions
           myEventsTbody.querySelectorAll(".btn-delete-event").forEach((btn) => {
             btn.onclick = async (e) => {
-              const docId = e.target.getAttribute("data-id");
+              const docId = btn.getAttribute("data-id");
               if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
                 try {
                   await deleteDoc(doc(db, "events", docId));
@@ -2960,10 +3101,7 @@
             tr.setAttribute("data-id", ev.id);
             tr.style.cursor = "pointer";
 
-            let scheduleStr = ev.dates || "";
-            if (ev.scheduleType === "recurring") {
-              scheduleStr = `${ev.days || ""} at ${ev.times || ""}`;
-            }
+            let scheduleStr = formatEventSchedule(ev);
 
             const submitter = ev.submittedBy || "Anonymous";
             const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
@@ -3098,8 +3236,8 @@
           rowCheckboxes.forEach((chk) => {
             chk.onchange = (e) => {
               e.stopPropagation();
-              const docId = e.target.getAttribute("data-id");
-              if (e.target.checked) {
+              const docId = chk.getAttribute("data-id");
+              if (chk.checked) {
                 selectedAllEvents.add(docId);
               } else {
                 selectedAllEvents.delete(docId);
@@ -3134,7 +3272,7 @@
           allEventsTbody.querySelectorAll(".btn-edit-all-event").forEach((btn) => {
             btn.onclick = (e) => {
               e.stopPropagation();
-              const docId = e.target.getAttribute("data-id");
+              const docId = btn.getAttribute("data-id");
               const targetEv = events.find((item) => item.id === docId);
               if (targetEv) {
                 startEditEvent(targetEv);
@@ -3145,7 +3283,7 @@
           // Bind single delete actions
           allEventsTbody.querySelectorAll(".btn-delete-all-event").forEach((btn) => {
             btn.onclick = async (e) => {
-              const docId = e.target.getAttribute("data-id");
+              const docId = btn.getAttribute("data-id");
               if (confirm("Are you sure you want to delete this event from the master database? This action cannot be undone.")) {
                 try {
                   await deleteDoc(doc(db, "events", docId));
@@ -3805,7 +3943,7 @@
 
           // Workaround for Chrome on Android "Google Drive" fetch bug
           statusDiv.innerHTML = "Reading file...";
-          let blob;
+          let blob = file;
           try {
             const buffer = await new Promise((resolve, reject) => {
               const reader = new FileReader();
@@ -3815,8 +3953,8 @@
             });
             blob = new Blob([buffer], { type: file.type });
           } catch (err) {
-            statusDiv.innerHTML = `❌ <span style="color:red;">Could not read file from your device. Please try downloading it locally first.</span>`;
-            return;
+            console.warn("FileReader failed, using raw file object instead:", err);
+            blob = file;
           }
 
           const formData = new FormData();
@@ -3897,7 +4035,7 @@
 
           // Workaround for Chrome on Android "Google Drive" fetch bug
           pdfStatusDiv.innerHTML = "Reading file from device...";
-          let blob;
+          let blob = file;
           try {
             const buffer = await new Promise((resolve, reject) => {
               const reader = new FileReader();
@@ -3907,8 +4045,8 @@
             });
             blob = new Blob([buffer], { type: file.type });
           } catch (err) {
-            pdfStatusDiv.innerHTML = `❌ <span style="color:red;">Could not read file from your device. Please try downloading it locally first.</span>`;
-            return;
+            console.warn("FileReader failed, using raw file object instead:", err);
+            blob = file;
           }
 
           const formData = new FormData();
@@ -4082,7 +4220,12 @@
                   storage,
                   `event-media/${Date.now()}_${file.name}`,
                 );
-                await uploadBytes(newRef, file);
+                const metadata = {
+                  customMetadata: {
+                    uploadedBy: getCurrentUser() ? getCurrentUser().email : 'anonymous'
+                  }
+                };
+                await uploadBytes(newRef, file, metadata);
                 const downloadUrl = await getDownloadURL(newRef);
                 uploadedMediaUrls.push(downloadUrl);
               } catch (uploadErr) {
@@ -4141,22 +4284,6 @@
 
           let startTime = document.getElementById("ev-start-time").value;
           let endTime = document.getElementById("ev-end-time").value;
-
-          if (startTime && !endTime) {
-            try {
-              const parts = startTime.split(":");
-              if (parts.length >= 2) {
-                const h = parseInt(parts[0], 10);
-                const m = parseInt(parts[1], 10);
-                if (!isNaN(h) && !isNaN(m)) {
-                  const eh = (h + 1) % 24;
-                  endTime = `${eh.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
-                }
-              }
-            } catch (e) {
-              console.error("Error calculating end time", e);
-            }
-          }
 
           const times = startTime + (endTime ? " - " + endTime : "");
 
