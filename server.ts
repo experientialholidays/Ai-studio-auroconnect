@@ -1025,7 +1025,7 @@ ${message}`;
 }
 
 async function createServer() {
-  const PORT = 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   const server = http.createServer(app);
   
   app.post("/api/embed", express.json(), async (req, res) => {
