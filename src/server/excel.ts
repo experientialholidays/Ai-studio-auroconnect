@@ -2,36 +2,67 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { collection, addDoc } from "firebase/firestore";
-import { db, verifyAuthToken } from "./firebase-ai.js";
+import { adminDb, verifyAuthToken } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/api/upload_events", upload.single("file"), async (req, res) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const sendProgress = (percent: number, message: string, log: string = "") => {
+    console.log(`[Excel Upload Progress] ${percent}%: ${message} - ${log}`);
+    res.write(JSON.stringify({ type: "progress", percent, message, log }) + "\n");
+  };
+  const sendSuccess = (message: string, detail: string = "") => {
+    console.log(`[Excel Upload Success] ${message} - ${detail}`);
+    res.write(JSON.stringify({ type: "success", message, detail }) + "\n");
+    res.end();
+  };
+  const sendError = (status: number, message: string) => {
+    console.error(`[Excel Upload Error] Status ${status}: ${message}`);
+    res.write(JSON.stringify({ type: "error", message }) + "\n");
+    res.end();
+  };
+
   try {
     const token = req.body.token;
     if (!token) {
-      return res.status(401).json({ detail: "No authentication token provided" });
+      return sendError(401, "No authentication token provided");
     }
+    
+    sendProgress(5, "Verifying authentication...", "Decoding and verifying token");
     const decodedToken = await verifyAuthToken(token);
     if (!decodedToken) {
-      return res.status(401).json({ detail: "Invalid authentication token or failed to verify" });
+      return sendError(401, "Invalid authentication token or failed to verify");
     }
     if (decodedToken.email !== "info.experientialholidays@gmail.com") {
-      return res.status(403).json({ detail: "Forbidden: Admin access required." });
+      return sendError(403, "Forbidden: Admin access required.");
     }
     if (!req.file) {
-      return res.status(400).json({ detail: "No file uploaded" });
+      return sendError(400, "No file uploaded");
     }
+
+    sendProgress(15, "Reading uploaded Excel sheet...", `File size: ${req.file.size} bytes`);
     const workbook = read(req.file.buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
+    
+    sendProgress(25, "Parsing spreadsheet content...", `Sheet name: "${sheetName}"`);
     const rawEvents = utils.sheet_to_json(sheet);
     if (rawEvents.length === 0) {
-      return res.status(400).json({ detail: "Excel file is empty" });
+      return sendError(400, "Excel file is empty");
     }
+
+    sendProgress(35, "Cleaning and validating events...", `Found ${rawEvents.length} raw rows`);
     const eventsToUpload = [];
+    const submittedBy = decodedToken.email;
+    const submittedAt = new Date().toISOString();
+
     for (const rawEv of rawEvents) {
       if (!rawEv || typeof rawEv !== "object") continue;
       const cleanRawEv: Record<string, any> = {};
@@ -72,19 +103,50 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         description: getVal(["Description", "Details", "About"]),
         startDate: getVal(["Start Date"]),
         endDate: getVal(["End Date"]),
-        originalHeaders: cleanRawEv
+        originalHeaders: cleanRawEv,
+        submittedBy,
+        submittedAt
       };
       eventsToUpload.push(processed);
     }
-    let count = 0;
-    for (const ev of eventsToUpload) {
-      await addDoc(collection(db, "events"), ev);
-      count++;
+
+    if (eventsToUpload.length === 0) {
+      return sendError(400, "No valid events with a Title or Name found in the sheet.");
     }
-    return res.json({ detail: `Successfully uploaded ${count} events` });
+
+    sendProgress(50, `Ready to save ${eventsToUpload.length} events...`, "Initializing batch writes to database");
+
+    let count = 0;
+    const batchSize = 250;
+    
+    for (let i = 0; i < eventsToUpload.length; i += batchSize) {
+      const chunk = eventsToUpload.slice(i, i + batchSize);
+      const batchPercent = Math.min(95, 50 + Math.round((i / eventsToUpload.length) * 45));
+      sendProgress(
+        batchPercent, 
+        `Writing to database (events ${i + 1}-${Math.min(eventsToUpload.length, i + batchSize)})...`, 
+        `Committing batch of ${chunk.length} events to Firestore`
+      );
+
+      const batch = adminDb.batch();
+      const eventCol = adminDb.collection("events");
+      for (const ev of chunk) {
+        const newDocRef = eventCol.doc();
+        batch.set(newDocRef, ev);
+      }
+      await batch.commit();
+      count += chunk.length;
+    }
+
+    sendProgress(98, "Finalizing database changes...", "All entries successfully committed to database");
+    return sendSuccess(
+      `Successfully imported ${count} events!`, 
+      `Processed ${eventsToUpload.length} items out of ${rawEvents.length} original spreadsheet rows.`
+    );
+
   } catch (e: any) {
     console.error("upload_events error:", e);
-    return res.status(500).json({ detail: "Failed to process upload: " + (e.message || e) });
+    return sendError(500, "Failed to process upload: " + (e.message || e));
   }
 });
 

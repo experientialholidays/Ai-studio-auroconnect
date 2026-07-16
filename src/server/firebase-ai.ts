@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { initializeApp as initAdminApp } from "firebase-admin/app";
+import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
@@ -25,6 +26,8 @@ export const firebaseConfig = fs.existsSync(configPath)
 try {
   initAdminApp({ projectId: firebaseConfig.projectId });
 } catch(e) {}
+
+export const adminDb = getAdminFirestore();
 
 // Client SDK initialization
 export const appFirebase = initializeApp(firebaseConfig);

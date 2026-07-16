@@ -4,7 +4,8 @@ import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import _pdfParseModule from "pdf-parse/lib/pdf-parse.js";
 import zlib from "zlib";
-import { ai, verifyAuthToken } from "./firebase-ai.js";
+import { FieldValue } from "firebase-admin/firestore";
+import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
 
 const pdfParse = typeof _pdfParseModule === "function" ? _pdfParseModule : (_pdfParseModule as any).default;
 
@@ -111,22 +112,48 @@ export function splitIntoChunks(text: string, maxChars = 1e3): string[] {
 }
 
 router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => {
+  res.setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Transfer-Encoding", "chunked");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const sendProgress = (percent: number, message: string, log: string = "") => {
+    console.log(`[Knowledge Upload Progress] ${percent}%: ${message} - ${log}`);
+    res.write(JSON.stringify({ type: "progress", percent, message, log }) + "\n");
+  };
+  const sendSuccess = (message: string, detail: string = "") => {
+    console.log(`[Knowledge Upload Success] ${message} - ${detail}`);
+    res.write(JSON.stringify({ type: "success", message, detail }) + "\n");
+    res.end();
+  };
+  const sendError = (status: number, message: string) => {
+    console.error(`[Knowledge Upload Error] Status ${status}: ${message}`);
+    res.write(JSON.stringify({ type: "error", message }) + "\n");
+    res.end();
+  };
+
   try {
     const token = req.body.token;
     if (!token) {
-      return res.status(401).json({ detail: "No authentication token provided" });
+      return sendError(401, "No authentication token provided");
     }
+    
+    sendProgress(5, "Verifying authentication...", "Verifying authorization token");
     const decodedToken = await verifyAuthToken(token);
     if (!decodedToken) {
-      return res.status(401).json({ detail: "Invalid authentication token or failed to verify" });
+      return sendError(401, "Invalid authentication token or failed to verify");
     }
     if (decodedToken.email !== "info.experientialholidays@gmail.com") {
-      return res.status(403).json({ detail: "Forbidden: Admin access required." });
+      return sendError(403, "Forbidden: Admin access required.");
     }
     if (!req.file) {
-      return res.status(400).json({ detail: "No file uploaded" });
+      return sendError(400, "No file uploaded");
     }
+
     const filename = req.file.originalname || "knowledge_doc";
+    sendProgress(15, `Extracting text from ${filename}...`, `Detecting file format. Size: ${req.file.size} bytes`);
+    
     let extractedText = "";
     try {
       if (filename.toLowerCase().endsWith(".pdf")) {
@@ -139,32 +166,111 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
       }
     } catch (parseErr: any) {
       console.error("Document parse error:", parseErr);
-      return res.status(400).json({ detail: "Failed to parse document content: " + parseErr.message });
+      return sendError(400, "Failed to parse document content: " + parseErr.message);
     }
+
     if (!extractedText || extractedText.trim() === "") {
-      return res.status(400).json({ detail: "Could not extract text from document." });
+      return sendError(400, "Could not extract text from document.");
     }
+
+    sendProgress(30, "Splitting document text into chunks...", `Extracted ${extractedText.length} characters of raw text`);
     const chunks = splitIntoChunks(extractedText, 1e3);
+    sendProgress(35, `Split complete: ${chunks.length} chunks generated.`, "Starting chunk embedding generation...");
+
     const embeddedChunks = [];
-    for (const chunk of chunks) {
-      const embedRes = await ai.models.embedContent({
-        model: "gemini-embedding-2-preview",
-        contents: chunk,
-        config: { outputDimensionality: 768 }
-      });
-      const vector = embedRes.embeddings?.[0]?.values;
-      if (vector) {
-        embeddedChunks.push({ text: chunk, embeddingVector: vector });
+    const batchSize = 15; // Embedding batch size to stay within token & rate limits
+    
+    for (let i = 0; i < chunks.length; i += batchSize) {
+      const batch = chunks.slice(i, i + batchSize);
+      const embedPercent = Math.min(85, 35 + Math.round((i / chunks.length) * 45));
+      sendProgress(
+        embedPercent, 
+        `Generating embeddings (chunks ${i + 1}-${Math.min(chunks.length, i + batchSize)} of ${chunks.length})...`, 
+        `Requesting embeddings for batch of ${batch.length} chunks`
+      );
+
+      try {
+        const embedRes = await ai.models.embedContent({
+          model: "gemini-embedding-2-preview",
+          contents: batch,
+          config: { outputDimensionality: 768 }
+        });
+        
+        const embeddings = embedRes.embeddings;
+        if (embeddings && embeddings.length > 0) {
+          for (let j = 0; j < batch.length; j++) {
+            const vector = embeddings[j]?.values;
+            if (vector) {
+              embeddedChunks.push({ text: batch[j], embeddingVector: vector });
+            }
+          }
+        }
+      } catch (err: any) {
+        console.warn(`Batch embedding failed, trying individual fallback for batch starting at index ${i}:`, err);
+        // Fallback: individual embedding
+        for (let j = 0; j < batch.length; j++) {
+          const chunk = batch[j];
+          try {
+            const embedRes = await ai.models.embedContent({
+              model: "gemini-embedding-2-preview",
+              contents: chunk,
+              config: { outputDimensionality: 768 }
+            });
+            const vector = embedRes.embeddings?.[0]?.values;
+            if (vector) {
+              embeddedChunks.push({ text: chunk, embeddingVector: vector });
+            }
+          } catch (indivErr: any) {
+            console.error(`Individual embedding failed for chunk ${i + j}:`, indivErr);
+          }
+        }
       }
     }
-    return res.json({
-      filename,
-      fullTextLength: extractedText.length,
-      chunks: embeddedChunks
-    });
+
+    if (embeddedChunks.length === 0) {
+      return sendError(500, "Failed to generate any embeddings for the document.");
+    }
+
+    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Initializing Firestore write batch");
+    
+    const dbBatchSize = 250;
+    let chunkCount = 0;
+    const uploadedBy = decodedToken.email;
+
+    for (let i = 0; i < embeddedChunks.length; i += dbBatchSize) {
+      const batchChunk = embeddedChunks.slice(i, i + dbBatchSize);
+      const writePercent = Math.min(98, 85 + Math.round((i / embeddedChunks.length) * 13));
+      sendProgress(
+        writePercent,
+        `Saving knowledge chunks (${i + 1} to ${Math.min(embeddedChunks.length, i + dbBatchSize)})...`,
+        `Committing batch of ${batchChunk.length} chunks to Firestore`
+      );
+
+      const batch = adminDb.batch();
+      for (const item of batchChunk) {
+        const newDocRef = adminDb.collection("knowledge").doc();
+        batch.set(newDocRef, {
+          filename,
+          text: item.text,
+          embeddingVector: item.embeddingVector,
+          uploadedAt: FieldValue.serverTimestamp(),
+          uploadedBy,
+          chunkIndex: chunkCount
+        });
+        chunkCount++;
+      }
+      await batch.commit();
+    }
+
+    sendProgress(99, "Finalizing knowledge base ingestion...", "All chunks saved and indexed");
+    return sendSuccess(
+      `Successfully uploaded and indexed knowledge document: ${filename}`, 
+      `Created ${chunkCount} knowledge base entries. Total chars: ${extractedText.length}`
+    );
+
   } catch (e: any) {
     console.error("upload_knowledge error:", e);
-    return res.status(500).json({ detail: "Internal server error during upload: " + (e.message || e) });
+    return sendError(500, "Internal server error during upload: " + (e.message || e));
   }
 });
 
