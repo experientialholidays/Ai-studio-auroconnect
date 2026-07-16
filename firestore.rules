@@ -1,84 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // 1. HELPER FUNCTIONS
-    
-    // Check if the user is logged in and has a valid email address
-    function isAuthenticated() {
-      return request.auth != null && request.auth.token.email != null;
-    }
-
-    // Check if the authenticated user is an administrator
-    // Checks if their email matches the core admin email OR exists in the 'admins' collection
-    function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email == "info.experientialholidays@gmail.com" ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
-      );
-    }
-
-    // 2. COLLECTION RULES
-
-    // Admins Collection
-    match /admins/{adminId} {
-      // Users can only read their own admin verification document, preventing snooping of the whole collection
-      allow read: if isAuthenticated() && request.auth.token.email == adminId;
-      // Only existing administrators can add, update, or delete administrator documents
-      allow write: if isAdmin();
-    }
-
-    // Events Collection (Specific to this project)
-    match /events/{docId} {
-      // Anyone (public visitors) can read/browse events
-      allow read: if true;
-
-      // Logged-in users can submit an event, but they must sign it with their own email address
-      allow create: if isAuthenticated() && 
-                    request.resource.data.submittedBy == request.auth.token.email;
-
-      // Only the original submitter or an administrator can delete an event
-      allow delete: if isAuthenticated() && (
-        isAdmin() || 
-        resource.data.submittedBy == request.auth.token.email
-      );
-
-      // Creator or Admin can update anything.
-      // Unauthenticated public visitors can ONLY increment/update interaction counters securely.
-      allow update: if 
-        (
-          isAuthenticated() && (
-            isAdmin() || 
-            resource.data.submittedBy == request.auth.token.email
-          )
-        ) 
-        || 
-        (
-          // Public visitors can only increment views, whatsappClicks, or externalLinkClicks
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'whatsappClicks', 'externalLinkClicks'])
-        );
-    }
-
-    // Knowledge Base Collection
-    match /knowledge/{docId} {
-      // Only administrators can view, add, modify, or delete knowledge base documents
-      allow read, write: if isAdmin();
-    }
-
-    // Contact Messages Collection
-    match /contact_messages/{docId} {
-      // Anyone can submit a contact message/inquiry
-      allow create: if true;
-      // Only administrators can read, update, or delete submitted contact messages
-      allow read, update, delete: if isAdmin();
-    }
-
-    // Feedback Collection
-    match /feedback/{docId} {
-      // Anyone can submit feedback
-      allow create: if true;
-      // Only administrators can view or manage feedback submissions
-      allow read, update, delete: if isAdmin();
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }

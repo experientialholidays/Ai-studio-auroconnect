@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import ReactMarkdown from "react-markdown";
-import rehypeRaw from "rehype-raw";
 import {
   Sparkles,
   Compass,
@@ -11,7 +10,6 @@ import {
   Coffee,
   ExternalLink,
   ChevronRight,
-  ArrowUpRight,
   Send,
   X,
   Phone,
@@ -366,82 +364,17 @@ export default function App() {
   };
 
   // Custom renderer component to replace raw a-[#DETAILS] anchors with interactive buttons
-    const markdownComponents = {
-    p: ({ children, ...props }: any) => {
-      let isEventCard = false;
-      let eventId = null;
-      
-      React.Children.forEach(children, (child: any) => {
-        if (React.isValidElement(child) && (child.props as any).href?.startsWith('#DETAILS::')) {
-           isEventCard = true;
-           eventId = (child.props as any).href.split('::')[1];
-        }
-        if (React.isValidElement(child) && (child.type === 'strong' || child.type === 'b')) {
-           React.Children.forEach((child.props as any).children, (grandchild: any) => {
-             if (React.isValidElement(grandchild) && (grandchild.props as any).href?.startsWith('#DETAILS::')) {
-               isEventCard = true;
-               eventId = (grandchild.props as any).href.split('::')[1];
-             }
-           });
-        }
-      });
-
-      if (isEventCard && eventId) {
-        return (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            drag="x"
-            dragConstraints={{ left: -100, right: 0 }}
-            dragElastic={{ left: 0.2, right: 0 }}
-            onDragEnd={(e, info) => {
-              if (info.offset.x < -30 || info.velocity.x < -100) {
-                handleSelectEventById(eventId as string);
-              }
-            }}
-            onClick={(e) => { e.stopPropagation(); handleSelectEventById(eventId as string); }}
-            className="my-3 relative group select-none touch-pan-y text-left cursor-pointer w-full rounded-xl transition-all duration-200 block"
-          >
-            <div className="w-full flex flex-col bg-white border border-slate-200 group-hover:border-blue-300 group-hover:shadow-md rounded-xl p-4 transition-all overflow-hidden relative">
-              <div className="flex-1 pr-8 overflow-hidden text-slate-700 whitespace-pre-wrap text-[15px] leading-relaxed">
-                {children}
-              </div>
-              
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-blue-500 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-1 duration-200 pointer-events-none bg-gradient-to-l from-white via-white pl-4">
-                <span className="text-[10px] font-bold tracking-wider mr-1 uppercase hidden md:inline-block pointer-events-none">Swipe / Click</span>
-                <ChevronRight className="w-5 h-5" />
-              </div>
-            </div>
-          </motion.div>
-        );
-      }
-
-      return <p className="mb-2 last:mb-0 leading-relaxed" {...props}>{children}</p>;
-    },
-    a: ({ href, children, ...props }: any) => {
+  const markdownComponents = {
+    a: ({ href, children }: any) => {
       if (href?.startsWith("#DETAILS::")) {
-        // Since we intercept this in the 'p' handler to render a card, 
-        // we just render a clean unstyled text here for the title.
+        const id = href.split("::")[1];
         return (
-          <span
-            className="text-slate-800 font-bold text-left mb-1 inline-block text-[1.05rem]"
+          <button
+            onClick={() => handleSelectEventById(id)}
+            className="text-amber-500 hover:text-amber-600 transition-colors cursor-pointer decoration-dotted underline hover:decoration-solid font-semibold inline-flex items-center gap-0.5"
           >
-            {children}
-          </span>
-        );
-      }
-      
-      // Preserve custom styled links
-      if (props.style || href?.startsWith("/event/")) {
-        return (
-          <a
-            href={href}
-            className="text-emerald-700 font-semibold hover:underline"
-            {...props}
-          >
-            {children}
-          </a>
+            {children} <ChevronRight className="w-3.5 h-3.5" />
+          </button>
         );
       }
       return (
@@ -449,10 +382,9 @@ export default function App() {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 transition-colors underline"
-          {...props}
+          className="text-emerald-600 hover:text-emerald-700 font-medium underline flex-inline items-center gap-1"
         >
-          {children}
+          {children} <ExternalLink className="w-3 h-3 inline pb-0.5" />
         </a>
       );
     }
@@ -662,7 +594,7 @@ export default function App() {
                           }`}
                         >
                           <div className={`prose prose-sm prose-emerald max-w-none ${isAssistant ? "text-slate-800" : "text-white"}`}>
-                            <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
+                            <ReactMarkdown components={markdownComponents}>
                               {msg.content}
                             </ReactMarkdown>
                           </div>
@@ -685,7 +617,7 @@ export default function App() {
                       <div className="p-4 rounded-2xl bg-white border border-slate-100 text-slate-800 shadow-xs">
                         {streamedText ? (
                           <div className="prose prose-sm prose-emerald max-w-none text-slate-800">
-                            <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
+                            <ReactMarkdown components={markdownComponents}>
                               {streamedText}
                             </ReactMarkdown>
                           </div>
@@ -821,64 +753,54 @@ export default function App() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {catalogEvents.map((event) => (
-                      <motion.div
+                      <div
                         key={event.id}
-                        drag="x"
-                        dragConstraints={{ left: -100, right: 0 }}
-                        dragElastic={{ left: 0.2, right: 0 }}
-                        onDragEnd={(e, info) => {
-                          if (info.offset.x < -30 || info.velocity.x < -100) {
-                            handleSelectEventById(event.id);
-                          }
-                        }}
-                        onClick={() => handleSelectEventById(event.id)}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.99 }}
-                        className="bg-white p-5 border border-slate-200 hover:border-emerald-500/30 rounded-2xl flex flex-col justify-between shadow-xs hover:shadow-md transition-all group cursor-pointer relative select-none touch-pan-y"
+                        className="bg-white p-5 border border-slate-200 hover:border-slate-300 rounded-2xl flex flex-col justify-between shadow-xs hover:shadow-md hover:scale-[1.01] transition-all group"
                       >
                         <div className="space-y-3">
                           <div className="flex items-start justify-between gap-2">
-                            <div className="flex flex-wrap gap-1.5">
-                              <span className="text-[9px] font-bold font-mono tracking-wider uppercase px-2 py-0.5 border rounded-md shrink-0 bg-emerald-50 text-emerald-800 border-emerald-100">
-                                {(event.category || "").replace(" Events", "")}
-                              </span>
-                              {event.type && (
-                                <span className="text-[9px] font-semibold text-slate-400 border border-slate-100 rounded-md px-1.5 py-0.5 max-w-[120px] truncate">
-                                  {event.type}
-                                </span>
-                              )}
-                              <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50/50 px-1.5 py-0.5 border border-emerald-100 rounded-md uppercase tracking-wider font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                                Swipe / Click
-                              </span>
-                            </div>
-                            
-                            <div className="w-6 h-6 rounded-full flex items-center justify-center bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-all duration-200 shrink-0">
-                              <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-                            </div>
+                            <span className={`text-[9px] font-bold font-mono tracking-wider uppercase px-2 py-0.5 border rounded-md shrink-0 ${
+                              event.category === "Date-specific Events"
+                                ? "bg-amber-50 text-amber-800 border-amber-100"
+                                : event.category === "Weekly Events"
+                                ? "bg-purple-50 text-purple-800 border-purple-100"
+                                : "bg-emerald-50 text-emerald-800 border-emerald-100"
+                            }`}>
+                              {event.category.replace(" Events", "")}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">{event.type}</span>
                           </div>
 
-                          <h3 className="font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1.5 leading-snug">{event.title}</h3>
+                          <h3 className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors line-clamp-1.5">{event.title}</h3>
                           
                           <p className="text-xs text-slate-500 line-clamp-3 leading-relaxed">{event.description || "No description provided."}</p>
                         </div>
 
-                        <div className="space-y-1.5 text-[11px] text-slate-500 font-semibold pt-4 border-t border-slate-100 mt-4">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{event.dates || event.days}</span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span>{event.times}</span>
-                          </div>
-                          {event.venue && (
+                        <div className="space-y-3 pt-4 border-t border-slate-100 mt-4">
+                          <div className="space-y-1.5 text-[11px] text-slate-500 font-medium">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span className="truncate">{event.dates || event.days}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span>{event.times}</span>
+                            </div>
                             <div className="flex items-center gap-1.5">
                               <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                               <span className="truncate">{event.venue}</span>
                             </div>
-                          )}
+                          </div>
+
+                          <button
+                            onClick={() => handleSelectEventById(event.id)}
+                            className="w-full py-1.5 px-3 bg-slate-50 hover:bg-emerald-50 group-hover:bg-emerald-600 border border-slate-200 hover:border-emerald-500 group-hover:border-emerald-600 text-slate-700 group-hover:text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                          >
+                            Details & Registration
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -930,34 +852,14 @@ export default function App() {
 
             {/* Event Details Content Sheet */}
             <motion.div
-              drag="x"
-              dragDirectionLock
-              dragConstraints={{ left: 0 }}
-              dragElastic={{ left: 0.05, right: 0.5 }}
-              onDragEnd={(event, info) => {
-                if (info.offset.x > 120 || info.velocity.x > 300) {
-                  setSelectedEventId(null);
-                }
-              }}
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="relative w-full max-w-xl bg-white h-full shadow-2xl flex flex-col z-10 touch-pan-y select-none"
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative w-full max-w-xl bg-white h-full shadow-2xl flex flex-col z-10"
             >
-              {/* Vertical drag handle cue on the left edge */}
-              <div className="absolute left-0 top-0 bottom-0 w-2 hover:bg-slate-100 cursor-col-resize transition-colors flex items-center justify-center">
-                <div className="w-1 h-12 rounded-full bg-slate-300" />
-              </div>
-
-              <div className="p-4 pl-6 border-b border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold font-mono text-slate-400 tracking-wider">EVENT DESCRIPTION</span>
-                  <div className="flex items-center gap-0.5 text-[9px] font-bold text-slate-300 font-mono bg-slate-50 px-2 py-0.5 border border-slate-100 rounded-md">
-                    <span>Swipe Right to Dismiss</span>
-                    <ChevronRight className="w-3 h-3 animate-pulse" />
-                  </div>
-                </div>
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                <span className="text-xs font-bold font-mono text-slate-400 tracking-wider">EVENT DESCRIPTION</span>
                 <button
                   onClick={() => setSelectedEventId(null)}
                   className="p-1.5 hover:bg-slate-100 text-slate-500 rounded-xl cursor-pointer transition-colors"
@@ -1055,8 +957,8 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* Poster Image if URL is stored in Firebase Storage */}
-                  {selectedEvent.posterUrl && selectedEvent.posterUrl.includes("firebasestorage.googleapis.com") ? (
+                  {/* Poster Image or visual fall back banner if URL is valid */}
+                  {selectedEvent.posterUrl && selectedEvent.posterUrl.startsWith("http") ? (
                     <div className="p-2 border border-slate-100 rounded-2xl bg-slate-50 overflow-hidden relative group">
                       <img
                         src={selectedEvent.posterUrl}
@@ -1069,37 +971,10 @@ export default function App() {
                         }}
                       />
                     </div>
-                  ) : null}
-
-                  {/* Uploaded Media & Attachments list */}
-                  {selectedEvent.mediaUrls && selectedEvent.mediaUrls.filter((url: string) => url && url.includes("firebasestorage.googleapis.com")).length > 0 && (
-                    <div className="space-y-2 mt-4">
-                      <h4 className="text-xs font-extrabold uppercase tracking-widest text-slate-500 font-mono flex items-center gap-1.5">
-                        <span className="w-1.5 h-1.5 bg-emerald-600 rounded-full" />
-                        Uploaded Media & Attachments
-                      </h4>
-                      <div className="flex flex-col gap-2 bg-slate-50 p-4 border border-slate-100 rounded-2xl">
-                        {selectedEvent.mediaUrls.filter((url: string) => url && url.includes("firebasestorage.googleapis.com")).map((url: string, index: number) => {
-                          let filename = "Attachment " + (index + 1);
-                          try {
-                              const decoded = decodeURIComponent(url.split("/o/")[1].split("?")[0]);
-                              const parts = decoded.split("_");
-                              if (parts.length > 1) {
-                                  filename = parts.slice(1).join("_");
-                              } else {
-                                  filename = decoded;
-                              }
-                          } catch (e) {}
-                          return (
-                            <div key={index} className="flex items-center justify-between gap-3 p-2 bg-white rounded-lg border border-slate-150">
-                              <span className="text-xs font-medium text-slate-700 truncate max-w-[200px]">{filename}</span>
-                              <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline">
-                                View / Download
-                              </a>
-                            </div>
-                          );
-                        })}
-                      </div>
+                  ) : (
+                    <div className="py-6 px-4 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50 flex flex-col items-center justify-center text-center space-y-1">
+                      <BookOpen className="w-7 h-7 text-slate-300" />
+                      <span className="text-[10px] text-slate-400 font-medium">Verify event specifics directly with coordinator</span>
                     </div>
                   )}
 
