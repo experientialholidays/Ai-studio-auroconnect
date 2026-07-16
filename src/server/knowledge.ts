@@ -4,8 +4,8 @@ import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import _pdfParseModule from "pdf-parse/lib/pdf-parse.js";
 import zlib from "zlib";
-import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
+import { writeBatch, collection, doc, serverTimestamp } from "firebase/firestore";
+import { ai, verifyAuthToken, db } from "./firebase-ai.js";
 
 const pdfParse = typeof _pdfParseModule === "function" ? _pdfParseModule : (_pdfParseModule as any).default;
 
@@ -246,14 +246,14 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
         `Committing batch of ${batchChunk.length} chunks to Firestore`
       );
 
-      const batch = adminDb.batch();
+      const batch = writeBatch(db);
       for (const item of batchChunk) {
-        const newDocRef = adminDb.collection("knowledge").doc();
+        const newDocRef = doc(collection(db, "knowledge"));
         batch.set(newDocRef, {
           filename,
           text: item.text,
           embeddingVector: item.embeddingVector,
-          uploadedAt: FieldValue.serverTimestamp(),
+          uploadedAt: serverTimestamp(),
           uploadedBy,
           chunkIndex: chunkCount
         });

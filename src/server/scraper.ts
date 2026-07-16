@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { getAuth } from "firebase-admin/auth";
 import * as cheerio from "cheerio";
-import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
+import { writeBatch, collection, doc, serverTimestamp } from "firebase/firestore";
+import { ai, verifyAuthToken, db } from "./firebase-ai.js";
 import { splitIntoChunks } from "./knowledge.js";
 
 const router = Router();
@@ -130,14 +130,14 @@ router.post("/api/add_url_knowledge", async (req, res) => {
         `Committing batch of ${batchChunk.length} chunks to Firestore`
       );
 
-      const batch = adminDb.batch();
+      const batch = writeBatch(db);
       for (const item of batchChunk) {
-        const newDocRef = adminDb.collection("knowledge").doc();
+        const newDocRef = doc(collection(db, "knowledge"));
         batch.set(newDocRef, {
           filename: url,
           text: item.text,
           embeddingVector: item.embeddingVector,
-          uploadedAt: FieldValue.serverTimestamp(),
+          uploadedAt: serverTimestamp(),
           uploadedBy,
           chunkIndex: chunkCount
         });

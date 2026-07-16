@@ -6,10 +6,8 @@ import { createServer as createViteServer } from "vite";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
-import { initializeApp as initAdminApp } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc, setDoc } from "firebase/firestore";
+import { db, firebaseConfig } from "./src/server/firebase-ai.js";
+import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -36,26 +34,6 @@ function cosineSimilarity(a: number[], b: number[]) {
     if (normA === 0 || normB === 0) return 0;
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
 }
-
-const configPath = path.join(process.cwd(), "firebase-applet-config.json");
-const firebaseConfig = fs.existsSync(configPath)
-  ? JSON.parse(fs.readFileSync(configPath, "utf8"))
-  : { 
-      projectId: process.env.FIREBASE_PROJECT_ID || "auro-connect", 
-      appId: process.env.FIREBASE_APP_ID || "1:913005987760:web:57d4210ef370a817e33875",
-      apiKey: process.env.FIREBASE_API_KEY || "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || "auro-connect.firebaseapp.com",
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "auro-connect.firebasestorage.app",
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "913005987760",
-      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || "(default)" 
-    };
-
-try {
-  initAdminApp({ projectId: firebaseConfig.projectId });
-} catch(e) {}
-
-const appFirebase = initializeApp(firebaseConfig);
-const db = getFirestore(appFirebase, firebaseConfig.firestoreDatabaseId || "(default)");
 
 // AI setup
 const ai = new GoogleGenAI({
@@ -745,7 +723,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
 async function getEventDetails(eventId) {
   try {
     const docRef = await getDoc(doc(db, "events", eventId));
-    if (!docRef.exists()) return "\u26A0\uFE0F **Details not found.**";
+    if (!docRef.exists()) return "⚠️ **Details not found.**";
     const data = docRef.data();
     const header = [];
     header.push(`### ${data.title}`);
@@ -1428,8 +1406,7 @@ ${lastMessage}`;
         if (!idMatch) return res.status(404).send("Event not found");
         const id = idMatch[1];
         
-        const docRef = doc(db, "events", id);
-        const docSnap = await getDoc(docRef);
+        const docSnap = await getDoc(doc(db, "events", id));
         if (!docSnap.exists()) return res.status(404).send("Event not found");
         
         const data = docSnap.data();
@@ -1512,7 +1489,7 @@ ${lastMessage}`;
         const docSnap = await getDoc(sessionDocRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
-          if (Array.isArray(data.messages)) {
+          if (data && Array.isArray(data.messages)) {
             chatHistory = data.messages;
             if (chatHistory.length > 0) {
               const convertedHistory = chatHistory.map(m => ({

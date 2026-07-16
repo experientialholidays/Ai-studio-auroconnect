@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { initializeApp as initAdminApp } from "firebase-admin/app";
+import { initializeApp as initAdminApp, getApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
@@ -10,24 +10,60 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const configPath = path.join(process.cwd(), "firebase-applet-config.json");
-export const firebaseConfig = fs.existsSync(configPath)
+const baseConfig = fs.existsSync(configPath)
   ? JSON.parse(fs.readFileSync(configPath, "utf8"))
   : { 
-      projectId: process.env.FIREBASE_PROJECT_ID || "auro-connect", 
-      appId: process.env.FIREBASE_APP_ID || "1:913005987760:web:57d4210ef370a817e33875",
-      apiKey: process.env.FIREBASE_API_KEY || "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || "auro-connect.firebaseapp.com",
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "auro-connect.firebasestorage.app",
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "913005987760",
-      firestoreDatabaseId: process.env.FIREBASE_FIRESTORE_DATABASE_ID || "(default)" 
+      projectId: "auro-connect", 
+      appId: "1:913005987760:web:57d4210ef370a817e33875",
+      apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
+      authDomain: "auro-connect.firebaseapp.com",
+      storageBucket: "auro-connect.firebasestorage.app",
+      messagingSenderId: "913005987760",
+      firestoreDatabaseId: "(default)" 
     };
 
-// Admin SDK initialization
-try {
-  initAdminApp({ projectId: firebaseConfig.projectId });
-} catch(e) {}
+export const firebaseConfig = {
+  projectId: process.env.FIREBASE_PROJECT_ID || baseConfig.projectId,
+  appId: process.env.FIREBASE_APP_ID || baseConfig.appId,
+  apiKey: process.env.FIREBASE_API_KEY || baseConfig.apiKey,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || baseConfig.authDomain,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || baseConfig.storageBucket,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || baseConfig.messagingSenderId,
+  firestoreDatabaseId: (() => {
+    const envDbId = process.env.FIREBASE_FIRESTORE_DATABASE_ID;
+    const resolvedProjectId = process.env.FIREBASE_PROJECT_ID || baseConfig.projectId;
+    // If the project is the user's custom project 'auro-connect' and the database ID starts with 'ai-studio-',
+    // we must use '(default)' because 'ai-studio-...' only exists in the platform's default sandboxed project.
+    if (resolvedProjectId === "auro-connect" && envDbId && envDbId.startsWith("ai-studio-")) {
+      return "(default)";
+    }
+    return envDbId || baseConfig.firestoreDatabaseId || "(default)";
+  })()
+};
 
-export const adminDb = getAdminFirestore();
+// Admin SDK initialization
+const isCloudRun = !!process.env.K_SERVICE;
+const adminAppOptions: any = {};
+
+if (isCloudRun) {
+  // On Cloud Run, if FIREBASE_PROJECT_ID is provided, use it.
+  // Otherwise, do NOT specify projectId so that firebase-admin auto-detects
+  // the project ID from the local Cloud Run service account and environment.
+  if (process.env.FIREBASE_PROJECT_ID) {
+    adminAppOptions.projectId = process.env.FIREBASE_PROJECT_ID;
+  }
+} else {
+  // In development, use firebaseConfig.projectId
+  if (firebaseConfig.projectId) {
+    adminAppOptions.projectId = firebaseConfig.projectId;
+  }
+}
+
+const adminApp = getApps().length === 0 
+  ? initAdminApp(adminAppOptions)
+  : getApp();
+
+export const adminDb = getAdminFirestore(adminApp, firebaseConfig.firestoreDatabaseId);
 
 // Client SDK initialization
 export const appFirebase = initializeApp(firebaseConfig);

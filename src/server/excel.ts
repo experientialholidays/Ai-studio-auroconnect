@@ -2,7 +2,8 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { adminDb, verifyAuthToken } from "./firebase-ai.js";
+import { writeBatch, collection, doc } from "firebase/firestore";
+import { db, verifyAuthToken } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -128,10 +129,10 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         `Committing batch of ${chunk.length} events to Firestore`
       );
 
-      const batch = adminDb.batch();
-      const eventCol = adminDb.collection("events");
+      const batch = writeBatch(db);
+      const eventCol = collection(db, "events");
       for (const ev of chunk) {
-        const newDocRef = eventCol.doc();
+        const newDocRef = doc(eventCol);
         batch.set(newDocRef, ev);
       }
       await batch.commit();
