@@ -3765,6 +3765,42 @@
         selectEl.value = formattedVal;
       }
 
+      // Safe storage helper with window.name fallback for environments with blocked third-party storage (e.g. iframes)
+      function safeGetItem(key, defaultValue = "") {
+        try {
+          const val = localStorage.getItem(key);
+          if (val !== null) return val;
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          return store[key] !== undefined ? store[key] : defaultValue;
+        } catch (e) {
+          return defaultValue;
+        }
+      }
+
+      function safeSetItem(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          store[key] = value;
+          window.name = JSON.stringify(store);
+        } catch (e) {}
+      }
+
+      function safeRemoveItem(key) {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          delete store[key];
+          window.name = JSON.stringify(store);
+        } catch (e) {}
+      }
+
       // Autosave/Persistence logic for form in submit.html
       const AUTOSAVE_KEY = "auroconnect_submit_form_autosave";
 
@@ -3803,7 +3839,7 @@
             links: links
           };
 
-          localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+          safeSetItem(AUTOSAVE_KEY, JSON.stringify(data));
         } catch (e) {
           console.error("Autosave save error:", e);
         }
@@ -3811,7 +3847,7 @@
 
       window.loadFormAutosave = function() {
         try {
-          const saved = localStorage.getItem(AUTOSAVE_KEY);
+          const saved = safeGetItem(AUTOSAVE_KEY);
           if (!saved) return;
           const data = JSON.parse(saved);
 
@@ -3880,7 +3916,7 @@
 
       window.clearFormAutosave = function() {
         try {
-          localStorage.removeItem(AUTOSAVE_KEY);
+          safeRemoveItem(AUTOSAVE_KEY);
         } catch (e) {
           console.error("Autosave clear error:", e);
         }

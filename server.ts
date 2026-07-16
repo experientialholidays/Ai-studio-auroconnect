@@ -9,7 +9,7 @@ import { read, utils } from "xlsx";
 import { initializeApp as initAdminApp } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, collection, doc, getDoc, getDocs, limit, query, addDoc, updateDoc, setDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -1414,7 +1414,14 @@ ${lastMessage}`;
     }
   });
 
-  app.get("/event/:slug", async (req, res) => {
+  const noCache = (req: any, res: any, next: any) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    next();
+  };
+
+  app.get("/event/:slug", noCache, async (req, res) => {
     try {
         const slug = req.params.slug;
         const idMatch = slug.match(/-([a-zA-Z0-9]+)$/);
@@ -1436,27 +1443,27 @@ ${lastMessage}`;
     }
   });
 
-  app.get("/submit", (req, res) => {
+  app.get("/submit", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "submit.html"));
   });
 
-  app.get("/submit.html", (req, res) => {
+  app.get("/submit.html", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "submit.html"));
   });
 
-  app.get("/dashboard", (req, res) => {
+  app.get("/dashboard", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "dashboard.html"));
   });
 
-  app.get("/dashboard.html", (req, res) => {
+  app.get("/dashboard.html", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "dashboard.html"));
   });
 
-  app.get("/contact", (req, res) => {
+  app.get("/contact", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "contact.html"));
   });
 
-  app.get("/contact.html", (req, res) => {
+  app.get("/contact.html", noCache, (req, res) => {
     res.sendFile(path.join(process.cwd(), "contact.html"));
   });
 
@@ -1476,6 +1483,18 @@ ${lastMessage}`;
     });
   }
 
+  async function saveChatSession(sessionId: string, history: any[]) {
+    try {
+      const sessionDocRef = doc(db, "chat_sessions", sessionId);
+      await setDoc(sessionDocRef, {
+        messages: history,
+        updatedAt: new Date().toISOString()
+      }, { merge: true });
+    } catch (err) {
+      console.error("Error saving chat session history to Firestore:", err);
+    }
+  }
+
   const wss = new WebSocketServer({ server });
 
   wss.on("connection", (ws, req) => {
@@ -1484,13 +1503,45 @@ ${lastMessage}`;
     const sessionId = sessionMatch ? sessionMatch[1] : `sess_${Math.random()}`;
 
     // Initialize per-session chat history
-    const chatHistory: any[] = [];
+    let chatHistory: any[] = [];
 
-    // Send welcome 
-    ws.send(JSON.stringify({ 
-        type: "welcome", 
-        content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*" 
-    }));
+    // Load from Firestore
+    const loadSessionHistory = async () => {
+      try {
+        const sessionDocRef = doc(db, "chat_sessions", sessionId);
+        const docSnap = await getDoc(sessionDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (Array.isArray(data.messages)) {
+            chatHistory = data.messages;
+            if (chatHistory.length > 0) {
+              const convertedHistory = chatHistory.map(m => ({
+                role: m.role,
+                content: m.text
+              }));
+              ws.send(JSON.stringify({
+                type: "history_load",
+                content: convertedHistory
+              }));
+              return true;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading chat session history from Firestore:", err);
+      }
+      return false;
+    };
+
+    loadSessionHistory().then((hasHistory) => {
+      if (!hasHistory) {
+        // Send welcome if there's no history
+        ws.send(JSON.stringify({ 
+            type: "welcome", 
+            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*" 
+        }));
+      }
+    });
 
     ws.on("message", async (msg) => {
         try {
@@ -1528,6 +1579,7 @@ ${lastMessage}`;
                 }
                 chatHistory.push({ role: "user", text: text });
                 chatHistory.push({ role: "model", text: botReply });
+                await saveChatSession(sessionId, chatHistory);
                 return;
             }
 
@@ -1536,10 +1588,12 @@ ${lastMessage}`;
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "No problem! Let me know if you need help finding any other events." }));
                 chatHistory.push({ role: "user", text: text });
                 chatHistory.push({ role: "model", text: "No problem! Let me know if you need help finding any other events." });
+                await saveChatSession(sessionId, chatHistory);
                 return;
             }
 
             await handleStreamingChat(text, ws, chatHistory, timeZone);
+            await saveChatSession(sessionId, chatHistory);
         } catch (e) {
             console.error("WS Parse Error:", e);
         }

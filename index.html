@@ -335,10 +335,46 @@
 </div>
 
 <script>
+    // Safe storage helper with window.name fallback for environments with blocked third-party storage (e.g. iframes)
+    function safeGetItem(key, defaultValue = "") {
+        try {
+            const val = localStorage.getItem(key);
+            if (val !== null) return val;
+        } catch (e) {}
+        try {
+            const store = JSON.parse(window.name || "{}");
+            return store[key] !== undefined ? store[key] : defaultValue;
+        } catch (e) {
+            return defaultValue;
+        }
+    }
+
+    function safeSetItem(key, value) {
+        try {
+            localStorage.setItem(key, value);
+        } catch (e) {}
+        try {
+            const store = JSON.parse(window.name || "{}");
+            store[key] = value;
+            window.name = JSON.stringify(store);
+        } catch (e) {}
+    }
+
+    function safeRemoveItem(key) {
+        try {
+            localStorage.removeItem(key);
+        } catch (e) {}
+        try {
+            const store = JSON.parse(window.name || "{}");
+            delete store[key];
+            window.name = JSON.stringify(store);
+        } catch (e) {}
+    }
+
     // Check for start new session requested from another page
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('new_session') === 'true') {
-        localStorage.removeItem("auro_session_id");
+        safeRemoveItem("auro_session_id");
         window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -347,15 +383,15 @@
     const chatWin = document.getElementById('chat-window');
 
     function startNewSession() {
-        localStorage.removeItem("auro_session_id");
+        safeRemoveItem("auro_session_id");
         location.reload();
     }
 
     function connect() {
         if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
         
-        let sessionId = localStorage.getItem("auro_session_id") || "sess_" + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("auro_session_id", sessionId);
+        let sessionId = safeGetItem("auro_session_id") || "sess_" + Math.random().toString(36).substr(2, 9);
+        safeSetItem("auro_session_id", sessionId);
 
         const currentHost = window.location.host;
         // Fix ws scheme logic to always use Secure Websockets correctly
