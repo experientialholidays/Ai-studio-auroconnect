@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { getAuth } from "firebase-admin/auth";
 import * as cheerio from "cheerio";
-import { writeBatch, collection, doc, serverTimestamp } from "firebase/firestore";
-import { ai, verifyAuthToken, db } from "./firebase-ai.js";
+import { FieldValue } from "firebase-admin/firestore";
+import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
 import { splitIntoChunks } from "./knowledge.js";
 
 const router = Router();
@@ -115,39 +115,15 @@ router.post("/api/add_url_knowledge", async (req, res) => {
       return sendError(500, "Failed to generate any embeddings for the webpage content.");
     }
 
-    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Initializing Firestore write batch");
-    
-    const dbBatchSize = 250;
-    let chunkCount = 0;
+    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Sending chunks to browser for client-side insertion");
     const uploadedBy = decodedToken.email;
-
-    for (let i = 0; i < embeddedChunks.length; i += dbBatchSize) {
-      const batchChunk = embeddedChunks.slice(i, i + dbBatchSize);
-      const writePercent = Math.min(98, 85 + Math.round((i / embeddedChunks.length) * 13));
-      sendProgress(
-        writePercent,
-        `Saving knowledge chunks (${i + 1} to ${Math.min(embeddedChunks.length, i + dbBatchSize)})...`,
-        `Committing batch of ${batchChunk.length} chunks to Firestore`
-      );
-
-      const batch = writeBatch(db);
-      for (const item of batchChunk) {
-        const newDocRef = doc(collection(db, "knowledge"));
-        batch.set(newDocRef, {
-          filename: url,
-          text: item.text,
-          embeddingVector: item.embeddingVector,
-          uploadedAt: serverTimestamp(),
-          uploadedBy,
-          chunkIndex: chunkCount
-        });
-        chunkCount++;
-      }
-      await batch.commit();
-    }
-
-    sendProgress(99, "Finalizing webpage knowledge ingestion...", "All chunks saved and indexed");
-    return sendSuccess(`Successfully scraped and indexed webpage: ${url}`, `Created ${chunkCount} knowledge base entries. Total chars: ${extractedText.length}`);
+    res.write(JSON.stringify({
+      type: "knowledge_chunks",
+      filename: url,
+      uploadedBy,
+      chunks: embeddedChunks
+    }) + "\n");
+    res.end();
 
   } catch (e: any) {
     console.error("add_url_knowledge error:", e);

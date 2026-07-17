@@ -73,6 +73,12 @@ service cloud.firestore {
       allow read, update, delete: if isAdmin();
     }
 
+    // Chat Sessions Collection
+    match /chat_sessions/{sessionId} {
+      // Allow the backend (and clients, if they have the random session ID) to read/write chat history
+      allow read, write: if true;
+    }
+
     // Feedback Collection
     match /feedback/{docId} {
       // Anyone can submit feedback

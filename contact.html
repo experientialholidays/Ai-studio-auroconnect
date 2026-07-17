@@ -252,30 +252,18 @@
       import { getFirestore, setLogLevel, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
       setLogLevel("silent");
 
-      let firebaseConfig = {
-        projectId: "auro-connect",
-        appId: "1:913005987760:web:57d4210ef370a817e33875",
+      const firebaseConfig = {
         apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
         authDomain: "auro-connect.firebaseapp.com",
+        projectId: "auro-connect",
         storageBucket: "auro-connect.firebasestorage.app",
         messagingSenderId: "913005987760",
-        firestoreDatabaseId: "(default)"
+        appId: "1:913005987760:web:57d4210ef370a817e33875",
+        measurementId: "G-S4L4Z530CS"
       };
 
-      try {
-        const configRes = await fetch("/api/firebase_config");
-        if (configRes.ok) {
-          const fetchedConfig = await configRes.json();
-          firebaseConfig = { ...firebaseConfig, ...fetchedConfig };
-        }
-      } catch (err) {
-        console.warn("Could not load dynamic Firebase config, using defaults:", err);
-      }
-
       const app = initializeApp(firebaseConfig);
-      const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)")
-        ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-        : getFirestore(app);
+      const db = getFirestore(app);
 
       const contactForm = document.getElementById("contact-form");
       const submitBtn = document.getElementById("submit-btn");

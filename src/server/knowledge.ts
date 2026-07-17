@@ -4,8 +4,8 @@ import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import _pdfParseModule from "pdf-parse/lib/pdf-parse.js";
 import zlib from "zlib";
-import { writeBatch, collection, doc, serverTimestamp } from "firebase/firestore";
-import { ai, verifyAuthToken, db } from "./firebase-ai.js";
+import { FieldValue } from "firebase-admin/firestore";
+import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
 
 const pdfParse = typeof _pdfParseModule === "function" ? _pdfParseModule : (_pdfParseModule as any).default;
 
@@ -231,42 +231,15 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
       return sendError(500, "Failed to generate any embeddings for the document.");
     }
 
-    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Initializing Firestore write batch");
-    
-    const dbBatchSize = 250;
-    let chunkCount = 0;
+    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Sending chunks to browser for client-side insertion");
     const uploadedBy = decodedToken.email;
-
-    for (let i = 0; i < embeddedChunks.length; i += dbBatchSize) {
-      const batchChunk = embeddedChunks.slice(i, i + dbBatchSize);
-      const writePercent = Math.min(98, 85 + Math.round((i / embeddedChunks.length) * 13));
-      sendProgress(
-        writePercent,
-        `Saving knowledge chunks (${i + 1} to ${Math.min(embeddedChunks.length, i + dbBatchSize)})...`,
-        `Committing batch of ${batchChunk.length} chunks to Firestore`
-      );
-
-      const batch = writeBatch(db);
-      for (const item of batchChunk) {
-        const newDocRef = doc(collection(db, "knowledge"));
-        batch.set(newDocRef, {
-          filename,
-          text: item.text,
-          embeddingVector: item.embeddingVector,
-          uploadedAt: serverTimestamp(),
-          uploadedBy,
-          chunkIndex: chunkCount
-        });
-        chunkCount++;
-      }
-      await batch.commit();
-    }
-
-    sendProgress(99, "Finalizing knowledge base ingestion...", "All chunks saved and indexed");
-    return sendSuccess(
-      `Successfully uploaded and indexed knowledge document: ${filename}`, 
-      `Created ${chunkCount} knowledge base entries. Total chars: ${extractedText.length}`
-    );
+    res.write(JSON.stringify({
+      type: "knowledge_chunks",
+      filename,
+      uploadedBy,
+      chunks: embeddedChunks
+    }) + "\n");
+    res.end();
 
   } catch (e: any) {
     console.error("upload_knowledge error:", e);

@@ -2,8 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { writeBatch, collection, doc } from "firebase/firestore";
-import { db, verifyAuthToken } from "./firebase-ai.js";
+import { adminDb, verifyAuthToken } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -115,35 +114,13 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       return sendError(400, "No valid events with a Title or Name found in the sheet.");
     }
 
-    sendProgress(50, `Ready to save ${eventsToUpload.length} events...`, "Initializing batch writes to database");
-
-    let count = 0;
-    const batchSize = 250;
+    sendProgress(50, `Ready to save ${eventsToUpload.length} events...`, "Sending events to browser for client-side insertion");
     
-    for (let i = 0; i < eventsToUpload.length; i += batchSize) {
-      const chunk = eventsToUpload.slice(i, i + batchSize);
-      const batchPercent = Math.min(95, 50 + Math.round((i / eventsToUpload.length) * 45));
-      sendProgress(
-        batchPercent, 
-        `Writing to database (events ${i + 1}-${Math.min(eventsToUpload.length, i + batchSize)})...`, 
-        `Committing batch of ${chunk.length} events to Firestore`
-      );
-
-      const batch = writeBatch(db);
-      const eventCol = collection(db, "events");
-      for (const ev of chunk) {
-        const newDocRef = doc(eventCol);
-        batch.set(newDocRef, ev);
-      }
-      await batch.commit();
-      count += chunk.length;
-    }
-
-    sendProgress(98, "Finalizing database changes...", "All entries successfully committed to database");
-    return sendSuccess(
-      `Successfully imported ${count} events!`, 
-      `Processed ${eventsToUpload.length} items out of ${rawEvents.length} original spreadsheet rows.`
-    );
+    res.write(JSON.stringify({ 
+      type: "chunks", 
+      events: eventsToUpload 
+    }) + "\n");
+    res.end();
 
   } catch (e: any) {
     console.error("upload_events error:", e);

@@ -1813,33 +1813,20 @@
 
       setLogLevel("silent");
 
-      let firebaseConfig = {
-        projectId: "auro-connect",
-        appId: "1:913005987760:web:57d4210ef370a817e33875",
+      const firebaseConfig = {
         apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
         authDomain: "auro-connect.firebaseapp.com",
+        projectId: "auro-connect",
         storageBucket: "auro-connect.firebasestorage.app",
         messagingSenderId: "913005987760",
-        firestoreDatabaseId: "(default)"
+        appId: "1:913005987760:web:57d4210ef370a817e33875",
+        measurementId: "G-S4L4Z530CS"
       };
-
-      try {
-        const configRes = await fetch("/api/firebase_config");
-        if (configRes.ok) {
-          const fetchedConfig = await configRes.json();
-          firebaseConfig = { ...firebaseConfig, ...fetchedConfig };
-          console.log("Dynamically loaded Firebase configuration successfully.");
-        }
-      } catch (err) {
-        console.warn("Could not load dynamic Firebase config, using defaults:", err);
-      }
 
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const storage = getStorage(app);
-      const db = (firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== "(default)")
-        ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-        : getFirestore(app);
+      const db = getFirestore(app);
 
 
 
@@ -4052,6 +4039,101 @@
                   progressLog.textContent += `[${new Date().toLocaleTimeString()}] ${data.log}\n`;
                   progressLog.scrollTop = progressLog.scrollHeight;
                 }
+              } else if (data.type === "chunks") {
+                const events = data.events || [];
+                const batchSize = 100;
+                let count = 0;
+                
+                if (progressLabel) progressLabel.textContent = `Saving ${events.length} events to database...`;
+                if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--text-secondary);">Saving ${events.length} events to database...</span>`;
+                
+                for (let i = 0; i < events.length; i += batchSize) {
+                  const chunk = events.slice(i, i + batchSize);
+                  const batch = writeBatch(db);
+                  const eventCol = collection(db, "events");
+                  
+                  for (const ev of chunk) {
+                    const newDocRef = doc(eventCol);
+                    if (ev.embeddingVector && Array.isArray(ev.embeddingVector)) {
+                      ev.embeddingVector = vector(ev.embeddingVector);
+                    }
+                    batch.set(newDocRef, ev);
+                  }
+                  
+                  const pct = Math.min(99, 50 + Math.round((i / events.length) * 45));
+                  if (progressBar) progressBar.style.width = pct + "%";
+                  if (progressPct) progressPct.textContent = pct + "%";
+                  if (progressLog) {
+                    progressLog.textContent += `[${new Date().toLocaleTimeString()}] Committing batch of ${chunk.length} events to Firestore...\n`;
+                    progressLog.scrollTop = progressLog.scrollHeight;
+                  }
+                  
+                  await batch.commit();
+                  count += chunk.length;
+                }
+                
+                if (progressBar) progressBar.style.width = "100%";
+                if (progressPct) progressPct.textContent = "100%";
+                if (progressLabel) progressLabel.textContent = "Completed!";
+                if (statusDiv) statusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully imported ${count} events!</span>`;
+                if (progressLog) {
+                  progressLog.textContent += `[SUCCESS] Successfully imported ${count} events!\n`;
+                  progressLog.scrollTop = progressLog.scrollHeight;
+                }
+                if (onSuccess) onSuccess();
+                
+              } else if (data.type === "knowledge_chunks") {
+                const chunks = data.chunks || [];
+                const filename = data.filename;
+                const uploadedBy = data.uploadedBy;
+                const batchSize = 100;
+                let chunkCount = 0;
+                
+                if (progressLabel) progressLabel.textContent = `Saving ${chunks.length} chunks to knowledge base...`;
+                if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--text-secondary);">Saving ${chunks.length} chunks to knowledge base...</span>`;
+                
+                for (let i = 0; i < chunks.length; i += batchSize) {
+                  const batchChunk = chunks.slice(i, i + batchSize);
+                  const batch = writeBatch(db);
+                  const knowledgeCol = collection(db, "knowledge");
+                  
+                  for (const item of batchChunk) {
+                    const newDocRef = doc(knowledgeCol);
+                    const docData = {
+                      filename,
+                      text: item.text,
+                      uploadedAt: serverTimestamp(),
+                      uploadedBy,
+                      chunkIndex: chunkCount
+                    };
+                    if (item.embeddingVector && Array.isArray(item.embeddingVector)) {
+                      docData.embeddingVector = vector(item.embeddingVector);
+                    }
+                    batch.set(newDocRef, docData);
+                    chunkCount++;
+                  }
+                  
+                  const pct = Math.min(99, 85 + Math.round((i / chunks.length) * 13));
+                  if (progressBar) progressBar.style.width = pct + "%";
+                  if (progressPct) progressPct.textContent = pct + "%";
+                  if (progressLog) {
+                    progressLog.textContent += `[${new Date().toLocaleTimeString()}] Committing batch of ${batchChunk.length} chunks to Firestore...\n`;
+                    progressLog.scrollTop = progressLog.scrollHeight;
+                  }
+                  
+                  await batch.commit();
+                }
+                
+                if (progressBar) progressBar.style.width = "100%";
+                if (progressPct) progressPct.textContent = "100%";
+                if (progressLabel) progressLabel.textContent = "Completed!";
+                if (statusDiv) statusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully uploaded and indexed knowledge document: ${filename}</span>`;
+                if (progressLog) {
+                  progressLog.textContent += `[SUCCESS] Successfully uploaded and indexed knowledge document: ${filename}\n`;
+                  progressLog.scrollTop = progressLog.scrollHeight;
+                }
+                if (onSuccess) onSuccess();
+                
               } else if (data.type === "success") {
                 if (progressBar) progressBar.style.width = "100%";
                 if (progressPct) progressPct.textContent = "100%";

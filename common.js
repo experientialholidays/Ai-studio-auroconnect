@@ -21,25 +21,15 @@
   `;
   document.head.appendChild(styleEl);
 
-  let firebaseConfig = {
-    projectId: "auro-connect",
-    appId: "1:913005987760:web:57d4210ef370a817e33875",
+  const firebaseConfig = {
     apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
     authDomain: "auro-connect.firebaseapp.com",
+    projectId: "auro-connect",
     storageBucket: "auro-connect.firebasestorage.app",
     messagingSenderId: "913005987760",
-    firestoreDatabaseId: "(default)"
+    appId: "1:913005987760:web:57d4210ef370a817e33875",
+    measurementId: "G-S4L4Z530CS"
   };
-
-  try {
-    const response = await fetch("/api/firebase_config");
-    if (response.ok) {
-      const configOverride = await response.json();
-      firebaseConfig = { ...firebaseConfig, ...configOverride };
-    }
-  } catch (err) {
-    console.warn("Could not load dynamic Firebase config inside common.js, using defaults:", err);
-  }
 
   let firebaseApp, firebaseAuth, authInstance = null;
   try {
