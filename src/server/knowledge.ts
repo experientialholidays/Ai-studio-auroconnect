@@ -130,19 +130,21 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
       );
 
       try {
-        const embedRes = await ai.models.embedContent({
-          model: "gemini-embedding-2-preview",
-          contents: batch,
-          config: { outputDimensionality: 768 }
-        });
+        const batchPromises = batch.map(chunk => 
+          ai.models.embedContent({
+            model: "gemini-embedding-2-preview",
+            contents: chunk,
+            config: { outputDimensionality: 768 }
+          })
+        );
         
-        const embeddings = embedRes.embeddings;
-        if (embeddings && embeddings.length > 0) {
-          for (let j = 0; j < batch.length; j++) {
-            const vector = embeddings[j]?.values;
-            if (vector) {
-              embeddedChunks.push({ text: batch[j], embeddingVector: vector });
-            }
+        const results = await Promise.all(batchPromises);
+        await new Promise(r => setTimeout(r, 1000)); // Sleep 1 second to avoid rate limits
+        
+        for (let j = 0; j < batch.length; j++) {
+          const vector = results[j]?.embeddings?.[0]?.values;
+          if (vector) {
+            embeddedChunks.push({ text: batch[j], embeddingVector: vector });
           }
         }
       } catch (err: any) {
@@ -151,6 +153,7 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
         for (let j = 0; j < batch.length; j++) {
           const chunk = batch[j];
           try {
+            await new Promise(r => setTimeout(r, 200)); // Sleep 200ms
             const embedRes = await ai.models.embedContent({
               model: "gemini-embedding-2-preview",
               contents: chunk,
