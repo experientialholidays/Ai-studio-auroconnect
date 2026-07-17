@@ -61,8 +61,9 @@ service cloud.firestore {
 
     // Knowledge Base Collection
     match /knowledge/{docId} {
-      // Only administrators can view, add, modify, or delete knowledge base documents
-      allow read, write: if isAdmin();
+      // Anyone can read knowledge base documents (for AI query purposes)
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Contact Messages Collection

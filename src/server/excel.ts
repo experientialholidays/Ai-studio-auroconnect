@@ -51,6 +51,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
     const workbook = read(req.file.buffer, { type: "buffer" });
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
+    const excelSource = req.file.originalname || "Unknown Excel";
     
     sendProgress(25, "Parsing spreadsheet content...", `Sheet name: "${sheetName}"`);
     const rawEvents = utils.sheet_to_json(sheet);
@@ -63,12 +64,36 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
     const submittedBy = decodedToken.email;
     const submittedAt = new Date().toISOString();
 
+    const formatExcelTime = (val: any) => {
+      if (typeof val === 'number' && val >= 0 && val < 1) {
+        const totalMinutes = Math.round(val * 24 * 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        const period = hours >= 12 ? 'pm' : 'am';
+        let h12 = hours % 12;
+        if (h12 === 0) h12 = 12;
+        return `${h12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+      }
+      return String(val || "").trim();
+    };
+
+    const formatExcelDate = (val: any) => {
+      if (typeof val === 'number' && val > 40000) {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return d.toISOString().split('T')[0];
+      }
+      return String(val || "").trim();
+    };
+
     for (const rawEv of rawEvents) {
       if (!rawEv || typeof rawEv !== "object") continue;
       const cleanRawEv: Record<string, any> = {};
+      const originalRawEv: Record<string, any> = {};
       for (const [k, v] of Object.entries(rawEv)) {
         if (k && v !== void 0 && v !== null) {
-          cleanRawEv[k.trim().replace(/\s+/g, " ").toLowerCase()] = v;
+          const cleanKey = k.trim().replace(/\s+/g, " ").toLowerCase();
+          cleanRawEv[cleanKey] = v;
+          originalRawEv[cleanKey] = v;
         }
       }
       const rawEventName = cleanRawEv["event name"] || cleanRawEv["title"] || "";
@@ -84,26 +109,53 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
         return "";
       };
+
+      const getRawVal = (possibleHeaders: string[]) => {
+        for (const header of possibleHeaders) {
+          const val = cleanRawEv[header.toLowerCase().trim()];
+          if (val !== void 0 && val !== null) {
+            return val;
+          }
+        }
+        return null;
+      };
+      
+      let cat = getVal(["Category"]);
+      if (cat.toLowerCase().includes("weekday")) {
+        cat = "Weekly Events";
+      } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific")) {
+        cat = "Date-specific Events";
+      } else if (cat.toLowerCase().includes("daily")) {
+        cat = "Daily Events";
+      }
+
+      const startTime = formatExcelTime(getRawVal(["Start Time", "Time", "Times"]));
+      const endTime = formatExcelTime(getRawVal(["End Time"]));
+      let timesStr = startTime;
+      if (endTime && endTime !== startTime) {
+        timesStr += ` - ${endTime}`;
+      }
       
       const processed = {
-        title: getVal(["Title", "Event Name", "Name"]),
-        category: getVal(["Category", "Type"]),
-        scheduleType: getVal(["Schedule Type", "Frequency"]),
+        title: getVal(["Event Name", "Title", "Name"]),
+        type: getVal(["Type of event", "Type"]),
+        category: cat || "Weekly Events",
         dates: getVal(["Dates", "Date"]),
         days: getVal(["Days", "Day"]),
-        times: getVal(["Times", "Time"]),
+        times: timesStr,
         venue: getVal(["Venue", "Location"]),
-        cost: getVal(["Cost", "Price", "Contribution"]),
-        audience: getVal(["Audience", "Key Info"]),
-        contact: getVal(["Contact", "Phone"]),
-        email: getVal(["Email"]),
-        whatsapp: getVal(["WhatsApp"]),
-        website: getVal(["Website", "Link"]),
-        posterUrl: getVal(["Poster URL", "Image URL"]),
+        cost: getVal(["Cost/Contribution", "Cost", "Price", "Contribution"]),
+        audience: getVal(["Target Audience/Prerequisites", "Target Audience", "Audience", "Key Info"]),
+        contactPerson: getVal(["Contact Person/Unit", "Contact Person"]),
+        whatsapp: getVal(["Contact Phone/WhatsApp", "Contact Phone", "WhatsApp", "Phone"]),
+        email: getVal(["Contact Email", "Email Id", "Email"]),
+        website: getVal(["Website/Link", "Website", "Link"]),
+        posterUrl: getVal(["poster url", "Poster URL", "Image URL"]),
         description: getVal(["Description", "Details", "About"]),
-        startDate: getVal(["Start Date"]),
-        endDate: getVal(["End Date"]),
-        originalHeaders: cleanRawEv,
+        startDate: formatExcelDate(getRawVal(["Start Date"])),
+        endDate: formatExcelDate(getRawVal(["End Date"])),
+        excelFilename: excelSource,
+        originalHeaders: originalRawEv,
         submittedBy,
         submittedAt
       };

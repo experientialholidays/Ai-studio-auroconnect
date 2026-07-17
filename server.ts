@@ -11,8 +11,6 @@ import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
-import _pdfParseModule from "pdf-parse/lib/pdf-parse.js";
-const pdfParse = typeof _pdfParseModule === "function" ? _pdfParseModule : (_pdfParseModule as any).default;
 
 import knowledgeRouter from "./src/server/knowledge.js";
 import scraperRouter from "./src/server/scraper.js";
@@ -600,20 +598,10 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         return data.startTime >= filterTimeAfter;
       });
     }
-    if (specificity === "specific" && searchQuery) {
-      events = events.filter((data) => {
-        const content = `${data.title || ""} ${data.description || ""} ${data.category || ""} ${data.tags || ""} ${data.venue || ""} ${data.days || ""}`.toLowerCase();
-        let match = false;
-        const terms = searchQuery.toLowerCase().split(" ");
-        for (const term of terms) {
-          if (term.length > 3 && content.includes(term)) {
-            match = true;
-            break;
-          }
-        }
-        return match;
-      });
-    }
+    
+    // We removed the strict keyword filter here because it blocked valid semantic search 
+    // results for queries containing words like "today" or "tomorrow" that don't appear in the text.
+    
     const getWeekdayFromDateStr = (dateStr) => {
       try {
         const parts = dateStr.split("-");
@@ -1012,7 +1000,7 @@ async function createServer() {
         if (!text) return res.status(400).json({ error: "Missing text" });
         
         const embeddingRes = await ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: text,
             config: { outputDimensionality: 768 }
         });
@@ -1178,7 +1166,7 @@ async function createServer() {
                 let queryEmbedding: number[] | null = null;
                 try {
                     const embedRes = await ai.models.embedContent({
-                        model: "text-embedding-004",
+                        model: "gemini-embedding-2-preview",
                         contents: searchQuery || lastMessage,
                         config: { outputDimensionality: 768 }
                     });

@@ -2,96 +2,36 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
-import _pdfParseModule from "pdf-parse/lib/pdf-parse.js";
-import zlib from "zlib";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { FieldValue } from "firebase-admin/firestore";
 import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
-
-const pdfParse = typeof _pdfParseModule === "function" ? _pdfParseModule : (_pdfParseModule as any).default;
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Robust fallback PDF text extractor
-function extractTextFallback(buffer: Buffer): string {
-  const content = buffer.toString("binary");
-  let extractedText = "";
-  
-  // Find all stream objects
-  const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
-  let match;
-  
-  while ((match = streamRegex.exec(content)) !== null) {
-    let streamData = match[1];
-    let streamBuffer = Buffer.from(streamData, "binary");
-    
-    // Try FlateDecode decompress
-    let decompressed: Buffer | null = null;
-    try {
-      decompressed = zlib.unzipSync(streamBuffer);
-    } catch (e) {
-      try {
-        decompressed = zlib.inflateSync(streamBuffer);
-      } catch (e2) {
-        // Not compressed or failed to decompress
-      }
-    }
-    
-    const textToParse = decompressed ? decompressed.toString("utf8") : streamData;
-    
-    // Extract strings in parentheses (e.g. (Hello World) Tj)
-    const textRegex = /\(([^)]+)\)\s*(Tj|TJ|T\*|Td|TD|Do)/g;
-    let textMatch;
-    while ((textMatch = textRegex.exec(textToParse)) !== null) {
-      const cleanText = textMatch[1]
-        .replace(/\\([\d]{3})/g, (m, c) => String.fromCharCode(parseInt(c, 8))) // octal escapes
-        .replace(/\\(.)/g, "$1"); // standard escapes
-      extractedText += cleanText + " ";
-    }
-    
-    // Also extract strings from array-brackets like [(Hel) -5 (lo) -3 (World)] TJ
-    const bracketRegex = /\[([^\]]+)\]\s*(TJ)/g;
-    let bracketMatch;
-    while ((bracketMatch = bracketRegex.exec(textToParse)) !== null) {
-      const bracketContent = bracketMatch[1];
-      const innerRegex = /\(([^)]+)\)/g;
-      let innerMatch;
-      while ((innerMatch = innerRegex.exec(bracketContent)) !== null) {
-        const cleanText = innerMatch[1]
-          .replace(/\\([\d]{3})/g, (m, c) => String.fromCharCode(parseInt(c, 8)))
-          .replace(/\\(.)/g, "$1");
-        extractedText += cleanText;
-      }
-      extractedText += " ";
-    }
-  }
-  
-  return extractedText.replace(/\s+/g, " ").trim();
-}
-
 async function parsePDF(buffer: Buffer): Promise<string> {
   try {
-    const pdfData = await pdfParse(buffer);
-    if (pdfData && pdfData.text && pdfData.text.trim().length > 0) {
-      return pdfData.text;
+    const data = new Uint8Array(buffer);
+    const pdfDocument = await pdfjsLib.getDocument({ data }).promise;
+    const numPages = pdfDocument.numPages;
+    let fullText = "";
+    for (let i = 1; i <= numPages; i++) {
+      const page = await pdfDocument.getPage(i);
+      const content = await page.getTextContent();
+      const strings = content.items.map((item: any) => item.str);
+      fullText += strings.join(" ") + "\n";
     }
-  } catch (err) {
-    console.warn("pdf-parse failed, trying robust fallback parser:", err);
-  }
-  
-  try {
-    const fallbackText = extractTextFallback(buffer);
-    if (fallbackText.length > 0) {
-      return fallbackText;
+    if (fullText.trim().length > 0) {
+      return fullText;
     }
     throw new Error("No text content could be extracted.");
-  } catch (fallbackErr: any) {
-    console.error("Fallback PDF parser failed:", fallbackErr);
-    throw new Error("Failed to parse PDF document: " + fallbackErr.message);
+  } catch (err: any) {
+    console.error("PDF parser failed:", err);
+    throw new Error("Failed to parse PDF document: " + err.message);
   }
 }
 
-export function splitIntoChunks(text: string, maxChars = 1e3): string[] {
+export function splitIntoChunks(text: string, maxChars = 2000): string[] {
   const chunks: string[] = [];
   let i = 0;
   while (i < text.length) {
@@ -174,7 +114,7 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
     }
 
     sendProgress(30, "Splitting document text into chunks...", `Extracted ${extractedText.length} characters of raw text`);
-    const chunks = splitIntoChunks(extractedText, 1e3);
+    const chunks = splitIntoChunks(extractedText, 2000);
     sendProgress(35, `Split complete: ${chunks.length} chunks generated.`, "Starting chunk embedding generation...");
 
     const embeddedChunks = [];
