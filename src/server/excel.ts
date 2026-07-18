@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { adminDb, verifyAuthToken } from "./firebase-ai.js";
+import { adminDb, verifyAuthToken, ai } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -164,6 +164,62 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
 
     if (eventsToUpload.length === 0) {
       return sendError(400, "No valid events with a Title or Name found in the sheet.");
+    }
+
+    // Generate search embeddings for the events in batches to support semantic vector search
+    sendProgress(40, "Generating search embeddings for events...", `Generating embeddings for ${eventsToUpload.length} events`);
+    
+    const batchSize = 10; // Batch size for embeddings
+    for (let i = 0; i < eventsToUpload.length; i += batchSize) {
+      const batch = eventsToUpload.slice(i, i + batchSize);
+      const embedPercent = Math.min(48, 40 + Math.round((i / eventsToUpload.length) * 8));
+      sendProgress(
+        embedPercent,
+        `Generating search embeddings (events ${i + 1}-${Math.min(eventsToUpload.length, i + batchSize)} of ${eventsToUpload.length})...`,
+        `Requesting embeddings for batch of ${batch.length} events`
+      );
+      
+      try {
+        const batchPromises = batch.map(event => {
+          const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
+          return ai.models.embedContent({
+            model: "gemini-embedding-2-preview",
+            contents: textToEmbed || "event",
+            config: { outputDimensionality: 768 }
+          });
+        });
+        
+        const results = await Promise.all(batchPromises);
+        await new Promise(r => setTimeout(r, 500)); // Brief sleep to avoid rapid rate limit hits
+        
+        for (let j = 0; j < batch.length; j++) {
+          const vector = results[j]?.embeddings?.[0]?.values;
+          if (vector && Array.isArray(vector)) {
+            batch[j].embeddingVector = vector;
+          }
+        }
+      } catch (err: any) {
+        console.warn(`Batch event embedding failed, trying individual fallback for batch starting at index ${i}:`, err);
+        // Fallback: individual embedding
+        for (let j = 0; j < batch.length; j++) {
+          const event = batch[j];
+          try {
+            await new Promise(r => setTimeout(r, 100)); // Sleep 100ms
+            const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
+            const embedRes = await ai.models.embedContent({
+              model: "gemini-embedding-2-preview",
+              contents: textToEmbed || "event",
+              config: { outputDimensionality: 768 }
+            });
+            const vector = embedRes.embeddings?.[0]?.values;
+            if (vector && Array.isArray(vector)) {
+              event.embeddingVector = vector;
+            }
+          } catch (indivErr: any) {
+            console.error(`Individual event embedding failed for event ${i + j}:`, indivErr);
+          }
+        }
+      }
     }
 
     sendProgress(50, `Ready to save ${eventsToUpload.length} events...`, "Sending events to browser for client-side insertion");
