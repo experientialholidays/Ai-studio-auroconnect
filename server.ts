@@ -493,7 +493,7 @@ function compareStartTime(a, b) {
 }
 function formatCategorizedEvents(rawEvents, introText) {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
-    return introText + "\n\nI couldn't find any upcoming events matching those criteria.";
+    return "No upcoming events match the requested criteria.";
   }
   const dateSpecific = [];
   const weekly = [];
@@ -541,7 +541,7 @@ function formatCategorizedEvents(rawEvents, introText) {
 `);
   }
   if (dateSpecific.length === 0 && weekly.length === 0 && daily.length === 0) {
-    return (introText ? introText + "\n\n" : "") + "I couldn't find any upcoming events matching those criteria.";
+    return "No upcoming events match the requested criteria.";
   }
   return resultChunks.join("\n");
 }
@@ -568,7 +568,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     if (searchQuery && specificity === "specific") {
       try {
         const embedRes = await ai.models.embedContent({
-          model: "gemini-embedding-2-preview",
+          model: "text-embedding-004",
           contents: searchQuery,
           config: { outputDimensionality: 768 }
         });
@@ -775,7 +775,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
     const timeInfo = getCurrentTimeInfo(timeZone);
     ws.send(JSON.stringify({ type: "start_stream" }));
     ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F50D} Analyzing query...</i>" }));
-    const recentHistory = chatHistory.slice(-7);
+    const recentHistory = chatHistory.slice(-5);
     const historyText = recentHistory.map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.text}`).join("\n");
     const classifierPrompt = `
         You are an AI assistant designed to classify user queries for AuroConnect, an overall guide for Auroville that provides information about both Events and General Knowledge.
@@ -787,15 +787,17 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         Analyze the user query: "${message}" (use history for context if the query is a follow-up or ambiguous)
         
         Categorize it into one of these buckets:
-        "A": Broad event search based on date/time only. The user wants to see what events are happening but doesn't specify a topic. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm".
-        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?".
-        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
+        "A": Broad event search based on date/time only. The user wants to see what events are happening in general, but does NOT specify any topic in either the current query or the recent chat history. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm". 
+             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), this is NOT a broad search. This is a specific search about that topic. Choose Bucket B instead!
+        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic, or implies a topic based on the recent chat history context. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?", or a follow-up query like "event", "yes, events please", "events there" after discussing "Matrimandir" or "volunteering".
+             CRITICAL: If the query is a follow-up about a topic from history, you MUST classify it as "B" and construct a search_query combining the topic and event keyword (e.g. "Matrimandir events").
+        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE CURRENT QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
 
         Return ONLY a valid JSON object matching this schema:
         {
             "bucket": "A", 
-            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
-            "intro_text": "A friendly ONE SENTENCE intro for the user (only needed for bucket A)",
+            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets). If the user query is a short follow-up or response (e.g., 'event', 'yes', 'show events') to a topic from history, expand this to a clear search string including that topic (e.g. 'Matrimandir events').",
+            "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g. 'Here are the events for tomorrow:'). DO NOT include any conversational fluff, polite fillers, greeting words, or open-ended questions. Keep it direct and factual.",
             "filter_date": "YYYY-MM-DD",
             "filter_day": "Monday",
             "filter_time_after": "HH:MM (e.g., morning=06:00, afternoon=12:00, evening=17:00, night=20:00)"
@@ -814,7 +816,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       const parsed = JSON.parse(classRes.text || "{}");
       bucket = parsed.bucket || "C";
       searchQuery = parsed.search_query || message;
-      introText = parsed.intro_text || "Here is what I found:";
+      introText = parsed.intro_text || "";
       filterDate = parsed.filter_date;
       filterDay = parsed.filter_day;
       filterTimeAfter = parsed.filter_time_after;
@@ -830,7 +832,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         botReply = output;
         ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
       } else {
-        botReply = (introText ? introText + "\n\n" : "") + String(rawEvents);
+        botReply = "No upcoming events match the requested criteria.";
         ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
       }
       chatHistory.push({ role: "user", text: message });
@@ -848,13 +850,15 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
              
              Based strictly on the User Query, carefully filter and present these events nicely to the user.
              Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
-             If no events match the specific topic, politely apologize and say so.
              
-             CRITICAL COMPLIANCE RULES FOR EVENT DISPLAY:
-             1. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
-             2. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
-             3. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
-             4. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
+             CRITICAL COMPLIANCE AND STYLE RULES FOR EVENT DISPLAY:
+             1. Your response MUST be strictly objective, direct, and factual. Completely remove all conversational fluff, polite fillers (e.g. "Certainly!", "Here are the events you requested"), and any follow-up/open-ended questions.
+             2. If matching events are found, list them directly.
+             3. If no events match the specific topic query, state simply: "No matching events found." and stop. Do NOT apologize, and do NOT ask if they want to try searching for anything else.
+             4. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
+             5. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
+             6. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
+             7. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
              `;
       const res = await ai.models.generateContent({
         model: MODEL,
@@ -876,7 +880,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         let queryEmbedding = null;
         try {
           const embedRes = await ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
+            model: "text-embedding-004",
             contents: searchQuery || message,
             config: { outputDimensionality: 768 }
           });
@@ -949,17 +953,26 @@ ${combinedText}`;
       } catch (e) {
         console.error("Error fetching knowledge docs", e);
       }
-      const fullPrompt = `You are a helpful assistant for AuroConnect, an overall guide to Auroville. The user asked a general question about Auroville or an unstructured query.
+      const fullPrompt = `You are an AI assistant for AuroConnect, an overall guide to Auroville. The user asked a general question or provided an unstructured/ambiguous query.
 
-Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents. 
+Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents.
 
-IMPORTANT: If the user's query is ambiguous and it is unclear if they are looking for general information OR if they are looking for specific events (e.g., they just say "Matrimandir" or "volunteering"), provide a brief, helpful general answer AND politely ask them to clarify if they were looking for events related to that topic or just general information.
+CRITICAL INSTRUCTIONS FOR BUCKET C:
+1. Handling Ambiguity: If the query is ambiguous (e.g., the user just types a single topic like "Matrimandir" or "volunteering" and it is unclear if they want general info or active events), you MUST:
+   - Provide a brief, general answer based on the reference documents.
+   - Ask exactly one or two specific, clear questions to clarify whether they are looking for general information or active events (e.g., "Would you like general information about Matrimandir, or are you looking for events happening there?").
+2. Handling Unambiguous Queries: If the query is clear and unambiguous (e.g., they ask "When was Auroville founded?", "What are the timings for Matrimandir?", or ask for specific event details), you MUST:
+   - Provide the exact information directly.
+   - Do NOT ask any follow-up questions, do NOT include conversational prolonging, and do NOT try to keep the conversation going. Keep it clean and complete.
 
 ### REFERENCE DOCUMENTS ###
 ${knowledgeContext}
 
 ### USER QUERY ###
-${message}`;
+${message}
+
+### DETAILED CONTEXT / CLARIFIED INTENT ###
+${searchQuery || message}`;
       const res = await ai.models.generateContent({
         model: MODEL,
         contents: [
@@ -967,7 +980,7 @@ ${message}`;
           { role: "user", parts: [{ text: fullPrompt }] }
         ],
         config: {
-          temperature: 0.6
+          temperature: 0.2
         }
       });
       let textAccumulator = res.text || "";
@@ -1000,7 +1013,7 @@ async function createServer() {
         if (!text) return res.status(400).json({ error: "Missing text" });
         
         const embeddingRes = await ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
+            model: "text-embedding-004",
             contents: text,
             config: { outputDimensionality: 768 }
         });
@@ -1065,7 +1078,7 @@ async function createServer() {
 
         res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Analyzing query...</i>" })}\n\n`);
 
-        const recentHistory = chatHistory.slice(-7);
+        const recentHistory = chatHistory.slice(-5);
         const historyText = recentHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join("\n");
 
         const classifierPrompt = `
@@ -1078,15 +1091,17 @@ async function createServer() {
         Analyze the user query: "${lastMessage}" (use history for context if the query is a follow-up or ambiguous)
         
         Categorize it into one of these buckets:
-        "A": Broad event search based on date/time only. The user wants to see what events are happening but doesn't specify a topic. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm".
-        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?".
-        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
+        "A": Broad event search based on date/time only. The user wants to see what events are happening in general, but does NOT specify any topic in either the current query or the recent chat history. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm". 
+             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), this is NOT a broad search. This is a specific search about that topic. Choose Bucket B instead!
+        "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic, or implies a topic based on the recent chat history context. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?", or a follow-up query like "event", "yes, events please", "events there" after discussing "Matrimandir" or "volunteering".
+             CRITICAL: If the query is a follow-up about a topic from history, you MUST classify it as "B" and construct a search_query combining the topic and event keyword (e.g. "Matrimandir events").
+        "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE CURRENT QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
 
         Return ONLY a valid JSON object matching this schema:
         {
             "bucket": "A", 
-            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
-            "intro_text": "A friendly ONE SENTENCE intro for the user (only needed for bucket A)",
+            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets). If the user query is a short follow-up or response (e.g., 'event', 'yes', 'show events') to a topic from history, expand this to a clear search string including that topic (e.g. 'Matrimandir events').",
+            "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g. 'Here are the events for tomorrow:'). DO NOT include any conversational fluff, polite fillers, greeting words, or open-ended questions. Keep it direct and factual.",
             "filter_date": "YYYY-MM-DD",
             "filter_day": "Monday",
             "filter_time_after": "HH:MM (e.g., morning=06:00, afternoon=12:00, evening=17:00, night=20:00)"
@@ -1101,12 +1116,12 @@ async function createServer() {
             }
         });
         
-        let bucket = "C", searchQuery = lastMessage, introText = "Here is what I found:", filterDate = "", filterDay = "", filterTimeAfter = "";
+        let bucket = "C", searchQuery = lastMessage, introText = "", filterDate = "", filterDay = "", filterTimeAfter = "";
         try {
             const parsed = JSON.parse(classRes.text || "{}");
             bucket = parsed.bucket || "C";
             searchQuery = parsed.search_query || lastMessage;
-            introText = parsed.intro_text || "Here is what I found:";
+            introText = parsed.intro_text || "";
             filterDate = parsed.filter_date;
             filterDay = parsed.filter_day;
             filterTimeAfter = parsed.filter_time_after;
@@ -1119,7 +1134,7 @@ async function createServer() {
                  const output = formatCategorizedEvents(rawEvents, introText);
                  res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
              } else {
-                 res.write(`data: ${JSON.stringify({ chunk: (introText ? introText + "\n\n" : "") + String(rawEvents) })}\n\n`);
+                 res.write(`data: ${JSON.stringify({ chunk: "No upcoming events match the requested criteria." })}\n\n`);
              }
         }
         else if (bucket === "B") {
@@ -1136,13 +1151,15 @@ async function createServer() {
              
              Based strictly on the User Query, carefully filter and present these events nicely to the user.
              Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
-             If no events match the specific topic, politely apologize and say so.
              
-             CRITICAL COMPLIANCE RULES FOR EVENT DISPLAY:
-             1. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
-             2. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
-             3. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
-             4. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
+             CRITICAL COMPLIANCE AND STYLE RULES FOR EVENT DISPLAY:
+             1. Your response MUST be strictly objective, direct, and factual. Completely remove all conversational fluff, polite fillers (e.g. "Certainly!", "Here are the events you requested"), and any follow-up/open-ended questions.
+             2. If matching events are found, list them directly.
+             3. If no events match the specific topic query, state simply: "No matching events found." and stop. Do NOT apologize, and do NOT ask if they want to try searching for anything else.
+             4. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
+             5. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
+             6. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
+             7. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
              `;
 
              const aiRes = await ai.models.generateContent({
@@ -1166,7 +1183,7 @@ async function createServer() {
                 let queryEmbedding: number[] | null = null;
                 try {
                     const embedRes = await ai.models.embedContent({
-                        model: "gemini-embedding-2-preview",
+                        model: "text-embedding-004",
                         contents: searchQuery || lastMessage,
                         config: { outputDimensionality: 768 }
                     });
@@ -1244,17 +1261,26 @@ async function createServer() {
                  console.error("Error fetching knowledge docs", e);
              }
 
-             const fullPrompt = `You are a helpful assistant for AuroConnect, an overall guide to Auroville. The user asked a general question about Auroville or an unstructured query.
+             const fullPrompt = `You are an AI assistant for AuroConnect, an overall guide to Auroville. The user asked a general question or provided an unstructured/ambiguous query.
 
-Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents. 
+Use the following provided reference documents to inform your answer. If the answer is not in the documents, try your best to answer generally, but prioritize the reference documents.
 
-IMPORTANT: If the user's query is ambiguous and it is unclear if they are looking for general information OR if they are looking for specific events (e.g., they just say "Matrimandir" or "volunteering"), provide a brief, helpful general answer AND politely ask them to clarify if they were looking for events related to that topic or just general information.
+CRITICAL INSTRUCTIONS FOR BUCKET C:
+1. Handling Ambiguity: If the query is ambiguous (e.g., the user just types a single topic like "Matrimandir" or "volunteering" and it is unclear if they want general info or active events), you MUST:
+   - Provide a brief, general answer based on the reference documents.
+   - Ask exactly one or two specific, clear questions to clarify whether they are looking for general information or active events (e.g., "Would you like general information about Matrimandir, or are you looking for events happening there?").
+2. Handling Unambiguous Queries: If the query is clear and unambiguous (e.g., they ask "When was Auroville founded?", "What are the timings for Matrimandir?", or ask for specific event details), you MUST:
+   - Provide the exact information directly.
+   - Do NOT ask any follow-up questions, do NOT include conversational prolonging, and do NOT try to keep the conversation going. Keep it clean and complete.
 
 ### REFERENCE DOCUMENTS ###
 ${knowledgeContext}
 
 ### USER QUERY ###
-${lastMessage}`;
+${lastMessage}
+
+### DETAILED CONTEXT / CLARIFIED INTENT ###
+${searchQuery || lastMessage}`;
 
              const aiRes = await ai.models.generateContent({
                  model: MODEL,
@@ -1263,7 +1289,7 @@ ${lastMessage}`;
                      { role: "user", parts: [{ text: fullPrompt }] }
                  ],
                  config: { 
-                     temperature: 0.6 
+                     temperature: 0.2 
                  }
              });
 

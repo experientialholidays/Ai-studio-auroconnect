@@ -2786,7 +2786,7 @@
               <td><span class="badge badge-info">${ev.category || "General"}</span></td>
               <td>${scheduleStr || "N/A"}</td>
               <td>${ev.venue || "N/A"}</td>
-              <td style="text-align: center;">${ev.embeddingVector && ev.embeddingVector.length > 0 ? '✅' : '❌'}</td>
+              <td style="text-align: center;">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>
               <td style="white-space: nowrap;" onclick="event.stopPropagation();">
                 <button class="btn btn-secondary btn-edit-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
                 <button class="btn-danger btn-delete-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
@@ -3211,7 +3211,7 @@
               <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
-              <td style="text-align: center;">${ev.embeddingVector && ev.embeddingVector.length > 0 ? '✅' : '❌'}</td>
+              <td style="text-align: center;">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>
               <td style="white-space: nowrap;" onclick="event.stopPropagation();">
                 <button class="btn btn-secondary btn-edit-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
                 <button class="btn-danger btn-delete-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
