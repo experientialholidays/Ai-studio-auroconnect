@@ -132,12 +132,297 @@
         margin-right: 4px;
     }
 
-    .poster-img {
+    /* Media Gallery & Display */
+    .media-gallery-container {
+        margin-bottom: 16px;
+    }
+
+    .media-main-frame {
         width: 100%;
-        max-height: 400px;
+        min-height: 200px;
+        max-height: 520px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border);
+        box-sizing: border-box;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .media-main-frame {
+            background: rgba(255, 255, 255, 0.04);
+        }
+    }
+
+    .main-display-img {
+        max-width: 100%;
+        max-height: 520px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        cursor: pointer;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .main-display-img:hover {
+        transform: scale(1.01);
+    }
+
+    .media-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.55);
+        color: #ffffff;
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        cursor: pointer;
+        z-index: 3;
+        transition: background 0.2s, transform 0.1s;
+        user-select: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .media-nav-btn:hover {
+        background: rgba(0, 0, 0, 0.8);
+        transform: translateY(-50%) scale(1.08);
+    }
+
+    .media-nav-prev { left: 10px; }
+    .media-nav-next { right: 10px; }
+
+    .image-counter-badge {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0, 0, 0, 0.65);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        backdrop-filter: blur(4px);
+        z-index: 3;
+        letter-spacing: 0.03em;
+    }
+
+    .thumbnails-strip-container {
+        margin-top: 10px;
+    }
+
+    .thumbnails-header {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .thumbnails-strip {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 4px 2px 8px 2px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .thumbnail-item {
+        width: 64px;
+        height: 64px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        cursor: pointer;
+        border: 2px solid transparent;
+        opacity: 0.65;
+        transition: all 0.2s ease;
+        background: var(--bg);
+        position: relative;
+    }
+
+    .thumbnail-item:hover {
+        opacity: 0.9;
+    }
+
+    .thumbnail-item.active {
+        border-color: var(--accent);
+        opacity: 1;
+        box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.25);
+    }
+
+    .thumbnail-item img {
+        width: 100%;
+        height: 100%;
         object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 12px;
+    }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.92);
+        z-index: 10000;
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        box-sizing: border-box;
+        backdrop-filter: blur(8px);
+        user-select: none;
+    }
+
+    .lightbox-modal.open {
+        display: flex;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .lightbox-topbar {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #ffffff;
+        z-index: 10002;
+    }
+
+    .lightbox-btn {
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        padding: 8px 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: background 0.2s, transform 0.1s;
+    }
+
+    .lightbox-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .lightbox-close-btn {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        justify-content: center;
+        font-size: 1.2rem;
+        border-radius: 50%;
+    }
+
+    .lightbox-title {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    .lightbox-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        width: 100%;
+        max-width: 1200px;
+        margin: 12px 0;
+    }
+
+    .lightbox-img {
+        max-width: 95vw;
+        max-height: 75vh;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .lightbox-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        cursor: pointer;
+        z-index: 10001;
+        transition: background 0.2s;
+    }
+
+    .lightbox-nav-btn:hover {
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    .lightbox-nav-prev { left: 10px; }
+    .lightbox-nav-next { right: 10px; }
+
+    .lightbox-bottombar {
+        width: 100%;
+        max-width: 1200px;
+        display: flex;
+        justify-content: center;
+        padding-bottom: 8px;
+    }
+
+    .lightbox-thumbnails {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        max-width: 100%;
+        padding: 6px;
+        scrollbar-width: thin;
+    }
+
+    .lightbox-thumb {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        object-fit: cover;
+        cursor: pointer;
+        opacity: 0.5;
+        border: 2px solid transparent;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .lightbox-thumb.active {
+        opacity: 1;
+        border-color: #ffffff;
     }
 
     a {
@@ -213,6 +498,12 @@
             padding: 16px;
             margin: 6px 0;
         }
+        .media-main-frame {
+            max-height: 380px;
+        }
+        .main-display-img {
+            max-height: 380px;
+        }
     }
     </style>
 </head>
@@ -222,10 +513,23 @@
 
 <div id="main-content">
     <div class="details-container">
-        <div class="back-btn-container">
-            <a href="javascript:history.back()" class="back-btn">← Back</a>
-        </div>
         <div id="event-content"></div>
+    </div>
+</div>
+
+<!-- Fullscreen Lightbox Modal -->
+<div id="lightbox-modal" class="lightbox-modal">
+    <div class="lightbox-topbar">
+        <span id="lightbox-title" class="lightbox-title">Image 1 of 1</span>
+        <button type="button" class="lightbox-btn lightbox-close-btn" onclick="closeLightbox()" aria-label="Close Preview">✕</button>
+    </div>
+    <div class="lightbox-content" onclick="closeLightbox()" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event, true)">
+        <img id="lightbox-img" class="lightbox-img" src="" alt="Full Screen View" onclick="event.stopPropagation()">
+        <button type="button" class="lightbox-nav-btn lightbox-nav-prev" onclick="changeLightboxImage(-1, event)" aria-label="Previous Image">‹</button>
+        <button type="button" class="lightbox-nav-btn lightbox-nav-next" onclick="changeLightboxImage(1, event)" aria-label="Next Image">›</button>
+    </div>
+    <div class="lightbox-bottombar">
+        <div id="lightbox-thumbs" class="lightbox-thumbnails"></div>
     </div>
 </div>
 
@@ -233,25 +537,417 @@
 
 <script>
     const event = {{EVENT_DATA}};
-    
+    let currentImgIndex = 0;
+    let eventImages = [];
+    let eventDocs = [];
+    let lightboxPushStateAdded = false;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+
+    let currentScale = 1;
+    let startDist = 0;
+    let initialScale = 1;
+    let panX = 0, panY = 0;
+    let startPanX = 0, startPanY = 0;
+    let lastTapTime = 0;
+
+    function resetZoom(imgEl) {
+        currentScale = 1;
+        panX = 0;
+        panY = 0;
+        if (imgEl) {
+            imgEl.style.transform = "scale(1) translate(0px, 0px)";
+        }
+    }
+
+    function applyTransform(imgEl) {
+        if (!imgEl) return;
+        imgEl.style.transform = `scale(${currentScale}) translate(${panX / currentScale}px, ${panY / currentScale}px)`;
+    }
+
+    function attachTouchZoomHandlers(imgEl) {
+        if (!imgEl || imgEl._zoomAttached) return;
+        imgEl._zoomAttached = true;
+
+        imgEl.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 2) {
+                startDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                initialScale = currentScale;
+            } else if (e.touches.length === 1) {
+                touchStartX = e.touches[0].pageX;
+                touchStartY = e.touches[0].pageY;
+                startPanX = panX;
+                startPanY = panY;
+
+                const now = Date.now();
+                if (now - lastTapTime < 300) {
+                    if (currentScale > 1) {
+                        resetZoom(imgEl);
+                    } else {
+                        currentScale = 2.5;
+                        panX = 0;
+                        panY = 0;
+                        applyTransform(imgEl);
+                    }
+                    lastTapTime = 0;
+                    e.preventDefault();
+                    return;
+                }
+                lastTapTime = now;
+            }
+        }, { passive: false });
+
+        imgEl.addEventListener("touchmove", (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+                if (startDist > 0) {
+                    currentScale = Math.min(Math.max(1, initialScale * (currentDist / startDist)), 4);
+                    if (currentScale === 1) { panX = 0; panY = 0; }
+                    applyTransform(imgEl);
+                }
+            } else if (e.touches.length === 1 && currentScale > 1) {
+                e.preventDefault();
+                const deltaX = e.touches[0].pageX - touchStartX;
+                const deltaY = e.touches[0].pageY - touchStartY;
+                panX = startPanX + deltaX;
+                panY = startPanY + deltaY;
+                applyTransform(imgEl);
+            }
+        }, { passive: false });
+
+        imgEl.addEventListener("touchend", (e) => {
+            if (e.touches.length < 2) {
+                startDist = 0;
+            }
+            if (currentScale < 1.05) {
+                resetZoom(imgEl);
+            }
+        });
+    }
+
+    function initMedia() {
+        let allMedia = [];
+        if (Array.isArray(event.mediaUrls)) {
+            allMedia = event.mediaUrls.filter(Boolean);
+        } else if (typeof event.mediaUrls === 'string' && event.mediaUrls) {
+            allMedia = event.mediaUrls.split(',').map(s => s.trim()).filter(Boolean);
+        }
+
+        if (event.posterUrl) {
+            const posterList = typeof event.posterUrl === 'string'
+                ? event.posterUrl.split(',').map(s => s.trim()).filter(Boolean)
+                : (Array.isArray(event.posterUrl) ? event.posterUrl : [event.posterUrl]);
+            posterList.forEach(url => {
+                if (!allMedia.includes(url)) {
+                    allMedia.push(url);
+                }
+            });
+        }
+
+        eventImages = allMedia.filter(url => {
+            const lower = url.toLowerCase();
+            return !lower.includes('.pdf') && !lower.includes('.doc') && !lower.includes('.ppt') && !lower.includes('.xls');
+        });
+
+        eventDocs = allMedia.filter(url => {
+            const lower = url.toLowerCase();
+            return lower.includes('.pdf') || lower.includes('.doc') || lower.includes('.ppt') || lower.includes('.xls');
+        });
+    }
+
+    function selectImage(index) {
+        if (index < 0 || index >= eventImages.length) return;
+        currentImgIndex = index;
+        const imgEl = document.getElementById("main-display-image");
+        if (imgEl) {
+            resetZoom(imgEl);
+            imgEl.src = eventImages[currentImgIndex];
+        }
+        const badgeEl = document.getElementById("image-counter-badge");
+        if (badgeEl) {
+            badgeEl.textContent = `${currentImgIndex + 1} / ${eventImages.length}`;
+        }
+        eventImages.forEach((_, idx) => {
+            const thumb = document.getElementById(`thumb-${idx}`);
+            if (thumb) {
+                if (idx === currentImgIndex) {
+                    thumb.classList.add("active");
+                    thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                } else {
+                    thumb.classList.remove("active");
+                }
+            }
+        });
+    }
+
+    function changeImage(dir, e) {
+        if (e) e.stopPropagation();
+        if (eventImages.length === 0) return;
+        let newIdx = currentImgIndex + dir;
+        if (newIdx < 0) newIdx = eventImages.length - 1;
+        if (newIdx >= eventImages.length) newIdx = 0;
+        selectImage(newIdx);
+    }
+
+    function openLightbox(index) {
+        if (eventImages.length === 0) return;
+        currentImgIndex = (typeof index === 'number') ? index : 0;
+        const modal = document.getElementById("lightbox-modal");
+        if (!modal) return;
+        
+        updateLightboxView();
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden";
+
+        try {
+            history.pushState({ lightboxOpen: true }, "");
+            lightboxPushStateAdded = true;
+        } catch (err) {}
+    }
+
+    function closeLightbox(fromPopState) {
+        const modal = document.getElementById("lightbox-modal");
+        if (!modal || !modal.classList.contains("open")) return;
+        
+        modal.classList.remove("open");
+        document.body.style.overflow = "";
+
+        const lightboxImg = document.getElementById("lightbox-img");
+        if (lightboxImg) resetZoom(lightboxImg);
+
+        if (lightboxPushStateAdded && !fromPopState) {
+            lightboxPushStateAdded = false;
+            try {
+                history.back();
+            } catch (err) {}
+        }
+    }
+
+    function updateLightboxView() {
+        const lightboxImg = document.getElementById("lightbox-img");
+        if (lightboxImg) {
+            resetZoom(lightboxImg);
+            lightboxImg.src = eventImages[currentImgIndex];
+            attachTouchZoomHandlers(lightboxImg);
+        }
+        const titleEl = document.getElementById("lightbox-title");
+        if (titleEl) {
+            titleEl.textContent = `Image ${currentImgIndex + 1} of ${eventImages.length}`;
+        }
+        
+        const prevBtn = document.querySelector(".lightbox-nav-prev");
+        const nextBtn = document.querySelector(".lightbox-nav-next");
+        if (prevBtn && nextBtn) {
+            prevBtn.style.display = eventImages.length > 1 ? "flex" : "none";
+            nextBtn.style.display = eventImages.length > 1 ? "flex" : "none";
+        }
+
+        const thumbsContainer = document.getElementById("lightbox-thumbs");
+        if (thumbsContainer) {
+            thumbsContainer.innerHTML = eventImages.map((url, idx) => `
+                <img src="${url}" class="lightbox-thumb ${idx === currentImgIndex ? 'active' : ''}" onclick="selectLightboxImage(${idx})" alt="Thumb ${idx + 1}">
+            `).join('');
+        }
+    }
+
+    function selectLightboxImage(idx) {
+        selectImage(idx);
+        updateLightboxView();
+    }
+
+    function changeLightboxImage(dir, e) {
+        if (e) e.stopPropagation();
+        changeImage(dir, e);
+        updateLightboxView();
+    }
+
+    function handleTouchStart(e) {
+        if (currentScale > 1) return;
+        if (e.changedTouches && e.changedTouches[0]) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }
+    }
+
+    function handleTouchEnd(e, isLightbox) {
+        if (currentScale > 1) return;
+        if (!e.changedTouches || !e.changedTouches[0]) return;
+        touchEndX = e.changedTouches[0].screenX;
+        const diff = touchStartX - touchEndX;
+        if (Math.abs(diff) > 40) {
+            if (diff > 0) {
+                if (isLightbox) changeLightboxImage(1);
+                else changeImage(1);
+            } else {
+                if (isLightbox) changeLightboxImage(-1);
+                else changeImage(-1);
+            }
+        }
+    }
+
+    window.addEventListener("popstate", () => {
+        const modal = document.getElementById("lightbox-modal");
+        if (modal && modal.classList.contains("open")) {
+            closeLightbox(true);
+        }
+    });
+
+    window.addEventListener("keydown", (e) => {
+        const modal = document.getElementById("lightbox-modal");
+        if (modal && modal.classList.contains("open")) {
+            if (e.key === "Escape") {
+                closeLightbox();
+            } else if (e.key === "ArrowLeft") {
+                changeLightboxImage(-1);
+            } else if (e.key === "ArrowRight") {
+                changeLightboxImage(1);
+            }
+        }
+    });
+
+    function formatDateToHuman(dateVal) {
+        if (!dateVal) return '';
+        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        
+        function formatSingle(str) {
+            if (!str) return '';
+            const s = String(str).trim();
+            let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+            if (m) {
+                const y = parseInt(m[1]);
+                const mo = parseInt(m[2]) - 1;
+                const d = parseInt(m[3]);
+                if (mo >= 0 && mo < 12) return `${d} ${months[mo]} ${y}`;
+            }
+            m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+            if (m) {
+                const d = parseInt(m[1]);
+                const mo = parseInt(m[2]) - 1;
+                const y = parseInt(m[3]);
+                if (mo >= 0 && mo < 12) return `${d} ${months[mo]} ${y}`;
+            }
+            const parsed = new Date(s);
+            if (!isNaN(parsed.getTime()) && s.length >= 8 && /\d/.test(s)) {
+                return `${parsed.getDate()} ${months[parsed.getMonth()]} ${parsed.getFullYear()}`;
+            }
+            return s;
+        }
+
+        if (typeof dateVal === 'string' && dateVal.includes(' to ')) {
+            return dateVal.split(' to ').map(formatSingle).join(' to ');
+        }
+        if (Array.isArray(dateVal)) {
+            return dateVal.map(formatSingle).join(', ');
+        }
+        return formatSingle(dateVal);
+    }
+
+    function formatDaysDisplay(daysVal) {
+        if (!daysVal) return '';
+        let str = Array.isArray(daysVal) ? daysVal.join(', ') : String(daysVal).trim();
+        if (!str) return '';
+        if (/^every/i.test(str)) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+        return 'Every ' + str;
+    }
+
     function render() {
+        initMedia();
         const container = document.getElementById("event-content");
         
         let html = `<div class="event-card">`;
         
-        if (event.posterUrl) {
-            html += `<img class="poster-img" src="${event.posterUrl}" alt="${event.title}">`;
+        if (eventImages.length > 0) {
+            html += `<div class="media-gallery-container">
+                <div class="media-main-frame" id="media-main-frame" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event, false)">
+                    <img id="main-display-image" class="main-display-img" src="${eventImages[0]}" alt="${event.title || 'Event Image'}" onclick="openLightbox(currentImgIndex)">
+                    <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="position: absolute; top: 10px; right: 10px; z-index: 5; background: rgba(0, 0, 0, 0.55); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                    </button>`;
+
+            if (eventImages.length > 1) {
+                html += `<button type="button" class="media-nav-btn media-nav-prev" onclick="changeImage(-1, event)" aria-label="Previous Image">‹</button>
+                         <button type="button" class="media-nav-btn media-nav-next" onclick="changeImage(1, event)" aria-label="Next Image">›</button>
+                         <div class="image-counter-badge" id="image-counter-badge">1 / ${eventImages.length}</div>`;
+            }
+
+            html += `</div>`;
+
+            if (eventImages.length > 1) {
+                html += `<div class="thumbnails-strip-container">
+                    <div class="thumbnails-header">
+                        <span>Event Gallery (${eventImages.length} images)</span>
+                        <span>Click to view / tap image for full screen</span>
+                    </div>
+                    <div class="thumbnails-strip" id="thumbnails-strip">`;
+                
+                eventImages.forEach((imgUrl, idx) => {
+                    html += `<div class="thumbnail-item ${idx === 0 ? 'active' : ''}" onclick="selectImage(${idx})" id="thumb-${idx}">
+                        <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" loading="lazy">
+                    </div>`;
+                });
+
+                html += `</div></div>`;
+            }
+            
+            html += `</div>`;
+        }
+
+        if (eventDocs.length > 0) {
+            html += `<div class="detail-row" style="margin-bottom: 12px; margin-top: 8px;"><span class="detail-label">Attached Documents:</span> `;
+            eventDocs.forEach((docUrl, i) => {
+                const name = docUrl.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
+                html += `<a href="${docUrl}" target="_blank" style="margin-right: 10px; font-weight: 500; text-decoration: underline;">📄 ${name || ('Document ' + (i+1))}</a>`;
+            });
+            html += `</div>`;
         }
         
-        if (event.type || event.dates || event.days) {
-            html += `<div class="ec-topbar">
-                <span class="ec-type">${event.type || ''}</span>
-                <span class="ec-date">${event.dates || event.days || ''}</span>
-            </div>`;
-        }
+        html += `<div class="ec-topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span class="ec-type">${event.type || ''}</span>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="ec-date">${event.category || ''}</span>
+                ${eventImages.length === 0 ? `
+                <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="background: var(--bg-hover, rgba(0,0,0,0.05)); border: 1px solid var(--border-color, #e0e0e0); border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent, #0066cc); flex-shrink: 0;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                </button>` : ''}
+            </div>
+        </div>`;
         
         html += `<div class="event-title">${event.title || 'Event Details'}</div>`;
         
+        const rawDate = event.dates || event.startDate || event.date || '';
+        const formattedDate = rawDate ? formatDateToHuman(rawDate) : '';
+        if (formattedDate) {
+            html += `<div class="detail-row"><span class="detail-label">Date:</span> ${formattedDate}</div>`;
+        }
+        
+        if (event.days) {
+            const formattedDays = formatDaysDisplay(event.days);
+            if (formattedDays) {
+                html += `<div class="detail-row"><span class="detail-label">Days:</span> ${formattedDays}</div>`;
+            }
+        }
         if (event.times) {
             html += `<div class="detail-row"><span class="detail-label">Time:</span> ${event.times}</div>`;
         }
@@ -259,7 +955,7 @@
             html += `<div class="detail-row"><span class="detail-label">Location:</span> ${event.venue}</div>`;
         }
         if (event.cost) {
-            html += `<div class="detail-row"><span class="detail-label">Cost/Contribution:</span> ${event.cost}</div>`;
+            html += `<div class="detail-row"><span class="detail-label">Contribution:</span> ${event.cost}</div>`;
         }
         if (event.audience) {
             html += `<div class="detail-row"><span class="detail-label">Key info:</span> ${event.audience}</div>`;
@@ -267,30 +963,50 @@
         if (event.contact) {
             html += `<div class="detail-row"><span class="detail-label">Phone:</span> ${event.contact}</div>`;
         }
-        if (event.email) {
-            html += `<div class="detail-row"><span class="detail-label">Email:</span> ${event.email}</div>`;
+
+        let rawWebsite = event.website || event.externalLinks || event.links || '';
+        let linksList = [];
+        if (Array.isArray(rawWebsite)) {
+            linksList = rawWebsite.map(String).map(s => s.trim()).filter(Boolean);
+        } else if (typeof rawWebsite === 'string' && rawWebsite.trim()) {
+            linksList = rawWebsite.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
         }
-        if (event.whatsapp) {
-            const waNumber = event.whatsapp.replace(/[^0-9]/g, '');
-            html += `<div class="detail-row"><span class="detail-label">WhatsApp:</span> <a href="https://wa.me/${waNumber}" target="_blank">Message</a></div>`;
-        }
-        if (event.website) {
-            const url = event.website.startsWith('http') ? event.website : 'https://' + event.website;
-            html += `<div class="detail-row"><span class="detail-label">Website:</span> <a href="${url}" target="_blank">Visit</a></div>`;
+
+        if (linksList.length > 0) {
+            const linksHtml = linksList.map(link => {
+                const fullUrl = link.startsWith('http') ? link : 'https://' + link;
+                let displayUrl = link.replace(/^https?:\/\//i, '').replace(/\/$/, '');
+                if (displayUrl.length > 35) displayUrl = displayUrl.substring(0, 32) + '...';
+                return `<a href="${fullUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-weight: 500; word-break: break-all;">🔗 ${displayUrl || fullUrl}</a>`;
+            }).join(' &nbsp;|&nbsp; ');
+            html += `<div class="detail-row" style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"><span class="detail-label">External links:</span> ${linksHtml}</div>`;
         }
         
         if (event.description) {
             html += `<div class="description">${event.description}</div>`;
         }
         
-        html += `<div class="action-buttons">
-            <button class="action-btn" onclick="copyEventLink()">Copy Link</button>
-            <button class="action-btn" onclick="shareEvent()">Share</button>
-        </div>`;
+        if (event.email || event.whatsapp) {
+            html += `<div class="contact-buttons" style="display: flex; gap: 10px; margin-top: 16px; margin-bottom: 8px; width: 100%;">`;
+            if (event.email) {
+                const mailHref = "mailto:" + event.email.trim() + "?subject=" + encodeURIComponent("Inquiry regarding: " + (event.title || "Event"));
+                html += `<a href="${mailHref}" target="_blank" class="action-btn" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-weight: 600; background: #ea4335; color: #ffffff; border-radius: 8px; font-size: 0.88rem; border: none;">✉️ Email</a>`;
+            }
+            if (event.whatsapp) {
+                const waNumber = event.whatsapp.replace(/[^0-9]/g, '');
+                const waHref = event.whatsapp.startsWith("http") ? event.whatsapp : ("https://wa.me/" + waNumber + "?text=" + encodeURIComponent("Hi, I am interested in " + (event.title || "the event")));
+                html += `<a href="${waHref}" target="_blank" class="action-btn" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-weight: 600; background: #25d366; color: #ffffff; border-radius: 8px; font-size: 0.88rem; border: none;">💬 WhatsApp</a>`;
+            }
+            html += `</div>`;
+        }
         
         html += `</div>`;
         
         container.innerHTML = html;
+        const mainImg = document.getElementById("main-display-image");
+        if (mainImg) {
+            attachTouchZoomHandlers(mainImg);
+        }
     }
     
     function copyEventLink() {

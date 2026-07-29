@@ -568,7 +568,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     if (searchQuery && specificity === "specific") {
       try {
         const embedRes = await ai.models.embedContent({
-          model: "text-embedding-004",
+          model: "gemini-embedding-2-preview",
           contents: searchQuery,
           config: { outputDimensionality: 768 }
         });
@@ -775,7 +775,11 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
     const timeInfo = getCurrentTimeInfo(timeZone);
     ws.send(JSON.stringify({ type: "start_stream" }));
     ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F50D} Analyzing query...</i>" }));
-    const recentHistory = chatHistory.slice(-5);
+    const TWENTY_HOURS_MS = 20 * 60 * 60 * 1000;
+    const now = Date.now();
+    const recentHistory = chatHistory
+        .filter((m: any) => !m.timestamp || (now - m.timestamp < TWENTY_HOURS_MS))
+        .slice(-5);
     const historyText = recentHistory.map((h) => `${h.role === "user" ? "User" : "Assistant"}: ${h.text}`).join("\n");
     const classifierPrompt = `
         You are an AI assistant designed to classify user queries for AuroConnect, an overall guide for Auroville that provides information about both Events and General Knowledge.
@@ -835,8 +839,8 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         botReply = "No upcoming events match the requested criteria.";
         ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
       }
-      chatHistory.push({ role: "user", text: message });
-      chatHistory.push({ role: "model", text: botReply });
+      chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
+      chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
     } else if (bucket === "B") {
       ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F50D} Extracting topic matches. AI is curating events...</i>\n\n" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, timeZone);
@@ -871,8 +875,8 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       let textAccumulator = res.text || "";
       textAccumulator = textAccumulator.replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/\\\(/g, "(").replace(/\\\)/g, ")").replace(/\\\*/g, "*").replace(/\\\_/g, "_");
       ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
-      chatHistory.push({ role: "user", text: message });
-      chatHistory.push({ role: "model", text: textAccumulator });
+      chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
+      chatHistory.push({ role: "model", text: textAccumulator, timestamp: Date.now() });
     } else {
       ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F4AD} Processing general question...</i>\n\n" }));
       let knowledgeContext = "";
@@ -880,7 +884,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         let queryEmbedding = null;
         try {
           const embedRes = await ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: searchQuery || message,
             config: { outputDimensionality: 768 }
           });
@@ -986,8 +990,8 @@ ${searchQuery || message}`;
       let textAccumulator = res.text || "";
       textAccumulator = textAccumulator.replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/\\\(/g, "(").replace(/\\\)/g, ")").replace(/\\\*/g, "*").replace(/\\\_/g, "_");
       ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
-      chatHistory.push({ role: "user", text: message });
-      chatHistory.push({ role: "model", text: textAccumulator });
+      chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
+      chatHistory.push({ role: "model", text: textAccumulator, timestamp: Date.now() });
     }
   } catch (err) {
     console.error("Stream error:", err);
@@ -1013,7 +1017,7 @@ async function createServer() {
         if (!text) return res.status(400).json({ error: "Missing text" });
         
         const embeddingRes = await ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: text,
             config: { outputDimensionality: 768 }
         });
@@ -1044,9 +1048,10 @@ async function createServer() {
         }
 
         const lastMessage = messages[messages.length - 1].content;
-        const chatHistory = messages.slice(0, -1).map(m => ({
+        const chatHistory = messages.slice(0, -1).map((m: any) => ({
             role: m.role === "assistant" ? "model" : "user",
-            text: m.content
+            text: m.content,
+            timestamp: m.timestampISO ? new Date(m.timestampISO).getTime() : Date.now()
         }));
 
         const lowerText = lastMessage.toLowerCase().trim();
@@ -1078,7 +1083,11 @@ async function createServer() {
 
         res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Analyzing query...</i>" })}\n\n`);
 
-        const recentHistory = chatHistory.slice(-5);
+        const TWENTY_HOURS_MS = 20 * 60 * 60 * 1000;
+        const now = Date.now();
+        const recentHistory = chatHistory
+            .filter((m: any) => !m.timestamp || (now - m.timestamp < TWENTY_HOURS_MS))
+            .slice(-5);
         const historyText = recentHistory.map(h => `${h.role === 'user' ? 'User' : 'Assistant'}: ${h.text}`).join("\n");
 
         const classifierPrompt = `
@@ -1183,7 +1192,7 @@ async function createServer() {
                 let queryEmbedding: number[] | null = null;
                 try {
                     const embedRes = await ai.models.embedContent({
-                        model: "text-embedding-004",
+                        model: "gemini-embedding-2-preview",
                         contents: searchQuery || lastMessage,
                         config: { outputDimensionality: 768 }
                     });
@@ -1504,7 +1513,11 @@ ${searchQuery || lastMessage}`;
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data && Array.isArray(data.messages)) {
-            chatHistory = data.messages;
+            const updatedAtMs = data.updatedAt ? new Date(data.updatedAt).getTime() : Date.now();
+            chatHistory = data.messages.map(m => ({
+              ...m,
+              timestamp: m.timestamp || updatedAtMs
+            }));
             if (chatHistory.length > 0) {
               const convertedHistory = chatHistory.map(m => ({
                 role: m.role,
@@ -1568,8 +1581,8 @@ ${searchQuery || lastMessage}`;
                     botReply = "Failed to load daily events.";
                     ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
                 }
-                chatHistory.push({ role: "user", text: text });
-                chatHistory.push({ role: "model", text: botReply });
+                chatHistory.push({ role: "user", text: text, timestamp: Date.now() });
+                chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
                 await saveChatSession(sessionId, chatHistory);
                 return;
             }
@@ -1577,8 +1590,8 @@ ${searchQuery || lastMessage}`;
             if (lowerText === "no, thank you" || lowerText === "no" || lowerText === "no thanks" || lowerText === "no, thanks") {
                 ws.send(JSON.stringify({ type: "start_stream" }));
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "No problem! Let me know if you need help finding any other events." }));
-                chatHistory.push({ role: "user", text: text });
-                chatHistory.push({ role: "model", text: "No problem! Let me know if you need help finding any other events." });
+                chatHistory.push({ role: "user", text: text, timestamp: Date.now() });
+                chatHistory.push({ role: "model", text: "No problem! Let me know if you need help finding any other events.", timestamp: Date.now() });
                 await saveChatSession(sessionId, chatHistory);
                 return;
             }

@@ -205,7 +205,8 @@ export default function App() {
           id: "welcome_msg",
           role: "assistant",
           content: WELCOME_TEXT,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestampISO: new Date().toISOString()
         }
       ],
       createdAt: new Date().toLocaleString()
@@ -255,7 +256,8 @@ export default function App() {
       id: "msg_" + Math.random().toString(36).substring(2, 11),
       role: "user",
       content: rawText,
-      timestamp
+      timestamp,
+      timestampISO: new Date().toISOString()
     };
 
     const updatedMessages = [...messages, userMessage];
@@ -331,7 +333,8 @@ export default function App() {
           id: "msg_" + Math.random().toString(36).substring(2, 11),
           role: "assistant",
           content: streamBuffer,
-          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          timestampISO: new Date().toISOString()
         };
         const finalMessages = [...updatedMessages, assistantMessage];
         setMessages(finalMessages);
@@ -352,7 +355,8 @@ export default function App() {
           id: "err_" + Date.now(),
           role: "assistant",
           content: "⚠️ **Connection Error.** Please check your local server or environment API configuration and try again.",
-          timestamp: new Date().toLocaleTimeString()
+          timestamp: new Date().toLocaleTimeString(),
+          timestampISO: new Date().toISOString()
         }
       ]);
     } finally {
@@ -653,7 +657,7 @@ export default function App() {
                         </div>
                       )}
                       
-                      <div className="flex flex-col max-w-[85%] md:max-w-[75%] space-y-1">
+                      <div className={`flex flex-col space-y-1 ${isAssistant ? "w-full" : "max-w-[85%] md:max-w-[75%]"}`}>
                         <div
                           className={`p-4 rounded-2xl shadow-xs leading-relaxed text-sm ${
                             isAssistant
@@ -661,11 +665,9 @@ export default function App() {
                               : "bg-emerald-600 text-white"
                           }`}
                         >
-                          <div className={`prose prose-sm prose-emerald max-w-none ${isAssistant ? "text-slate-800" : "text-white"}`}>
                             <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
                               {msg.content}
                             </ReactMarkdown>
-                          </div>
                         </div>
                         <span className={`text-[10px] text-slate-400 px-2 ${!isAssistant && "text-right"}`}>
                           {msg.timestamp}
@@ -681,7 +683,7 @@ export default function App() {
                     <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 mt-1 animate-pulse shrink-0">
                       <Sparkles className="w-4 h-4" />
                     </div>
-                    <div className="flex flex-col max-w-[85%] md:max-w-[75%] space-y-1">
+                    <div className="flex flex-col w-full space-y-1">
                       <div className="p-4 rounded-2xl bg-white border border-slate-100 text-slate-800 shadow-xs">
                         {streamedText ? (
                           <div className="prose prose-sm prose-emerald max-w-none text-slate-800">

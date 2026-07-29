@@ -76,7 +76,7 @@ router.post("/api/add_url_knowledge", async (req, res) => {
 
       try {
         const embedRes = await ai.models.embedContent({
-          model: "text-embedding-004",
+          model: "gemini-embedding-2-preview",
           contents: batch,
           config: { outputDimensionality: 768 }
         });
@@ -96,7 +96,7 @@ router.post("/api/add_url_knowledge", async (req, res) => {
           const chunk = batch[j];
           try {
             const embedRes = await ai.models.embedContent({
-              model: "text-embedding-004",
+              model: "gemini-embedding-2-preview",
               contents: chunk,
               config: { outputDimensionality: 768 }
             });

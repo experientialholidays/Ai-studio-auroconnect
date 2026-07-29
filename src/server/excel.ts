@@ -183,7 +183,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         const batchPromises = batch.map(event => {
           const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
           return ai.models.embedContent({
-            model: "text-embedding-004",
+            model: "gemini-embedding-2-preview",
             contents: textToEmbed || "event",
             config: { outputDimensionality: 768 }
           });
@@ -207,7 +207,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
             await new Promise(r => setTimeout(r, 100)); // Sleep 100ms
             const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
             const embedRes = await ai.models.embedContent({
-              model: "text-embedding-004",
+              model: "gemini-embedding-2-preview",
               contents: textToEmbed || "event",
               config: { outputDimensionality: 768 }
             });
