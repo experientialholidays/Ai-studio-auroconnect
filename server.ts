@@ -411,10 +411,10 @@ function formatEventHTML(data) {
   if (timeDisplay) row1Parts.push(`\u23F0 ${timeDisplay}`);
   if (datesDisplay) row1Parts.push(`\u{1F4C5} ${datesDisplay}`);
   if (data.venue) row1Parts.push(`\u{1F4CD} ${data.venue}`);
+  if (data.audience) row1Parts.push(`\u{1F4A1} ${data.audience}`);
+  if (data.cost) row1Parts.push(`\u{1F4B0} ${data.cost}`);
   const row1 = row1Parts.join(" | ");
-  const keyInfoHtml = data.audience ? `<div style="font-size: 0.85rem; color: var(--text); font-weight: 500; margin-top: 4px; display: flex; align-items: center; gap: 6px;"><span>\u{1F4A1}</span> <span>${data.audience}</span></div>` : "";
-  const contribHtml = data.cost ? `<div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 6px;"><span>\u{1F4B0}</span> <span>${data.cost}</span></div>` : "";
-  return `<a href="/event/${slug}" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 16px; border-radius: 16px;"><div style="border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); font-family: inherit; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s ease;"><div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%;"><div style="display: flex; gap: 6px;"><span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 99px;">${badgeLabel}</span></div><div style="color: #10b981; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(16, 185, 129, 0.08);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></div></div>` + (data.type ? `<div style="font-size: 0.75rem; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${data.type}</div>` : "") + `<h4 style="margin: 0 0 4px 0; font-size: 1.15rem; font-weight: 800; color: var(--text); line-height: 1.35; letter-spacing: -0.025em; padding: 0;">${eventTitle}</h4><div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;"><div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">${row1}</div>` + keyInfoHtml + contribHtml + `</div></div></div></a>`;
+  return `<a href="/event/${slug}" target="_blank" style="text-decoration: none; color: inherit; display: block; margin-bottom: 16px; border-radius: 16px;"><div style="border: 1px solid var(--border); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); font-family: inherit; overflow: hidden; display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s ease;"><div style="padding: 20px; display: flex; flex-direction: column; flex-grow: 1;"><div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; width: 100%;"><div style="display: flex; gap: 6px;"><span style="background: ${badgeBg}; color: ${badgeColor}; font-size: 0.725rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 99px;">${badgeLabel}</span></div><div style="color: #10b981; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(16, 185, 129, 0.08);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg></div></div>` + (data.type ? `<div style="font-size: 0.75rem; font-weight: 600; color: #7c3aed; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px;">${data.type}</div>` : "") + `<h4 style="margin: 0 0 4px 0; font-size: 1.15rem; font-weight: 800; color: var(--text); line-height: 1.35; letter-spacing: -0.025em; padding: 0;">${eventTitle}</h4><div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 4px;"><div style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">${row1}</div></div></div></div></a>`;
 }
 function escapeAttr(str) {
   if (!str) return "";
@@ -447,16 +447,16 @@ function formatEventMarkdown(data) {
   if (data.venue) {
     row1Parts.push(`\u{1F4CD} ${data.venue}`);
   }
+  if (data.audience) {
+    row1Parts.push(`\u{1F4A1} ${data.audience}`);
+  }
+  if (data.cost) {
+    row1Parts.push(`\u{1F4B0} ${data.cost}`);
+  }
   const row1 = row1Parts.join(" | ");
   const s = [header];
   if (row1) {
     s.push(row1);
-  }
-  if (data.audience) {
-    s.push(`\u{1F4A1} ${data.audience}`);
-  }
-  if (data.cost) {
-    s.push(`\u{1F4B0} ${data.cost}`);
   }
   return s.join("  \n");
 }
