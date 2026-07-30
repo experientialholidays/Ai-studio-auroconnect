@@ -516,7 +516,7 @@
       .form-grid {
         display: grid;
         grid-template-columns: repeat(12, 1fr);
-        gap: 1.25rem;
+        gap: 1.75rem;
         width: 100%;
         text-align: left;
         box-sizing: border-box;
@@ -536,48 +536,96 @@
         .form-col-6, .form-col-4, .form-col-3 { grid-column: span 12; }
       }
 
+      /* Style form titles (labels above fields) to look large, bold, spaced and premium */
+      .form-grid label {
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+        color: var(--text-secondary) !important;
+        margin-bottom: 0.6rem !important;
+        display: block !important;
+        transition: color 0.2s;
+      }
+
+      /* Keep inline radio/checkbox labels from being styled as headings */
+      .form-grid label:has(input[type="radio"]),
+      .form-grid label:has(input[type="checkbox"]),
+      .form-grid label:has(input) {
+        font-size: 0.95rem !important;
+        font-weight: 500 !important;
+        text-transform: none !important;
+        letter-spacing: normal !important;
+        color: var(--text) !important;
+        margin-bottom: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        cursor: pointer !important;
+      }
+
       /* Uniform input/select/textarea styling inside forms for perfect height and width alignment */
       .form-grid input[type="text"],
       .form-grid input[type="tel"],
       .form-grid input[type="email"],
       .form-grid input[type="url"],
+      .form-grid input[type="date"],
       .form-grid textarea,
       .form-grid select {
         width: 100% !important;
         max-width: none !important;
-        height: 38px !important;
+        height: 50px !important;
         box-sizing: border-box !important;
-        padding: 0.5rem 0.75rem !important;
+        padding: 0.75rem 1.125rem !important;
         border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
+        border-radius: 12px !important;
         background: var(--bg) !important;
         color: var(--text) !important;
         font-family: inherit !important;
-        font-size: 0.85rem !important;
+        font-size: 1rem !important;
         line-height: 1.4 !important;
         margin: 0 !important;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      /* Focused input styles to look like the reference screenshot */
+      .form-grid input[type="text"]:focus,
+      .form-grid input[type="tel"]:focus,
+      .form-grid input[type="email"]:focus,
+      .form-grid input[type="url"]:focus,
+      .form-grid input[type="date"]:focus,
+      .form-grid textarea:focus,
+      .form-grid select:focus {
+        border-color: var(--accent) !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.15) !important;
       }
 
       /* Allow multi-line textareas (like Description) but enforce other styles */
       .form-grid textarea {
         height: auto !important;
-        min-height: 38px !important;
+        min-height: 50px !important;
         resize: vertical !important;
+      }
+
+      .form-grid textarea#ev-desc {
+        min-height: 120px !important;
       }
 
       /* Specific override for event form file inputs to ensure consistency with text inputs */
       input.ev-media {
-        padding: 0.5rem 0.75rem !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 6px !important;
+        padding: 0.75rem 1.125rem !important;
+        border: 1px dashed var(--border) !important;
+        border-radius: 12px !important;
         width: 100% !important;
         max-width: none !important;
         box-sizing: border-box !important;
-        height: 38px !important;
+        height: 50px !important;
         background: var(--bg) !important;
         color: var(--text) !important;
         font-family: inherit !important;
-        font-size: 0.85rem !important;
+        font-size: 1rem !important;
+        cursor: pointer;
       }
     </style>
   </head>
@@ -669,6 +717,7 @@
       <div
         id="user-status"
         style="
+          display: none !important;
           color: var(--accent);
           font-weight: 500;
           font-size: 0.9rem;
@@ -699,7 +748,7 @@
             <h3>📈 Bulk Events Import (Excel)</h3>
             <p>
               Select an Excel sheet (.xlsx) containing event data. The first row must contain these exact headers (case-insensitive):
-              <strong>Title, Type, Category, Dates, Days, Times, Venue, Cost, Target Audience, Contact Person, Contact Phone, WhatsApp, Email, Website, Description</strong>
+              <strong>Title, Type, Category, Dates, Days, Times, Venue, Cost, Key Info, Contact Person, Contact Phone, WhatsApp, Email, Website, Description</strong>
             </p>
             <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
               <input type="file" id="excel-file" accept=".xlsx, .xls" style="max-width: 100%;" />
@@ -838,11 +887,12 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Type</label
+            >Type of Event *</label
           >
           <input
             type="text"
             id="ev-type"
+            required
             placeholder="e.g. Workshop, Class"
             style="
               width: 100%;
@@ -867,167 +917,214 @@
             background: rgba(0, 0, 0, 0.02);
           "
         >
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 600;
-              display: block;
-              margin-bottom: 0.5rem;
-            "
-            >Event Schedule Type</label
-          >
-          <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+            <label style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem !important; cursor: pointer; font-weight: 500; text-transform: none !important; letter-spacing: normal !important; color: var(--text) !important; margin-bottom: 0 !important;">
+              <input type="checkbox" id="ev-custom-timing-toggle" onchange="toggleCustomTiming(this.checked)" style="width: auto !important; height: auto !important; margin: 0 !important;" />
+              Use Custom/Free-form Text for Date & Time
+            </label>
+          </div>
+
+          <div id="ev-standard-timing-fields">
             <label
-              ><input
-                type="radio"
-                name="ev-schedule-type"
-                value="one-time"
-                checked
-              />
-              Date Specific (One Time)</label
+              style="
+                font-size: 0.85rem;
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+              "
+              >Event Schedule Type</label
             >
-            <label
-              ><input type="radio" name="ev-schedule-type" value="recurring" />
-              Recurring</label
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+              <label
+                ><input
+                  type="radio"
+                  name="ev-schedule-type"
+                  value="one-time"
+                  checked
+                />
+                Date Specific (One Time)</label
+              >
+              <label
+                ><input type="radio" name="ev-schedule-type" value="recurring" />
+                Recurring</label
+              >
+            </div>
+
+            <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem;">
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >Start Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-start-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >End Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-end-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
+            </div>
+
+            <div
+              id="recurring-container"
+              style="display: none; flex-direction: column; gap: 0.5rem"
             >
+              <label style="font-size: 0.85rem; font-weight: 500; display: block"
+                >Select Weekdays</label
+              >
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Mon" />
+                  Mon</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Tue" />
+                  Tue</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Wed" />
+                  Wed</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Thu" />
+                  Thu</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Fri" />
+                  Fri</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sat" />
+                  Sat</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sun" />
+                  Sun</label
+                >
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 2rem; margin-top: 1.5rem">
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >Start Time</label
+                >
+                <select
+                  id="ev-start-time"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                >
+                  <!-- Dynamically populated options -->
+                </select>
+              </div>
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >End Time</label
+                >
+                <select
+                  id="ev-end-time"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                >
+                  <!-- Dynamically populated options -->
+                </select>
+              </div>
+            </div>
           </div>
 
-          <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem;">
-            <div style="flex: 1">
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 500;
-                  display: block;
-                  margin-bottom: 0.2rem;
-                "
-                >Start Date</label
-              >
-              <input
-                type="date"
-                id="ev-start-date"
-                style="
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-            </div>
-            <div style="flex: 1">
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 500;
-                  display: block;
-                  margin-bottom: 0.2rem;
-                "
-                >End Date</label
-              >
-              <input
-                type="date"
-                id="ev-end-date"
-                style="
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              />
-            </div>
-          </div>
-
-          <div
-            id="recurring-container"
-            style="display: none; flex-direction: column; gap: 0.5rem"
-          >
-            <label style="font-size: 0.85rem; font-weight: 500; display: block"
-              >Select Weekdays</label
-            >
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Mon" />
-                Mon</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Tue" />
-                Tue</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Wed" />
-                Wed</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Thu" />
-                Thu</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Fri" />
-                Fri</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Sat" />
-                Sat</label
-              >
-              <label
-                ><input type="checkbox" name="ev-weekdays" value="Sun" />
-                Sun</label
-              >
-            </div>
-          </div>
-
-          <div style="display: flex; gap: 2rem; margin-top: 1.5rem">
-            <div style="flex: 1">
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 500;
-                  display: block;
-                  margin-bottom: 0.2rem;
-                "
-                >Start Time</label
-              >
-              <select
-                id="ev-start-time"
-                style="
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              >
-                <!-- Dynamically populated options -->
-              </select>
-            </div>
-            <div style="flex: 1">
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 500;
-                  display: block;
-                  margin-bottom: 0.2rem;
-                "
-                >End Time</label
-              >
-              <select
-                id="ev-end-time"
-                style="
-                  width: 100%;
-                  padding: 0.5rem;
-                  border: 1px solid var(--border);
-                  border-radius: 6px;
-                  background: var(--bg);
-                  color: var(--text);
-                "
-              >
-                <!-- Dynamically populated options -->
-              </select>
+          <div id="ev-custom-timing-fields" style="display: none; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+              <div style="flex: 1; min-width: 250px;">
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Custom Date(s) / Schedule Text</label>
+                <input
+                  type="text"
+                  id="ev-custom-date"
+                  placeholder="e.g. Aug 5th, 12th & 19th OR TBD"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
+              <div style="flex: 1; min-width: 250px;">
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Custom Time(s) Text</label>
+                <input
+                  type="text"
+                  id="ev-custom-time"
+                  placeholder="e.g. 10:00am - 02:00pm OR Flexible"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -1088,7 +1185,7 @@
           ></textarea>
         </div>
 
-        <!-- Target Audience -->
+        <!-- Key Info -->
         <div class="form-col-3">
           <label
             style="
@@ -1097,11 +1194,11 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Target Audience / Prerequisites</label
+            >Key Info</label
           >
           <textarea
             id="ev-audience"
-            placeholder="e.g. Adults, Kids"
+            placeholder="e.g. Adults, Kids, Prerequisites"
             rows="1"
             style="
               width: 100%;
@@ -1493,9 +1590,9 @@
             </div>
             <!-- Field 5: Target Audience -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Audience</label>
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Key Info</label>
               <select id="my-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Audiences</option>
+                <option value="">All Key Info</option>
               </select>
             </div>
             <!-- Field 6: Event Type -->
@@ -1621,9 +1718,9 @@
             </div>
             <!-- Field 5: Target Audience -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Audience</label>
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Key Info</label>
               <select id="admin-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Audiences</option>
+                <option value="">All Key Info</option>
               </select>
             </div>
             <!-- Field 6: Event Type -->
@@ -2206,6 +2303,18 @@
         return `${hStr}:${mStr}`;
       }
 
+      function toggleCustomTiming(checked) {
+        const stdFields = document.getElementById("ev-standard-timing-fields");
+        const customFields = document.getElementById("ev-custom-timing-fields");
+        if (checked) {
+          if (stdFields) stdFields.style.display = "none";
+          if (customFields) customFields.style.display = "flex";
+        } else {
+          if (stdFields) stdFields.style.display = "block";
+          if (customFields) customFields.style.display = "none";
+        }
+      }
+
       function startEditEvent(ev) {
         editingEventId = ev.id;
         
@@ -2392,6 +2501,55 @@
         existingMediaUrls = mediaArray;
         renderExistingMediaList();
         
+        // Custom Timing Detection & Population for editing
+        let isCustomTiming = false;
+        if (ev.scheduleType === "custom") {
+          isCustomTiming = true;
+        } else {
+          const hasDates = ev.dates && ev.dates.trim() !== "";
+          const hasTimes = ev.times && ev.times.trim() !== "";
+          
+          let parsedStart = "";
+          if (ev.dates) {
+            if (ev.dates.includes(" to ")) {
+              parsedStart = formatDateToYYYYMMDD(ev.dates.split(" to ")[0].trim());
+            } else {
+              parsedStart = formatDateToYYYYMMDD(ev.dates.trim());
+            }
+          }
+          
+          const isRecurringPattern = ev.days && (ev.days.toLowerCase().includes("mon") || ev.days.toLowerCase().includes("tue") || ev.days.toLowerCase().includes("wed") || ev.days.toLowerCase().includes("thu") || ev.days.toLowerCase().includes("fri") || ev.days.toLowerCase().includes("sat") || ev.days.toLowerCase().includes("sun") || ev.days.toLowerCase().includes("daily"));
+          
+          if (hasDates && !parsedStart && !isRecurringPattern) {
+            isCustomTiming = true;
+          }
+          
+          if (hasTimes) {
+            let parsedTime = "";
+            if (ev.times.includes(" - ")) {
+              parsedTime = formatTimeToHHMM(ev.times.split(" - ")[0].trim());
+            } else {
+              parsedTime = formatTimeToHHMM(ev.times.trim());
+            }
+            if (!parsedTime) {
+              isCustomTiming = true;
+            }
+          }
+        }
+
+        const customTimingToggle = document.getElementById("ev-custom-timing-toggle");
+        if (customTimingToggle) {
+          customTimingToggle.checked = isCustomTiming;
+          toggleCustomTiming(isCustomTiming);
+        }
+
+        if (document.getElementById("ev-custom-date")) {
+          document.getElementById("ev-custom-date").value = ev.dates || "";
+        }
+        if (document.getElementById("ev-custom-time")) {
+          document.getElementById("ev-custom-time").value = ev.times || "";
+        }
+        
         // Scroll to form section
         const submissionSection = document.getElementById("single-event-form");
         if (submissionSection) {
@@ -2575,7 +2733,7 @@
 
           populateFilterDropdown(myEventsExcel, uniqueExcel, "All Excel Files");
           populateFilterDropdown(myEventsVenue, uniqueVenues, "All Venues");
-          populateFilterDropdown(myEventsAudience, uniqueAudiences, "All Audiences");
+          populateFilterDropdown(myEventsAudience, uniqueAudiences, "All Key Info");
           populateFilterDropdown(myEventsType, uniqueTypes, "All Types");
 
           // Apply multi-field filtering
@@ -2775,7 +2933,7 @@
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Location:</strong> ${ev.venue || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contribution:</strong> ${ev.cost || "Free / None"}</div>
-                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Target Audience:</strong> ${ev.audience || "All"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Key Info:</strong> ${ev.audience || "All"}</div>
                   </div>
 
                   <!-- Column 2: Contact Info -->
@@ -2993,7 +3151,7 @@
 
           populateFilterDropdown(adminEventsExcel, uniqueExcelFiles, "All Excel Files");
           populateFilterDropdown(adminEventsVenue, uniqueVenues, "All Venues");
-          populateFilterDropdown(adminEventsAudience, uniqueAudiences, "All Audiences");
+          populateFilterDropdown(adminEventsAudience, uniqueAudiences, "All Key Info");
           populateFilterDropdown(adminEventsType, uniqueTypes, "All Types");
 
           // Apply client-side multi-field filters
@@ -3199,7 +3357,8 @@
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Location:</strong> ${ev.venue || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Contribution:</strong> ${ev.cost || "Free / None"}</div>
-                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Target Audience:</strong> ${ev.audience || "All"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Key Info:</strong> ${ev.audience || "All"}</div>
+                  </div>
                   </div>
 
                   <!-- Column 2: Contact Info -->
@@ -4397,53 +4556,79 @@
           }
 
           // Gather logic
-          const scheduleType = document.querySelector(
-            'input[name="ev-schedule-type"]:checked',
-          ).value;
+          let scheduleType = "one-time";
+          const customToggle = document.getElementById("ev-custom-timing-toggle");
+          const isCustomTiming = customToggle ? customToggle.checked : false;
+          
           let category = "Date-specific Events";
           let dates = "";
           let days = "";
-
-          if (scheduleType === "one-time") {
-            const startDt = document.getElementById("ev-start-date").value;
-            const endDt = document.getElementById("ev-end-date").value;
-
-            if (startDt && endDt && endDt < startDt) {
-              singleEventStatus.innerHTML = `❌ <span style="color:red;">End Date can never be less than Start Date.</span>`;
-              return;
-            }
-
-            dates =
-              startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
-
-            if (startDt && endDt) {
-              const sDt = new Date(startDt);
-              const eDt = new Date(endDt);
-              const diffTime = Math.abs(eDt - sDt);
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-              if (diffDays > 8) {
-                category = "Daily Events";
-                days = diffDays + " days total";
-              }
+          let startTime = "";
+          let endTime = "";
+          let times = "";
+          
+          if (isCustomTiming) {
+            scheduleType = "custom";
+            dates = document.getElementById("ev-custom-date").value.trim();
+            times = document.getElementById("ev-custom-time").value.trim();
+            
+            // Elegantly guess category
+            const dateLower = dates.toLowerCase();
+            if (dateLower.includes("daily") || dateLower.includes("every day") || dateLower.includes("everyday")) {
+              category = "Daily Events";
+              days = "Daily";
+            } else if (dateLower.includes("weekly") || dateLower.includes("every") || dateLower.includes("mon") || dateLower.includes("tue") || dateLower.includes("wed") || dateLower.includes("thu") || dateLower.includes("fri") || dateLower.includes("sat") || dateLower.includes("sun")) {
+              category = "Weekly Events";
+              days = dates;
+            } else {
+              category = "Date-specific Events";
             }
           } else {
-            const checkedWeekdays = Array.from(
-              document.querySelectorAll('input[name="ev-weekdays"]:checked'),
-            ).map((cb) => cb.value);
-            days = checkedWeekdays.join(", ");
+            const scheduleTypeRadio = document.querySelector('input[name="ev-schedule-type"]:checked');
+            scheduleType = scheduleTypeRadio ? scheduleTypeRadio.value : "one-time";
+            
+            if (scheduleType === "one-time") {
+              const startDt = document.getElementById("ev-start-date").value;
+              const endDt = document.getElementById("ev-end-date").value;
 
-            if (checkedWeekdays.length > 5) {
-              category = "Daily Events";
-            } else if (checkedWeekdays.length > 0) {
-              category = "Weekly Events";
+              if (startDt && endDt && endDt < startDt) {
+                singleEventStatus.innerHTML = `❌ <span style="color:red;">End Date can never be less than Start Date.</span>`;
+                return;
+              }
+
+              dates =
+                startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
+
+              if (startDt && endDt) {
+                const sDt = new Date(startDt);
+                const eDt = new Date(endDt);
+                const diffTime = Math.abs(eDt - sDt);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays > 8) {
+                  category = "Daily Events";
+                  days = diffDays + " days total";
+                }
+              }
+            } else {
+              const checkedWeekdays = Array.from(
+                document.querySelectorAll('input[name="ev-weekdays"]:checked'),
+              ).map((cb) => cb.value);
+              days = checkedWeekdays.join(", ");
+
+              if (checkedWeekdays.length > 5) {
+                category = "Daily Events";
+              } else if (checkedWeekdays.length > 0) {
+                category = "Weekly Events";
+              } else {
+                category = "Weekly Events";
+              }
             }
+            
+            startTime = document.getElementById("ev-start-time").value;
+            endTime = document.getElementById("ev-end-time").value;
+            times = startTime + (endTime ? " - " + endTime : "");
           }
-
-          let startTime = document.getElementById("ev-start-time").value;
-          let endTime = document.getElementById("ev-end-time").value;
-
-          const times = startTime + (endTime ? " - " + endTime : "");
 
           const linkInputs = document.querySelectorAll(".ev-link");
           const links = Array.from(linkInputs)
