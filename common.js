@@ -2,6 +2,106 @@
   // Inject CSS styles for the common header, dropdown, and footer disclaimer
   const styleEl = document.createElement("style");
   styleEl.textContent = `
+    /* Common Header Styles to ensure identical layout on all pages */
+    .header { 
+        background: var(--surface) !important; 
+        padding: 1rem 1.875rem !important; 
+        border-bottom: 0.0625rem solid var(--border) !important; 
+        display: flex !important; 
+        justify-content: space-between !important; 
+        align-items: center !important; 
+        box-sizing: border-box !important;
+        width: 100% !important;
+        text-align: left !important;
+        position: relative !important;
+    }
+    
+    .header-title-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.4rem !important;
+    }
+
+    .header h1 { 
+        margin: 0 !important; 
+        font-size: 1.375rem !important; 
+        color: var(--text) !important; 
+        line-height: 1 !important; 
+        font-family: inherit !important;
+    }
+
+    .header-logo-link {
+        text-decoration: none !important;
+        color: inherit !important;
+    }
+
+    /* Premium High-Visibility Buy Me a Coffee Button */
+    .coffee-btn {
+        background: linear-gradient(135deg, #FFDD00 0%, #FFBE00 100%) !important;
+        color: #111111 !important;
+        padding: 0.5rem 1.1rem !important;
+        border-radius: 50px !important;
+        text-decoration: none !important;
+        font-weight: 700 !important;
+        font-size: 0.85rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        box-shadow: 0 3px 10px rgba(255, 221, 0, 0.25) !important;
+        transition: all 0.2s ease-in-out !important;
+        white-space: nowrap !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        cursor: pointer !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    .coffee-btn:hover {
+        transform: translateY(-1.5px) !important;
+        box-shadow: 0 5px 15px rgba(255, 221, 0, 0.45) !important;
+        background: linear-gradient(135deg, #FFE53B 0%, #FFBE00 100%) !important;
+    }
+    .coffee-btn:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 5px rgba(255, 221, 0, 0.2) !important;
+    }
+
+    .coffee-icon {
+        display: inline-block !important;
+        font-size: 1rem !important;
+    }
+
+    .coffee-text {
+        display: inline !important;
+    }
+
+    /* Responsive adjustments for narrow screens */
+    @media (max-width: 520px) {
+        .header {
+            padding: 0.75rem 1rem !important;
+        }
+        .coffee-btn {
+            padding: 0.45rem 0.85rem !important;
+            font-size: 0.8rem !important;
+        }
+    }
+    @media (max-width: 440px) {
+        .coffee-btn {
+            padding: 0 !important;
+            width: 36px !important;
+            height: 36px !important;
+            border-radius: 50% !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        .coffee-text {
+            display: none !important;
+        }
+        .coffee-icon {
+            font-size: 1.15rem !important;
+            margin: 0 !important;
+        }
+    }
+
     .dropdown { position: relative; display: inline-block; }
     .three-dots { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); padding: 0 0.5rem; }
     .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--surface); min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); border: 1px solid var(--border); border-radius: 8px; z-index: 1000; padding: 0.5rem 0; }
@@ -80,9 +180,12 @@
           <a href="/" class="header-logo-link">
               <h1>🤖 AuroConnect</h1>
           </a>
-          <a href="https://rzp.io/rzp/AuroConnect" target="_blank" class="coffee-link">☕ Buy me a coffee</a>
       </div>
-      <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <a href="https://rzp.io/rzp/AuroConnect" target="_blank" class="coffee-btn">
+              <span class="coffee-icon">☕</span>
+              <span class="coffee-text">Buy me a coffee</span>
+          </a>
           <div class="dropdown">
               <button id="common-three-dots" class="three-dots">⋮</button>
               <div id="common-dropdown-content" class="dropdown-content">
