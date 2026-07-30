@@ -919,13 +919,9 @@
         >
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
             <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
-            <label style="display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.85rem !important; cursor: pointer; font-weight: 500; text-transform: none !important; letter-spacing: normal !important; color: var(--text) !important; margin-bottom: 0 !important;">
-              <input type="checkbox" id="ev-custom-timing-toggle" onchange="toggleCustomTiming(this.checked)" style="width: auto !important; height: auto !important; margin: 0 !important;" />
-              Use Custom/Free-form Text for Date & Time
-            </label>
           </div>
 
-          <div id="ev-standard-timing-fields">
+          <div>
             <label
               style="
                 font-size: 0.85rem;
@@ -1002,12 +998,11 @@
 
             <div
               id="recurring-container"
-              style="display: none; flex-direction: column; gap: 0.5rem"
+              style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
             >
-              <label style="font-size: 0.85rem; font-weight: 500; display: block"
-                >Select Weekdays</label
-              >
-              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+              <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
+
+              <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
                 <label
                   ><input type="checkbox" name="ev-weekdays" value="Mon" />
                   Mon</label
@@ -1039,78 +1034,68 @@
               </div>
             </div>
 
-            <div style="display: flex; gap: 2rem; margin-top: 1.5rem">
-              <div style="flex: 1">
-                <label
-                  style="
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    display: block;
-                    margin-bottom: 0.2rem;
-                  "
-                  >Start Time</label
-                >
-                <select
-                  id="ev-start-time"
-                  style="
-                    width: 100%;
-                    padding: 0.5rem;
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    background: var(--bg);
-                    color: var(--text);
-                  "
-                >
-                  <!-- Dynamically populated options -->
-                </select>
+            <div style="margin-top: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <label style="font-size: 0.85rem; font-weight: 600; margin: 0;">Event Time</label>
+                <label style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; cursor: pointer; font-weight: 500; color: var(--text-secondary);">
+                  <input type="checkbox" id="ev-custom-time-toggle" onchange="toggleCustomTime(this.checked)" style="width: auto; height: auto; margin: 0;" />
+                  Customize Time
+                </label>
               </div>
-              <div style="flex: 1">
-                <label
-                  style="
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    display: block;
-                    margin-bottom: 0.2rem;
-                  "
-                  >End Time</label
-                >
-                <select
-                  id="ev-end-time"
-                  style="
-                    width: 100%;
-                    padding: 0.5rem;
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    background: var(--bg);
-                    color: var(--text);
-                  "
-                >
-                  <!-- Dynamically populated options -->
-                </select>
-              </div>
-            </div>
-          </div>
 
-          <div id="ev-custom-timing-fields" style="display: none; flex-direction: column; gap: 1rem;">
-            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 250px;">
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Custom Date(s) / Schedule Text</label>
-                <input
-                  type="text"
-                  id="ev-custom-date"
-                  placeholder="e.g. Aug 5th, 12th & 19th OR TBD"
-                  style="
-                    width: 100%;
-                    padding: 0.5rem;
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    background: var(--bg);
-                    color: var(--text);
-                  "
-                />
+              <div id="standard-time-container" style="display: flex; gap: 2rem;">
+                <div style="flex: 1">
+                  <label
+                    style="
+                      font-size: 0.85rem;
+                      font-weight: 500;
+                      display: block;
+                      margin-bottom: 0.2rem;
+                    "
+                    >Start Time</label
+                  >
+                  <select
+                    id="ev-start-time"
+                    style="
+                      width: 100%;
+                      padding: 0.5rem;
+                      border: 1px solid var(--border);
+                      border-radius: 6px;
+                      background: var(--bg);
+                      color: var(--text);
+                    "
+                  >
+                    <!-- Dynamically populated options -->
+                  </select>
+                </div>
+                <div style="flex: 1">
+                  <label
+                    style="
+                      font-size: 0.85rem;
+                      font-weight: 500;
+                      display: block;
+                      margin-bottom: 0.2rem;
+                    "
+                    >End Time</label
+                  >
+                  <select
+                    id="ev-end-time"
+                    style="
+                      width: 100%;
+                      padding: 0.5rem;
+                      border: 1px solid var(--border);
+                      border-radius: 6px;
+                      background: var(--bg);
+                      color: var(--text);
+                    "
+                  >
+                    <!-- Dynamically populated options -->
+                  </select>
+                </div>
               </div>
-              <div style="flex: 1; min-width: 250px;">
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Custom Time(s) Text</label>
+
+              <div id="custom-time-container" style="display: none; flex-direction: column; gap: 0.2rem;">
+                <label style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Custom Time(s) Text</label>
                 <input
                   type="text"
                   id="ev-custom-time"
@@ -2303,17 +2288,18 @@
         return `${hStr}:${mStr}`;
       }
 
-      function toggleCustomTiming(checked) {
-        const stdFields = document.getElementById("ev-standard-timing-fields");
-        const customFields = document.getElementById("ev-custom-timing-fields");
+      function toggleCustomTime(checked) {
+        const stdTime = document.getElementById("standard-time-container");
+        const customTimeSelection = document.getElementById("custom-time-container");
         if (checked) {
-          if (stdFields) stdFields.style.display = "none";
-          if (customFields) customFields.style.display = "flex";
+          if (stdTime) stdTime.style.display = "none";
+          if (customTimeSelection) customTimeSelection.style.display = "flex";
         } else {
-          if (stdFields) stdFields.style.display = "block";
-          if (customFields) customFields.style.display = "none";
+          if (stdTime) stdTime.style.display = "flex";
+          if (customTimeSelection) customTimeSelection.style.display = "none";
         }
       }
+      window.toggleCustomTime = toggleCustomTime;
 
       function startEditEvent(ev) {
         editingEventId = ev.id;
@@ -2501,51 +2487,26 @@
         existingMediaUrls = mediaArray;
         renderExistingMediaList();
         
-        // Custom Timing Detection & Population for editing
-        let isCustomTiming = false;
-        if (ev.scheduleType === "custom") {
-          isCustomTiming = true;
-        } else {
-          const hasDates = ev.dates && ev.dates.trim() !== "";
-          const hasTimes = ev.times && ev.times.trim() !== "";
-          
-          let parsedStart = "";
-          if (ev.dates) {
-            if (ev.dates.includes(" to ")) {
-              parsedStart = formatDateToYYYYMMDD(ev.dates.split(" to ")[0].trim());
-            } else {
-              parsedStart = formatDateToYYYYMMDD(ev.dates.trim());
-            }
+        // Custom Time Toggle Detection & Population
+        let isCustomTime = false;
+        if (ev.times && ev.times.trim() !== "") {
+          let parsedTime = "";
+          if (ev.times.includes(" - ")) {
+            parsedTime = formatTimeToHHMM(ev.times.split(" - ")[0].trim());
+          } else {
+            parsedTime = formatTimeToHHMM(ev.times.trim());
           }
-          
-          const isRecurringPattern = ev.days && (ev.days.toLowerCase().includes("mon") || ev.days.toLowerCase().includes("tue") || ev.days.toLowerCase().includes("wed") || ev.days.toLowerCase().includes("thu") || ev.days.toLowerCase().includes("fri") || ev.days.toLowerCase().includes("sat") || ev.days.toLowerCase().includes("sun") || ev.days.toLowerCase().includes("daily"));
-          
-          if (hasDates && !parsedStart && !isRecurringPattern) {
-            isCustomTiming = true;
-          }
-          
-          if (hasTimes) {
-            let parsedTime = "";
-            if (ev.times.includes(" - ")) {
-              parsedTime = formatTimeToHHMM(ev.times.split(" - ")[0].trim());
-            } else {
-              parsedTime = formatTimeToHHMM(ev.times.trim());
-            }
-            if (!parsedTime) {
-              isCustomTiming = true;
-            }
+          if (ev.scheduleType === "custom" || !parsedTime) {
+            isCustomTime = true;
           }
         }
 
-        const customTimingToggle = document.getElementById("ev-custom-timing-toggle");
-        if (customTimingToggle) {
-          customTimingToggle.checked = isCustomTiming;
-          toggleCustomTiming(isCustomTiming);
+        const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+        if (customTimeToggle) {
+          customTimeToggle.checked = isCustomTime;
+          toggleCustomTime(isCustomTime);
         }
 
-        if (document.getElementById("ev-custom-date")) {
-          document.getElementById("ev-custom-date").value = ev.dates || "";
-        }
         if (document.getElementById("ev-custom-time")) {
           document.getElementById("ev-custom-time").value = ev.times || "";
         }
@@ -4556,9 +4517,11 @@
           }
 
           // Gather logic
-          let scheduleType = "one-time";
-          const customToggle = document.getElementById("ev-custom-timing-toggle");
-          const isCustomTiming = customToggle ? customToggle.checked : false;
+          const scheduleTypeRadio = document.querySelector('input[name="ev-schedule-type"]:checked');
+          const scheduleType = scheduleTypeRadio ? scheduleTypeRadio.value : "one-time";
+          
+          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+          const isCustomTime = (customTimeToggle && customTimeToggle.checked);
           
           let category = "Date-specific Events";
           let dates = "";
@@ -4567,64 +4530,49 @@
           let endTime = "";
           let times = "";
           
-          if (isCustomTiming) {
-            scheduleType = "custom";
-            dates = document.getElementById("ev-custom-date").value.trim();
-            times = document.getElementById("ev-custom-time").value.trim();
-            
-            // Elegantly guess category
-            const dateLower = dates.toLowerCase();
-            if (dateLower.includes("daily") || dateLower.includes("every day") || dateLower.includes("everyday")) {
-              category = "Daily Events";
-              days = "Daily";
-            } else if (dateLower.includes("weekly") || dateLower.includes("every") || dateLower.includes("mon") || dateLower.includes("tue") || dateLower.includes("wed") || dateLower.includes("thu") || dateLower.includes("fri") || dateLower.includes("sat") || dateLower.includes("sun")) {
-              category = "Weekly Events";
-              days = dates;
-            } else {
-              category = "Date-specific Events";
+          // 1. Resolve Dates / Days / Category
+          if (scheduleType === "one-time") {
+            const startDt = document.getElementById("ev-start-date").value;
+            const endDt = document.getElementById("ev-end-date").value;
+
+            if (startDt && endDt && endDt < startDt) {
+              singleEventStatus.innerHTML = `❌ <span style="color:red;">End Date can never be less than Start Date.</span>`;
+              return;
+            }
+
+            dates = startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
+
+            if (startDt && endDt) {
+              const sDt = new Date(startDt);
+              const eDt = new Date(endDt);
+              const diffTime = Math.abs(eDt - sDt);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              if (diffDays > 8) {
+                category = "Daily Events";
+                days = diffDays + " days total";
+              }
             }
           } else {
-            const scheduleTypeRadio = document.querySelector('input[name="ev-schedule-type"]:checked');
-            scheduleType = scheduleTypeRadio ? scheduleTypeRadio.value : "one-time";
-            
-            if (scheduleType === "one-time") {
-              const startDt = document.getElementById("ev-start-date").value;
-              const endDt = document.getElementById("ev-end-date").value;
+            // Recurring Event
+            const checkedWeekdays = Array.from(
+              document.querySelectorAll('input[name="ev-weekdays"]:checked'),
+            ).map((cb) => cb.value);
+            days = checkedWeekdays.join(", ");
 
-              if (startDt && endDt && endDt < startDt) {
-                singleEventStatus.innerHTML = `❌ <span style="color:red;">End Date can never be less than Start Date.</span>`;
-                return;
-              }
-
-              dates =
-                startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
-
-              if (startDt && endDt) {
-                const sDt = new Date(startDt);
-                const eDt = new Date(endDt);
-                const diffTime = Math.abs(eDt - sDt);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                if (diffDays > 8) {
-                  category = "Daily Events";
-                  days = diffDays + " days total";
-                }
-              }
+            if (checkedWeekdays.length > 5) {
+              category = "Daily Events";
+            } else if (checkedWeekdays.length > 0) {
+              category = "Weekly Events";
             } else {
-              const checkedWeekdays = Array.from(
-                document.querySelectorAll('input[name="ev-weekdays"]:checked'),
-              ).map((cb) => cb.value);
-              days = checkedWeekdays.join(", ");
-
-              if (checkedWeekdays.length > 5) {
-                category = "Daily Events";
-              } else if (checkedWeekdays.length > 0) {
-                category = "Weekly Events";
-              } else {
-                category = "Weekly Events";
-              }
+              category = "Weekly Events";
             }
-            
+          }
+
+          // 2. Resolve Times
+          if (isCustomTime) {
+            times = document.getElementById("ev-custom-time").value.trim();
+          } else {
             startTime = document.getElementById("ev-start-time").value;
             endTime = document.getElementById("ev-end-time").value;
             times = startTime + (endTime ? " - " + endTime : "");
