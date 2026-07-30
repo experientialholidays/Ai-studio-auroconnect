@@ -914,10 +914,30 @@
         if (!daysVal) return '';
         let str = Array.isArray(daysVal) ? daysVal.join(', ') : String(daysVal).trim();
         if (!str) return '';
-        if (/^every/i.test(str)) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
+        const shortMap = {
+            "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu", "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
+            "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+        };
+        let daysArr = [];
+        if (str.startsWith('[')) {
+            try { daysArr = JSON.parse(str.replace(/'/g, '"')); } catch(e) { daysArr = str.split(/[\n,\s]+/); }
+        } else {
+            daysArr = str.split(/[\n,\s]+/);
         }
-        return 'Every ' + str;
+        let result = [];
+        daysArr.forEach(d => {
+            let lower = d.toLowerCase().replace(/[^a-z]/g, '');
+            if (shortMap[lower]) {
+                result.push(shortMap[lower]);
+            } else if (lower === "daily" || lower === "everyday" || lower === "every day") {
+                result.push("Daily");
+            } else if (d.trim()) {
+                result.push(d.trim().charAt(0).toUpperCase() + d.trim().slice(1));
+            }
+        });
+        if (result.length === 0) return '';
+        if (result.includes("Daily")) return "Daily";
+        return result.join(", ");
     }
 
     function render() {
@@ -996,8 +1016,11 @@
         
         html += `<div class="event-title">${event.title || 'Event Details'}</div>`;
         
+        const cat = (event.category || '').toLowerCase().trim();
+        const isWeeklyOrDaily = cat.includes('daily') || cat.includes('weekly') || (event.days && (event.days.toLowerCase().includes('daily') || event.days.toLowerCase().includes('everyday')));
+
         const rawDate = event.dates || event.startDate || event.date || '';
-        const formattedDate = rawDate ? formatDateToHuman(rawDate) : '';
+        const formattedDate = isWeeklyOrDaily ? '' : (rawDate ? formatDateToHuman(rawDate) : '');
         const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
         if (formattedDate) {
             html += `<div class="detail-row"><span class="detail-label">Date:</span> ${formattedDate}</div>`;

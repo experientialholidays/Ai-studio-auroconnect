@@ -315,16 +315,12 @@ function formatDatesDisplay(data, categoryType) {
 
   let finalDisplay = "";
   if (categoryType === "daily" || categoryType === "weekly") {
-    if (hasRealDate && datesDisplay) {
-      finalDisplay = datesDisplay;
+    const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
+    const shortDays = getShortWeekdays(daysVal);
+    if (shortDays) {
+      finalDisplay = shortDays;
     } else {
-      const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
-      const shortDays = getShortWeekdays(daysVal);
-      if (shortDays) {
-        finalDisplay = `Every ${shortDays}`;
-      } else {
-        finalDisplay = categoryType === "daily" ? "Every Day" : "";
-      }
+      finalDisplay = categoryType === "daily" ? "Daily" : "Weekly";
     }
   } else {
     if (datesDisplay) {

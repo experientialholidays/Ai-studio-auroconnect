@@ -57,6 +57,53 @@ const DAYS_OF_WEEK = [
   "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
 ];
 
+const getEventDaysDisplay = (event: any) => {
+  if (!event) return "";
+  const category = (event.category || "").toLowerCase().trim();
+  const days = (event.days || "").toLowerCase().trim();
+  const isWeeklyOrDaily = category.includes("daily") || category.includes("weekly") || days.includes("daily") || days.includes("every day") || days.includes("everyday");
+  
+  if (isWeeklyOrDaily) {
+    const daysVal = event.days || "";
+    if (!daysVal) return category.includes("daily") ? "Daily" : "Weekly";
+    let daysArr: string[] = [];
+    if (Array.isArray(daysVal)) {
+      daysArr = daysVal;
+    } else {
+      let cleaned = String(daysVal).trim();
+      if (cleaned.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(cleaned.replace(/'/g, '"'));
+          if (Array.isArray(parsed)) daysArr = parsed;
+        } catch (e) {
+          daysArr = cleaned.split(/,\s*/);
+        }
+      } else {
+        daysArr = cleaned.split(/,\s*/);
+      }
+    }
+    const shortMap: Record<string, string> = {
+      "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu", "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
+      "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+    };
+    const result: string[] = [];
+    daysArr.forEach((d) => {
+      const lower = d.toLowerCase().trim();
+      if (shortMap[lower]) {
+        result.push(shortMap[lower]);
+      } else if (lower === "daily" || lower === "every day" || lower === "everyday") {
+        result.push("Daily");
+      } else if (d.trim()) {
+        result.push(d.trim().charAt(0).toUpperCase() + d.trim().slice(1));
+      }
+    });
+    if (result.length === 0) return category.includes("daily") ? "Daily" : "Weekly";
+    if (result.includes("Daily")) return "Daily";
+    return result.join(", ");
+  }
+  return event.dates || event.days || "";
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<"chat" | "catalog">("chat");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -865,40 +912,38 @@ export default function App() {
                         </div>
 
                         <div className="space-y-1.5 text-[11px] text-slate-500 font-semibold pt-4 border-t border-slate-100 mt-4">
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            <span className="truncate">{event.dates || event.days}</span>
+                          <div className="flex flex-wrap items-center gap-y-1 gap-x-1.5 leading-tight">
+                            <div className="flex items-center gap-1.5">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span className="truncate max-w-[140px]" title={getEventDaysDisplay(event)}>{getEventDaysDisplay(event)}</span>
+                            </div>
+                            {event.audience && (
+                              <>
+                                <span className="text-slate-300">|</span>
+                                <div className="flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[140px]" title={event.audience}>{event.audience}</span>
+                                </div>
+                              </>
+                            )}
+                            {event.cost && (
+                              <>
+                                <span className="text-slate-300">|</span>
+                                <div className="flex items-center gap-1.5">
+                                  <DollarSign className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[140px]" title={event.cost}>{event.cost}</span>
+                                </div>
+                              </>
+                            )}
                           </div>
                           <div className="flex items-center gap-1.5">
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span>{event.times}</span>
                           </div>
-                          {(event.venue || event.audience || event.cost) && (
-                            <div className="flex flex-wrap items-center gap-y-1 gap-x-1.5 text-slate-500 font-semibold leading-tight pt-0.5">
-                              {event.venue && (
-                                <div className="flex items-center gap-1.5">
-                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  <span className="truncate max-w-[140px]" title={event.venue}>{event.venue}</span>
-                                </div>
-                              )}
-                              {event.venue && (event.audience || event.cost) && (
-                                <span className="text-slate-300">|</span>
-                              )}
-                              {event.audience && (
-                                <div className="flex items-center gap-1.5">
-                                  <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  <span className="truncate max-w-[140px]" title={event.audience}>{event.audience}</span>
-                                </div>
-                              )}
-                              {event.audience && event.cost && (
-                                <span className="text-slate-300">|</span>
-                              )}
-                              {event.cost && (
-                                <div className="flex items-center gap-1.5">
-                                  <DollarSign className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                                  <span className="truncate max-w-[140px]" title={event.cost}>{event.cost}</span>
-                                </div>
-                              )}
+                          {event.venue && (
+                            <div className="flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <span className="truncate" title={event.venue}>{event.venue}</span>
                             </div>
                           )}
                         </div>
@@ -1018,7 +1063,7 @@ export default function App() {
                         <Calendar className="w-3.5 h-3.5" />
                         DATES & DAYS
                       </span>
-                      <p className="text-xs font-semibold text-slate-700 truncate">{selectedEvent.dates || selectedEvent.days}</p>
+                      <p className="text-xs font-semibold text-slate-700 truncate">{getEventDaysDisplay(selectedEvent)}</p>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-1">
                       <span className="text-[10px] font-bold text-slate-400 font-mono flex items-center gap-1">
@@ -1033,47 +1078,47 @@ export default function App() {
                   <div className="space-y-4">
                     
                     {/* Venue Location info */}
-                    <div className="flex gap-3 items-start">
-                      <div className="p-2 bg-emerald-50 text-emerald-800 rounded-lg shrink-0 mt-0.5">
+                    <div className="flex gap-3 items-center">
+                      <div className="p-2 bg-emerald-50 text-emerald-800 rounded-lg shrink-0">
                         <MapPin className="w-4 h-4" />
                       </div>
-                      <div>
-                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase">Venue / Location</h4>
-                        <p className="text-sm font-semibold text-slate-800 leading-snug mt-0.5">{selectedEvent.venue}</p>
+                      <div className="flex items-baseline gap-1.5 flex-wrap text-left">
+                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">Venue / Location:</h4>
+                        <span className="text-sm font-semibold text-slate-800 leading-snug">{selectedEvent.venue}</span>
                       </div>
                     </div>
 
                     {/* Contribution/Cost info */}
-                    <div className="flex gap-3 items-start">
-                      <div className="p-2 bg-amber-50 text-amber-800 rounded-lg shrink-0 mt-0.5">
+                    <div className="flex gap-3 items-center">
+                      <div className="p-2 bg-amber-50 text-amber-800 rounded-lg shrink-0">
                         <DollarSign className="w-4 h-4" />
                       </div>
-                      <div>
-                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase">Contribution & Cost</h4>
-                        <p className="text-sm font-semibold text-slate-800 leading-snug mt-0.5">{selectedEvent.cost || "Donation / Free based"}</p>
+                      <div className="flex items-baseline gap-1.5 flex-wrap text-left">
+                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">Contribution & Cost:</h4>
+                        <span className="text-sm font-semibold text-slate-800 leading-snug">{selectedEvent.cost || "Donation / Free based"}</span>
                       </div>
                     </div>
 
                     {/* Target audience */}
-                    <div className="flex gap-3 items-start">
-                      <div className="p-2 bg-purple-50 text-purple-800 rounded-lg shrink-0 mt-0.5">
+                    <div className="flex gap-3 items-center">
+                      <div className="p-2 bg-purple-50 text-purple-800 rounded-lg shrink-0">
                         <Users className="w-4 h-4" />
                       </div>
-                      <div>
-                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase">Prerequisites & Audience</h4>
-                        <p className="text-sm font-semibold text-slate-800 leading-snug mt-0.5">{selectedEvent.audience || "All residents, visitors and guests welcome"}</p>
+                      <div className="flex items-baseline gap-1.5 flex-wrap text-left">
+                        <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">Prerequisites & Audience:</h4>
+                        <span className="text-sm font-semibold text-slate-800 leading-snug">{selectedEvent.audience || "All residents, visitors and guests welcome"}</span>
                       </div>
                     </div>
 
                     {/* Contact detail */}
                     {selectedEvent.contact && (
-                      <div className="flex gap-3 items-start">
-                        <div className="p-2 bg-slate-100 text-slate-700 rounded-lg shrink-0 mt-0.5">
+                      <div className="flex gap-3 items-center">
+                        <div className="p-2 bg-slate-100 text-slate-700 rounded-lg shrink-0">
                           <Phone className="w-4 h-4" />
                         </div>
-                        <div>
-                          <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase">Contact Organizer</h4>
-                          <p className="text-sm font-semibold text-slate-800 leading-snug mt-0.5">{selectedEvent.contact}</p>
+                        <div className="flex items-baseline gap-1.5 flex-wrap text-left">
+                          <h4 className="text-[10px] font-bold text-slate-400 font-mono uppercase tracking-wider">Contact Organizer:</h4>
+                          <span className="text-sm font-semibold text-slate-800 leading-snug">{selectedEvent.contact}</span>
                         </div>
                       </div>
                     )}
