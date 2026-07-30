@@ -232,6 +232,23 @@ function getShortWeekdays(daysField) {
   if (result.includes("day")) return "Day";
   return result.join(", ");
 }
+function shortenWeekdays(str) {
+  if (!str) return "";
+  const replacements = [
+    { full: /monday/gi, short: "Mon" },
+    { full: /tuesday/gi, short: "Tue" },
+    { full: /wednesday/gi, short: "Wed" },
+    { full: /thursday/gi, short: "Thu" },
+    { full: /friday/gi, short: "Fri" },
+    { full: /saturday/gi, short: "Sat" },
+    { full: /sunday/gi, short: "Sun" }
+  ];
+  let res = str;
+  replacements.forEach(({ full, short }) => {
+    res = res.replace(full, short);
+  });
+  return res;
+}
 function formatDatesDisplay(data, categoryType) {
   const evStart = data.startDate || data.originalHeaders && data.originalHeaders.startDate || "";
   const evEnd = data.endDate || data.originalHeaders && data.originalHeaders.endDate || "";
@@ -290,27 +307,40 @@ function formatDatesDisplay(data, categoryType) {
     if (!allWeekdays) {
       hasRealDate = true;
       datesDisplay = parsedDates.join(", ");
+    } else {
+      hasRealDate = true;
+      datesDisplay = getShortWeekdays(parsedDates);
     }
   }
+
+  let finalDisplay = "";
   if (categoryType === "daily" || categoryType === "weekly") {
     if (hasRealDate && datesDisplay) {
-      return datesDisplay;
+      finalDisplay = datesDisplay;
     } else {
       const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
       const shortDays = getShortWeekdays(daysVal);
       if (shortDays) {
-        return `Every ${shortDays}`;
+        finalDisplay = `Every ${shortDays}`;
       } else {
-        return categoryType === "daily" ? "Every Day" : "";
+        finalDisplay = categoryType === "daily" ? "Every Day" : "";
       }
     }
   } else {
-    if (datesDisplay) return datesDisplay;
-    const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
-    const shortDays = getShortWeekdays(daysVal);
-    if (shortDays) return `Every ${shortDays}`;
-    return "";
+    if (datesDisplay) {
+      finalDisplay = datesDisplay;
+    } else {
+      const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
+      const shortDays = getShortWeekdays(daysVal);
+      if (shortDays) {
+        finalDisplay = `Every ${shortDays}`;
+      } else {
+        finalDisplay = "";
+      }
+    }
   }
+
+  return shortenWeekdays(finalDisplay);
 }
 function isEventEnded(event, currentTime24) {
   const { start, end } = getEventStartAndEndTimes(event);

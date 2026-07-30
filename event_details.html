@@ -101,6 +101,10 @@
     }
     
     .ec-type {
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
         color: #64748b;
     }
     
@@ -505,6 +509,60 @@
             max-height: 380px;
         }
     }
+
+    .floating-contact-container {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        z-index: 999;
+    }
+
+    .floating-contact-btn {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        cursor: pointer;
+        transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+        position: relative;
+    }
+
+    .floating-contact-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    }
+
+    .floating-contact-btn:active {
+        transform: scale(0.95);
+    }
+
+    .floating-contact-btn.whatsapp-btn {
+        background: #25d366;
+    }
+
+    .floating-contact-btn.email-btn {
+        background: #1a73e8;
+    }
+
+    @media (max-width: 600px) {
+        .floating-contact-container {
+            right: 16px;
+            bottom: 16px;
+            gap: 10px;
+        }
+        .floating-contact-btn {
+            width: 48px;
+            height: 48px;
+        }
+    }
     </style>
 </head>
 <body>
@@ -534,6 +592,8 @@
 </div>
 
 <div class="disclaimer"></div>
+
+<div id="floating-contact-container" class="floating-contact-container"></div>
 
 <script>
     const event = {{EVENT_DATA}};
@@ -938,12 +998,12 @@
         
         const rawDate = event.dates || event.startDate || event.date || '';
         const formattedDate = rawDate ? formatDateToHuman(rawDate) : '';
+        const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
         if (formattedDate) {
             html += `<div class="detail-row"><span class="detail-label">Date:</span> ${formattedDate}</div>`;
         }
         
         if (event.days) {
-            const formattedDays = formatDaysDisplay(event.days);
             if (formattedDays) {
                 html += `<div class="detail-row"><span class="detail-label">Days:</span> ${formattedDays}</div>`;
             }
@@ -986,18 +1046,53 @@
             html += `<div class="description">${event.description}</div>`;
         }
         
-        if (event.email || event.whatsapp) {
-            html += `<div class="contact-buttons" style="display: flex; gap: 10px; margin-top: 16px; margin-bottom: 8px; width: 100%;">`;
-            if (event.email) {
-                const mailHref = "mailto:" + event.email.trim() + "?subject=" + encodeURIComponent("Inquiry regarding: " + (event.title || "Event"));
-                html += `<a href="${mailHref}" target="_blank" class="action-btn" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-weight: 600; background: #ea4335; color: #ffffff; border-radius: 8px; font-size: 0.88rem; border: none;">✉️ Email</a>`;
+        // Render floating contact icons
+        const floatingContainer = document.getElementById("floating-contact-container");
+        if (floatingContainer) {
+            let floatingHtml = '';
+            if (event.email || event.whatsapp) {
+                const eventTitle = event.title || 'Event';
+                const dateOrDay = formattedDate || formattedDays || '';
+                const locationStr = event.venue || '';
+                
+                let datePart = dateOrDay ? ` on "${dateOrDay}"` : '';
+                let locationPart = locationStr ? ` at ${locationStr}` : '';
+                const draftMessage = `Hi! I came across the "${eventTitle}" event to be held${datePart}${locationPart} on auroconnect.info. Could I please get more details?`;
+                
+                if (event.whatsapp) {
+                    let waHref = "";
+                    if (event.whatsapp.startsWith("http")) {
+                        try {
+                            const url = new URL(event.whatsapp);
+                            url.searchParams.set("text", draftMessage);
+                            waHref = url.toString();
+                        } catch(e) {
+                            waHref = event.whatsapp;
+                        }
+                    } else {
+                        const waNumber = event.whatsapp.replace(/[^0-9]/g, '');
+                        waHref = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent(draftMessage);
+                    }
+                    floatingHtml += `
+                    <a href="${waHref}" target="_blank" class="floating-contact-btn whatsapp-btn" aria-label="WhatsApp Organizer">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </a>`;
+                }
+                
+                if (event.email) {
+                    const mailHref = "mailto:" + event.email.trim() + "?subject=" + encodeURIComponent("Inquiry regarding: " + eventTitle) + "&body=" + encodeURIComponent(draftMessage);
+                    floatingHtml += `
+                    <a href="${mailHref}" target="_blank" class="floating-contact-btn email-btn" aria-label="Email Organizer">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                            <polyline points="22,6 12,13 2,6"></polyline>
+                        </svg>
+                    </a>`;
+                }
             }
-            if (event.whatsapp) {
-                const waNumber = event.whatsapp.replace(/[^0-9]/g, '');
-                const waHref = event.whatsapp.startsWith("http") ? event.whatsapp : ("https://wa.me/" + waNumber + "?text=" + encodeURIComponent("Hi, I am interested in " + (event.title || "the event")));
-                html += `<a href="${waHref}" target="_blank" class="action-btn" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-weight: 600; background: #25d366; color: #ffffff; border-radius: 8px; font-size: 0.88rem; border: none;">💬 WhatsApp</a>`;
-            }
-            html += `</div>`;
+            floatingContainer.innerHTML = floatingHtml;
         }
         
         html += `</div>`;
