@@ -34,6 +34,7 @@ COPY --from=builder /app/index.html ./index.html
 COPY --from=builder /app/submit.html ./submit.html
 COPY --from=builder /app/dashboard.html ./dashboard.html
 COPY --from=builder /app/contact.html ./contact.html
+COPY --from=builder /app/event_details.html ./event_details.html
 COPY --from=builder /app/common.js ./common.js
 COPY --from=builder /app/package.json /app/firebase-applet-config.json* ./
 COPY --from=builder /app/assets ./assets

@@ -873,10 +873,32 @@ export default function App() {
                             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                             <span>{event.times}</span>
                           </div>
-                          {event.venue && (
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{event.venue}</span>
+                          {(event.venue || event.audience || event.cost) && (
+                            <div className="flex flex-wrap items-center gap-y-1 gap-x-1.5 text-slate-500 font-semibold leading-tight pt-0.5">
+                              {event.venue && (
+                                <div className="flex items-center gap-1.5">
+                                  <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[140px]" title={event.venue}>{event.venue}</span>
+                                </div>
+                              )}
+                              {event.venue && (event.audience || event.cost) && (
+                                <span className="text-slate-300">|</span>
+                              )}
+                              {event.audience && (
+                                <div className="flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[140px]" title={event.audience}>{event.audience}</span>
+                                </div>
+                              )}
+                              {event.audience && event.cost && (
+                                <span className="text-slate-300">|</span>
+                              )}
+                              {event.cost && (
+                                <div className="flex items-center gap-1.5">
+                                  <DollarSign className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                  <span className="truncate max-w-[140px]" title={event.cost}>{event.cost}</span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
