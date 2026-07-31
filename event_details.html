@@ -4,76 +4,152 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Details | AuroConnect</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
     :root { 
-        --accent: #0b57d0; 
-        --bg: #f8f9fa; 
-        --surface: #ffffff;
-        --text: #1f1f1f;
-        --text-secondary: #444444;
-        --border: #ddd;
-        --user-msg-bg: #e9eef6;
-        --input-border: #dfe1e5;
-        --shadow: rgba(0,0,0,0.05);
+        --accent: #C85A32; 
+        --bg: #F5F0EB; 
+        --surface: #FFFFFF;
+        --text: #3D2314;
+        --text-secondary: #6E5D4F;
+        --border: #E6DDD5;
+        --user-msg-bg: #EEF2ED;
+        --input-border: #D8CEC4;
+        --shadow: rgba(61, 35, 20, 0.08);
     }
 
     @media (prefers-color-scheme: dark) {
         :root {
-            --bg: #000000; 
-            --surface: #1e1e1e; 
-            --text: #f1f3f4; 
-            --text-secondary: #bdc1c6; 
-            --border: #3c4043;
-            --user-msg-bg: #1a73e8; 
-            --accent: #8ab4f8; 
-            --input-border: #5f6368;
-            --shadow: rgba(0,0,0,0.5);
+            --bg: #1A1715; 
+            --surface: #24201D; 
+            --text: #F5E8DF; 
+            --text-secondary: #C4B5A5; 
+            --border: #3A342E;
+            --user-msg-bg: #232B25; 
+            --accent: #E07A5F; 
+            --input-border: #483F37;
+            --shadow: rgba(0,0,0,0.4);
         }
     }
 
-    html { font-size: 100%; }
-
-    body { 
+    html, body {
         margin: 0; 
-        font-family: 'Segoe UI', Roboto, sans-serif; 
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
         background: var(--bg); 
         color: var(--text);
-        display: flex; 
-        flex-direction: column; 
-        height: 100vh;
+        overflow: hidden;
         -webkit-text-size-adjust: 100%;
         touch-action: pan-y;
         overscroll-behavior: none;
     }
 
-    .header-title-group {
+    /* Fullscreen Overlay Backdrop */
+    #main-content {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        background: rgba(30, 20, 15, 0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         display: flex;
         flex-direction: column;
-        gap: 0.4rem;
-    }
-    .header h1 { margin: 0; font-size: 1.375rem; color: var(--text); line-height: 1; }
-    .coffee-link {
-        color: var(--accent);
-        text-decoration: underline;
-        text-underline-offset: 4px;
-        font-weight: 500; 
-        font-size: 0.9rem; 
-        display: inline-block;
-    }
-
-    #main-content {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        display: flex;
-        justify-content: center;
-        padding: 1.25rem 5%;
+        justify-content: flex-end;
+        align-items: center;
+        opacity: 0;
+        animation: sheetFadeIn 0.25s ease-out forwards;
         box-sizing: border-box;
     }
 
+    @keyframes sheetFadeIn {
+        to { opacity: 1; }
+    }
+
+    /* Bottom Sliding Sheet Container */
     .details-container {
         width: 100%;
-        max-width: 50rem;
+        max-width: 680px;
+        background: var(--surface);
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+        border: 1px solid var(--border);
+        border-bottom: none;
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
+        max-height: 80vh;
+        height: fit-content;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transform: translateY(100%);
+        animation: sheetSlideUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    @keyframes sheetSlideUp {
+        to { transform: translateY(0); }
+    }
+
+    /* Sticky Drag Handle Header */
+    .sheet-header-bar {
+        padding: 10px 18px 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        user-select: none;
+    }
+
+    .sheet-handle {
+        width: 44px;
+        height: 5px;
+        background: var(--border);
+        border-radius: 3px;
+        margin-bottom: 10px;
+        cursor: grab;
+        transition: background 0.2s;
+    }
+
+    .sheet-handle:active {
+        cursor: grabbing;
+        background: var(--accent);
+    }
+
+    .sheet-top-controls {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .sheet-title-badge {
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1.3;
+        letter-spacing: -0.015em;
+        max-width: 95%;
+        text-align: center;
+        margin: 2px 0 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Scrollable Event Content inside Sheet */
+    #event-content {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        max-height: calc(80vh - 65px);
+        padding: 16px 20px 32px;
+        box-sizing: border-box;
     }
 
     .event-card {
@@ -83,12 +159,11 @@
         width: 100%;
         box-sizing: border-box;
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px 14px;
-        margin: 8px 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        line-height: 1.35;
+        border: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        line-height: 1.4;
         position: relative;
     }
 
@@ -273,6 +348,144 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+
+    .main-media-view-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pdf-media-wrapper {
+        width: 100%;
+        min-height: 220px;
+        max-height: 520px;
+        position: relative;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .pdf-canvas-display {
+        max-width: 100%;
+        max-height: 520px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        display: block;
+        margin: 0 auto;
+        border-radius: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .main-display-pdf {
+        width: 100%;
+        height: 100%;
+        border: none;
+        pointer-events: none;
+    }
+
+    .pdf-click-overlay {
+        position: absolute;
+        bottom: 12px;
+        left: 12px;
+        z-index: 4;
+        pointer-events: none;
+    }
+
+    .pdf-overlay-badge {
+        background: rgba(0, 0, 0, 0.75);
+        color: #ffffff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 12px;
+        backdrop-filter: blur(4px);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .pdf-thumb-label {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        background: rgba(200, 90, 50, 0.9);
+        color: #ffffff;
+        font-size: 0.55rem;
+        font-weight: 700;
+        padding: 1px 4px;
+        border-radius: 3px;
+        pointer-events: none;
+    }
+
+    .pdf-thumb-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg);
+        color: var(--accent);
+        font-size: 0.65rem;
+        font-weight: 700;
+        gap: 2px;
+    }
+
+    .lightbox-pdf-wrapper {
+        width: 90vw;
+        height: 72vh;
+        max-width: 1000px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .lightbox-pdf-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 8px;
+        background: #ffffff;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+
+    .lightbox-pdf-download-link {
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        padding: 6px 16px;
+        border-radius: 16px;
+        font-size: 0.85rem;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+
+    .lightbox-pdf-download-link:hover {
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    .lightbox-thumb.pdf-thumb {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        font-size: 0.65rem;
+        font-weight: 700;
+        gap: 2px;
+        border-radius: 6px;
+        width: 50px;
+        height: 50px;
     }
 
     /* Lightbox Modal */
@@ -569,8 +782,14 @@
 
 <div class="header"></div>
 
-<div id="main-content">
-    <div class="details-container">
+<div id="main-content" onclick="handleBackdropClick(event)">
+    <div class="details-container" id="details-sheet" onclick="event.stopPropagation()">
+        <div class="sheet-header-bar" id="sheet-header-bar">
+            <div class="sheet-handle" title="Drag down to close"></div>
+            <div class="sheet-top-controls">
+                <span id="sheet-title-badge" class="sheet-title-badge">Event Details</span>
+            </div>
+        </div>
         <div id="event-content"></div>
     </div>
 </div>
@@ -693,6 +912,12 @@
         });
     }
 
+    function isPdf(url) {
+        if (!url || typeof url !== 'string') return false;
+        const clean = url.split('?')[0].toLowerCase();
+        return clean.endsWith('.pdf') || clean.includes('.pdf');
+    }
+
     function initMedia() {
         let allMedia = [];
         if (Array.isArray(event.mediaUrls)) {
@@ -714,26 +939,100 @@
 
         eventImages = allMedia.filter(url => {
             const lower = url.toLowerCase();
-            return !lower.includes('.pdf') && !lower.includes('.doc') && !lower.includes('.ppt') && !lower.includes('.xls');
+            return !lower.includes('.doc') && !lower.includes('.ppt') && !lower.includes('.xls');
         });
 
         eventDocs = allMedia.filter(url => {
             const lower = url.toLowerCase();
-            return lower.includes('.pdf') || lower.includes('.doc') || lower.includes('.ppt') || lower.includes('.xls');
+            return lower.includes('.doc') || lower.includes('.ppt') || lower.includes('.xls');
         });
+    }
+
+    function renderPdfToCanvas(pdfUrl, canvasEl, options) {
+        options = options || {};
+        if (!canvasEl || !pdfUrl) return;
+
+        if (typeof pdfjsLib === 'undefined') {
+            setTimeout(() => renderPdfToCanvas(pdfUrl, canvasEl, options), 200);
+            return;
+        }
+
+        try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            const proxyUrl = '/api/pdf-proxy?url=' + encodeURIComponent(pdfUrl);
+            const loadingTask = pdfjsLib.getDocument(proxyUrl);
+            loadingTask.promise.then(function(pdf) {
+                return pdf.getPage(options.page || 1);
+            }).then(function(page) {
+                const scale = options.scale || 1.8;
+                const viewport = page.getViewport({ scale: scale });
+                const context = canvasEl.getContext('2d');
+                canvasEl.height = viewport.height;
+                canvasEl.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                return page.render(renderContext).promise;
+            }).catch(function(err) {
+                console.warn("PDF.js render error:", err);
+                if (options.onError) options.onError(err);
+            });
+        } catch (e) {
+            console.warn("PDF.js exception:", e);
+            if (options.onError) options.onError(e);
+        }
     }
 
     function selectImage(index) {
         if (index < 0 || index >= eventImages.length) return;
         currentImgIndex = index;
-        const imgEl = document.getElementById("main-display-image");
-        if (imgEl) {
-            resetZoom(imgEl);
-            imgEl.src = eventImages[currentImgIndex];
+        const currentUrl = eventImages[currentImgIndex];
+        const mainFrame = document.getElementById("media-main-frame");
+
+        if (mainFrame) {
+            let container = document.getElementById("main-media-view-container");
+            if (!container) {
+                container = document.createElement("div");
+                container.id = "main-media-view-container";
+                container.className = "main-media-view-container";
+                mainFrame.insertBefore(container, mainFrame.firstChild);
+            }
+
+            if (isPdf(currentUrl)) {
+                container.innerHTML = `
+                    <div class="pdf-media-wrapper" onclick="openLightbox(currentImgIndex)">
+                        <canvas id="main-pdf-canvas" class="pdf-canvas-display"></canvas>
+                        <div class="pdf-click-overlay">
+                            <span class="pdf-overlay-badge">📄 PDF Document • Tap for Full View</span>
+                        </div>
+                    </div>`;
+                const mainCanvas = document.getElementById("main-pdf-canvas");
+                renderPdfToCanvas(currentUrl, mainCanvas, {
+                    scale: 1.8,
+                    onError: () => {
+                        container.innerHTML = `
+                            <div class="pdf-media-wrapper" onclick="openLightbox(currentImgIndex)">
+                                <iframe class="main-display-pdf" src="https://docs.google.com/gview?url=${encodeURIComponent(currentUrl)}&embedded=true" title="PDF Document"></iframe>
+                                <div class="pdf-click-overlay">
+                                    <span class="pdf-overlay-badge">📄 Tap for Full View</span>
+                                </div>
+                            </div>`;
+                    }
+                });
+            } else {
+                container.innerHTML = `
+                    <img id="main-display-image" class="main-display-img" src="${currentUrl}" alt="${event.title || 'Event Image'}" onclick="openLightbox(currentImgIndex)">`;
+                const imgEl = document.getElementById("main-display-image");
+                if (imgEl) attachTouchZoomHandlers(imgEl);
+            }
         }
+
         const badgeEl = document.getElementById("image-counter-badge");
         if (badgeEl) {
-            badgeEl.textContent = `${currentImgIndex + 1} / ${eventImages.length}`;
+            badgeEl.textContent = `${currentImgIndex + 1} of ${eventImages.length}`;
         }
         eventImages.forEach((_, idx) => {
             const thumb = document.getElementById(`thumb-${idx}`);
@@ -792,15 +1091,49 @@
     }
 
     function updateLightboxView() {
-        const lightboxImg = document.getElementById("lightbox-img");
-        if (lightboxImg) {
-            resetZoom(lightboxImg);
-            lightboxImg.src = eventImages[currentImgIndex];
-            attachTouchZoomHandlers(lightboxImg);
+        const lightboxContainer = document.querySelector(".lightbox-content");
+        if (!lightboxContainer) return;
+        
+        const currentUrl = eventImages[currentImgIndex];
+        const isCurrentPdf = isPdf(currentUrl);
+
+        let contentEl = document.getElementById("lightbox-media-display");
+        if (!contentEl) {
+            contentEl = document.createElement("div");
+            contentEl.id = "lightbox-media-display";
+            contentEl.style.width = "100%";
+            contentEl.style.height = "100%";
+            contentEl.style.display = "flex";
+            contentEl.style.alignItems = "center";
+            contentEl.style.justifyContent = "center";
+            lightboxContainer.innerHTML = '';
+            lightboxContainer.appendChild(contentEl);
         }
+
+        if (isCurrentPdf) {
+            contentEl.innerHTML = `
+                <div class="lightbox-pdf-wrapper">
+                    <div style="flex:1; width:100%; display:flex; align-items:center; justify-content:center; overflow:auto; position:relative;">
+                        <canvas id="lightbox-pdf-canvas" style="max-width:100%; max-height:75vh; object-fit:contain; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5);"></canvas>
+                    </div>
+                    <a href="${currentUrl}" target="_blank" class="lightbox-pdf-download-link" onclick="event.stopPropagation()">
+                        <span>Open Original PDF in New Tab</span> ↗
+                    </a>
+                </div>`;
+            const lightboxCanvas = document.getElementById("lightbox-pdf-canvas");
+            renderPdfToCanvas(currentUrl, lightboxCanvas, { scale: 2.2 });
+        } else {
+            contentEl.innerHTML = `<img id="lightbox-img" class="lightbox-img" src="${currentUrl}" alt="Full size image">`;
+            const lightboxImg = document.getElementById("lightbox-img");
+            if (lightboxImg) {
+                resetZoom(lightboxImg);
+                attachTouchZoomHandlers(lightboxImg);
+            }
+        }
+
         const titleEl = document.getElementById("lightbox-title");
         if (titleEl) {
-            titleEl.textContent = `Image ${currentImgIndex + 1} of ${eventImages.length}`;
+            titleEl.textContent = `${isCurrentPdf ? 'PDF' : 'Media'} ${currentImgIndex + 1} of ${eventImages.length}`;
         }
         
         const prevBtn = document.querySelector(".lightbox-nav-prev");
@@ -812,9 +1145,15 @@
 
         const thumbsContainer = document.getElementById("lightbox-thumbs");
         if (thumbsContainer) {
-            thumbsContainer.innerHTML = eventImages.map((url, idx) => `
-                <img src="${url}" class="lightbox-thumb ${idx === currentImgIndex ? 'active' : ''}" onclick="selectLightboxImage(${idx})" alt="Thumb ${idx + 1}">
-            `).join('');
+            thumbsContainer.innerHTML = eventImages.map((url, idx) => {
+                if (isPdf(url)) {
+                    return `<div class="lightbox-thumb pdf-thumb ${idx === currentImgIndex ? 'active' : ''}" onclick="selectLightboxImage(${idx})">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        <span>PDF</span>
+                    </div>`;
+                }
+                return `<img src="${url}" class="lightbox-thumb ${idx === currentImgIndex ? 'active' : ''}" onclick="selectLightboxImage(${idx})" alt="Thumb ${idx + 1}">`;
+            }).join('');
         }
     }
 
@@ -914,42 +1253,81 @@
         if (!daysVal) return '';
         let str = Array.isArray(daysVal) ? daysVal.join(', ') : String(daysVal).trim();
         if (!str) return '';
-        const shortMap = {
-            "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu", "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
-            "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+
+        const fullMap = {
+            "monday": "Monday", "tuesday": "Tuesday", "wednesday": "Wednesday", "thursday": "Thursday", "friday": "Friday", "saturday": "Saturday", "sunday": "Sunday",
+            "mon": "Monday", "tue": "Tuesday", "wed": "Wednesday", "thu": "Thursday", "thurs": "Thursday", "fri": "Friday", "sat": "Saturday", "sun": "Sunday"
         };
+
+        let hasLeadingEvery = false;
+        if (/^every\s+/i.test(str)) {
+            hasLeadingEvery = true;
+            str = str.replace(/^every\s+/i, '');
+        }
+
         let daysArr = [];
         if (str.startsWith('[')) {
             try { daysArr = JSON.parse(str.replace(/'/g, '"')); } catch(e) { daysArr = str.split(/[\n,\s]+/); }
         } else {
             daysArr = str.split(/[\n,\s]+/);
         }
+
         let result = [];
+        let containsWeekdays = false;
         daysArr.forEach(d => {
-            let lower = d.toLowerCase().replace(/[^a-z]/g, '');
-            if (shortMap[lower]) {
-                result.push(shortMap[lower]);
+            let clean = d.trim();
+            if (!clean) return;
+            let lower = clean.toLowerCase().replace(/[^a-z]/g, '');
+            if (fullMap[lower]) {
+                result.push(fullMap[lower]);
+                containsWeekdays = true;
             } else if (lower === "daily" || lower === "everyday" || lower === "every day") {
                 result.push("Daily");
-            } else if (d.trim()) {
-                result.push(d.trim().charAt(0).toUpperCase() + d.trim().slice(1));
+            } else {
+                result.push(clean.charAt(0).toUpperCase() + clean.slice(1));
             }
         });
+
         if (result.length === 0) return '';
-        if (result.includes("Daily")) return "Daily";
-        return result.join(", ");
+        if (result.includes("Daily")) return "Every day";
+
+        let formatted = result.join(", ");
+        if (containsWeekdays || hasLeadingEvery) {
+            if (!formatted.toLowerCase().startsWith("every")) {
+                formatted = "Every " + formatted;
+            }
+        }
+        return formatted;
     }
 
     function render() {
         initMedia();
         const container = document.getElementById("event-content");
+        const titleBadge = document.getElementById("sheet-title-badge");
+        if (titleBadge) {
+            titleBadge.textContent = event.title || "Event Details";
+        }
         
         let html = `<div class="event-card">`;
         
         if (eventImages.length > 0) {
+            const firstUrl = eventImages[0];
+            const isFirstPdf = isPdf(firstUrl);
+
             html += `<div class="media-gallery-container">
                 <div class="media-main-frame" id="media-main-frame" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event, false)">
-                    <img id="main-display-image" class="main-display-img" src="${eventImages[0]}" alt="${event.title || 'Event Image'}" onclick="openLightbox(currentImgIndex)">
+                    <div id="main-media-view-container" class="main-media-view-container">
+                    ${isFirstPdf ? `
+                        <div class="pdf-media-wrapper" onclick="openLightbox(0)">
+                            <canvas id="main-pdf-canvas" class="pdf-canvas-display"></canvas>
+                            <div class="pdf-click-overlay">
+                                <span class="pdf-overlay-badge">📄 PDF Document • Tap for Full View</span>
+                            </div>
+                        </div>
+                    ` : `
+                        <img id="main-display-image" class="main-display-img" src="${firstUrl}" alt="${event.title || 'Event Image'}" onclick="openLightbox(0)">
+                    `}
+                    </div>
                     <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="position: absolute; top: 10px; right: 10px; z-index: 5; background: rgba(0, 0, 0, 0.55); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="18" cy="5" r="3"></circle>
@@ -963,23 +1341,29 @@
             if (eventImages.length > 1) {
                 html += `<button type="button" class="media-nav-btn media-nav-prev" onclick="changeImage(-1, event)" aria-label="Previous Image">‹</button>
                          <button type="button" class="media-nav-btn media-nav-next" onclick="changeImage(1, event)" aria-label="Next Image">›</button>
-                         <div class="image-counter-badge" id="image-counter-badge">1 / ${eventImages.length}</div>`;
+                         <div class="image-counter-badge" id="image-counter-badge">1 of ${eventImages.length}</div>`;
+            } else {
+                html += `<div class="image-counter-badge" id="image-counter-badge">1 of 1</div>`;
             }
 
             html += `</div>`;
 
             if (eventImages.length > 1) {
                 html += `<div class="thumbnails-strip-container">
-                    <div class="thumbnails-header">
-                        <span>Event Gallery (${eventImages.length} images)</span>
-                        <span>Click to view / tap image for full screen</span>
-                    </div>
                     <div class="thumbnails-strip" id="thumbnails-strip">`;
                 
                 eventImages.forEach((imgUrl, idx) => {
-                    html += `<div class="thumbnail-item ${idx === 0 ? 'active' : ''}" onclick="selectImage(${idx})" id="thumb-${idx}">
-                        <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" loading="lazy">
-                    </div>`;
+                    const isItemPdf = isPdf(imgUrl);
+                    if (isItemPdf) {
+                        html += `<div class="thumbnail-item pdf-thumb ${idx === 0 ? 'active' : ''}" onclick="selectImage(${idx})" id="thumb-${idx}">
+                            <canvas id="thumb-pdf-canvas-${idx}" style="width:100%; height:100%; object-fit:cover; display:block;"></canvas>
+                            <span class="pdf-thumb-label">PDF</span>
+                        </div>`;
+                    } else {
+                        html += `<div class="thumbnail-item ${idx === 0 ? 'active' : ''}" onclick="selectImage(${idx})" id="thumb-${idx}">
+                            <img src="${imgUrl}" alt="Thumbnail ${idx + 1}" loading="lazy">
+                        </div>`;
+                    }
                 });
 
                 html += `</div></div>`;
@@ -1014,8 +1398,6 @@
             </div>
         </div>`;
         
-        html += `<div class="event-title">${event.title || 'Event Details'}</div>`;
-        
         const cat = (event.category || '').toLowerCase().trim();
         const isWeeklyOrDaily = cat.includes('daily') || cat.includes('weekly') || (event.days && (event.days.toLowerCase().includes('daily') || event.days.toLowerCase().includes('everyday')));
 
@@ -1043,8 +1425,22 @@
         if (event.audience) {
             html += `<div class="detail-row"><span class="detail-label">Key info:</span> ${event.audience}</div>`;
         }
-        if (event.contact) {
-            html += `<div class="detail-row"><span class="detail-label">Phone:</span> ${event.contact}</div>`;
+        if (event.contactPerson) {
+            html += `<div class="detail-row"><span class="detail-label">Contact Person:</span> ${event.contactPerson}</div>`;
+        }
+        if (event.whatsapp) {
+            const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
+            const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
+            html += `<div class="detail-row"><span class="detail-label">WhatsApp:</span> ${waDisplay}</div>`;
+        }
+        if (event.contact || event.phone) {
+            const phoneVal = String(event.contact || event.phone).trim();
+            if (phoneVal !== event.whatsapp) {
+                html += `<div class="detail-row"><span class="detail-label">Phone:</span> ${phoneVal}</div>`;
+            }
+        }
+        if (event.email) {
+            html += `<div class="detail-row"><span class="detail-label">Email:</span> ${event.email.trim()}</div>`;
         }
 
         let rawWebsite = event.website || event.externalLinks || event.links || '';
@@ -1125,6 +1521,21 @@
         if (mainImg) {
             attachTouchZoomHandlers(mainImg);
         }
+
+        if (eventImages.length > 0) {
+            if (isPdf(eventImages[0])) {
+                const mainCanvas = document.getElementById("main-pdf-canvas");
+                renderPdfToCanvas(eventImages[0], mainCanvas, { scale: 1.8 });
+            }
+            eventImages.forEach((imgUrl, idx) => {
+                if (isPdf(imgUrl)) {
+                    const thumbCanvas = document.getElementById(`thumb-pdf-canvas-${idx}`);
+                    if (thumbCanvas) {
+                        renderPdfToCanvas(imgUrl, thumbCanvas, { scale: 0.8 });
+                    }
+                }
+            });
+        }
     }
     
     function copyEventLink() {
@@ -1146,7 +1557,84 @@
         }
     }
 
+    function closeSheet() {
+        const sheet = document.getElementById("details-sheet");
+        const backdrop = document.getElementById("main-content");
+        if (sheet && backdrop) {
+            sheet.style.transform = "translateY(100%)";
+            sheet.style.transition = "transform 0.25s ease-in";
+            backdrop.style.opacity = "0";
+            backdrop.style.transition = "opacity 0.25s ease-in";
+            setTimeout(() => {
+                if (window.history.length > 1 && document.referrer && document.referrer.includes(window.location.host)) {
+                    window.history.back();
+                } else {
+                    window.location.href = "/";
+                }
+            }, 220);
+        } else {
+            window.location.href = "/";
+        }
+    }
+
+    function handleBackdropClick(e) {
+        if (e.target.id === "main-content") {
+            closeSheet();
+        }
+    }
+
+    let dragStartY = 0;
+    let dragCurrentY = 0;
+    let isDraggingSheet = false;
+
+    function initSheetDrag() {
+        const header = document.getElementById("sheet-header-bar");
+        const sheet = document.getElementById("details-sheet");
+        if (!header || !sheet) return;
+
+        header.addEventListener("touchstart", (e) => {
+            if (e.touches.length === 1) {
+                dragStartY = e.touches[0].clientY;
+                isDraggingSheet = true;
+                sheet.style.transition = "none";
+            }
+        }, { passive: true });
+
+        window.addEventListener("touchmove", (e) => {
+            if (!isDraggingSheet) return;
+            const deltaY = e.touches[0].clientY - dragStartY;
+            if (deltaY > 0) {
+                dragCurrentY = deltaY;
+                sheet.style.transform = `translateY(${deltaY}px)`;
+            }
+        }, { passive: true });
+
+        window.addEventListener("touchend", () => {
+            if (!isDraggingSheet) return;
+            isDraggingSheet = false;
+            sheet.style.transition = "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)";
+            if (dragCurrentY > 100) {
+                closeSheet();
+            } else {
+                sheet.style.transform = "translateY(0)";
+            }
+            dragCurrentY = 0;
+        });
+    }
+
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            const lightbox = document.getElementById("lightbox-modal");
+            if (lightbox && lightbox.classList.contains("open")) {
+                closeLightbox();
+            } else {
+                closeSheet();
+            }
+        }
+    });
+
     render();
+    initSheetDrag();
 </script>
 <script src="/common.js" type="module"></script>
 </body>

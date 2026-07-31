@@ -8,6 +8,22 @@
     document.head.appendChild(fontLink);
   }
 
+  // Inject dynamic favicon with the official AuroConnect logo
+  const logoUrl = "https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/Auroconnect_logo.png?alt=media&token=6defdb8f-f913-48b2-aa71-c0cccb82d642";
+  if (!document.querySelector("link[rel='icon']")) {
+    const favicon = document.createElement("link");
+    favicon.rel = "icon";
+    favicon.type = "image/png";
+    favicon.href = logoUrl;
+    document.head.appendChild(favicon);
+  }
+  if (!document.querySelector("link[rel='apple-touch-icon']")) {
+    const appleIcon = document.createElement("link");
+    appleIcon.rel = "apple-touch-icon";
+    appleIcon.href = logoUrl;
+    document.head.appendChild(appleIcon);
+  }
+
   // Inject CSS styles for the common header, typography, dropdown, and footer disclaimer
   const styleEl = document.createElement("style");
   styleEl.textContent = `
@@ -80,6 +96,23 @@
     .header-logo-link {
         text-decoration: none !important;
         color: inherit !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.65rem !important;
+    }
+
+    .header-logo-img {
+        width: 38px !important;
+        height: 38px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
+        border: 1.5px solid var(--border) !important;
+        box-shadow: 0 1px 4px var(--shadow) !important;
+        transition: transform 0.2s ease !important;
+    }
+
+    .header-logo-link:hover .header-logo-img {
+        transform: scale(1.05) !important;
     }
 
     /* Premium High-Visibility Buy Me a Coffee Button */
@@ -158,8 +191,8 @@
     .dropdown-user-info { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--text-secondary); word-break: break-all; }
     .disclaimer {
         text-align: center;
-        padding: 0.85rem 1rem;
-        font-size: 0.8rem;
+        padding: 0.6rem 0.5rem;
+        font-size: 0.72rem;
         color: var(--text-secondary);
         font-family: inherit !important;
         border-top: 1px solid var(--border) !important;
@@ -169,23 +202,55 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.4rem;
+        gap: 0.3rem;
+    }
+    .disclaimer-note {
+        font-size: clamp(0.52rem, 2.35vw, 0.7rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        text-align: center;
+        line-height: 1.25;
+        letter-spacing: -0.015em;
     }
     .disclaimer-links {
         display: flex;
-        gap: 0.5rem 0.75rem;
+        gap: 0.35rem 0.6rem;
         justify-content: center;
         align-items: center;
         flex-wrap: wrap;
+        font-size: 0.68rem;
     }
     .disclaimer-links a {
         color: var(--text-secondary);
         text-decoration: underline;
         font-weight: 500;
+        font-size: 0.68rem;
         transition: color 0.2s ease;
     }
     .disclaimer-links a:hover {
         color: var(--text);
+    }
+    .disclaimer-links span {
+        font-size: 0.6rem;
+        opacity: 0.7;
+    }
+    @media (max-width: 480px) {
+        .disclaimer {
+            padding: 0.45rem 0.2rem;
+            gap: 0.25rem;
+        }
+        .disclaimer-note {
+            font-size: clamp(0.5rem, 2.3vw, 0.65rem);
+        }
+        .disclaimer-links {
+            gap: 0.25rem 0.4rem;
+            font-size: 0.62rem;
+        }
+        .disclaimer-links a {
+            font-size: 0.62rem;
+        }
     }
   `;
   document.head.appendChild(styleEl);
@@ -251,7 +316,8 @@
     headerEl.innerHTML = `
       <div class="header-title-group">
           <a href="/" class="header-logo-link">
-              <h1>🤖 AuroConnect</h1>
+              <img src="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/Auroconnect_logo.png?alt=media&token=6defdb8f-f913-48b2-aa71-c0cccb82d642" onerror="this.onerror=null;this.src='/assets/logo.png';" alt="AuroConnect Logo" class="header-logo-img" />
+              <h1>AuroConnect</h1>
           </a>
       </div>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
@@ -275,7 +341,7 @@
       document.body.appendChild(disclaimerEl);
     }
     disclaimerEl.innerHTML = `
-      <div>“AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”</div>
+      <div class="disclaimer-note">“AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”</div>
       <div class="disclaimer-links">
         <a href="/privacy.html" style="${isPrivacy ? "font-weight: bold;" : ""}">Privacy Policy</a>
         <span>•</span>

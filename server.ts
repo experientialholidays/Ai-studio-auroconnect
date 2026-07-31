@@ -48,6 +48,28 @@ const MODEL = "gemini-3.1-flash-lite";
 const app = express();
 app.use(express.json());
 
+app.get("/api/pdf-proxy", async (req, res) => {
+    try {
+        const fileUrl = req.query.url as string;
+        if (!fileUrl) {
+            return res.status(400).send("Missing url parameter");
+        }
+        const fetchRes = await fetch(fileUrl);
+        if (!fetchRes.ok) {
+            return res.status(fetchRes.status).send("Failed to fetch PDF resource");
+        }
+        const contentType = fetchRes.headers.get("content-type") || "application/pdf";
+        res.setHeader("Content-Type", contentType);
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Cache-Control", "public, max-age=3600");
+        const arrayBuffer = await fetchRes.arrayBuffer();
+        res.send(Buffer.from(arrayBuffer));
+    } catch (err: any) {
+        console.error("PDF proxy error:", err);
+        res.status(500).send("Proxy error: " + err.message);
+    }
+});
+
 
 
 
@@ -67,7 +89,7 @@ function parseExcelDateToReadable(dateStr) {
     if (!isNaN(d.getTime())) {
       const formatter = new Intl.DateTimeFormat("en-GB", {
         day: "numeric",
-        month: "long",
+        month: "short",
         year: "numeric"
       });
       return formatter.format(d);
@@ -589,6 +611,130 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     const colRef = collection(db, "events");
     const snapshot = await getDocs(colRef);
     let events = snapshot.docs.map((docSnap) => ({ uuid: docSnap.id, ...docSnap.data() } as any));
+
+    const getWeekdayFromDateStr = (dateStr) => {
+      try {
+        const parts = dateStr.split("-");
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          const d = new Date(year, month, day);
+          const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+          return weekdays[d.getDay()];
+        }
+      } catch (e) {
+        console.error("Error parsing date for weekday", e);
+      }
+      return "";
+    };
+
+    // 1. Apply time filter
+    if (filterTimeAfter) {
+      events = events.filter((data) => {
+        if (!data.startTime) return true;
+        return data.startTime >= filterTimeAfter;
+      });
+    }
+
+    // 2. Apply date / day filter FIRST before vector slicing
+    if (filterDate) {
+      const targetDay = getWeekdayFromDateStr(filterDate);
+      events = events.filter((data) => {
+        const daysStr = Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "");
+        const daysLower = daysStr.toLowerCase();
+        const catStr = String(data.category || "").toLowerCase().trim();
+        const schedStr = String(data.scheduleType || "").toLowerCase().trim();
+        const categoryType = getEventCategoryType(data);
+        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || catStr === "daily events" || categoryType === "daily";
+        const isWeekly = catStr === "weekly events" || schedStr === "recurring" || categoryType === "weekly";
+        
+        let isDateMatch = false;
+        if (isDaily) {
+          isDateMatch = true;
+        } else if (isWeekly) {
+          if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
+            isDateMatch = true;
+          }
+        } else {
+          // Date-specific events
+          const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+          const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+          
+          if (evStart) {
+            const effectiveEnd = evEnd || evStart;
+            if (filterDate >= evStart && filterDate <= effectiveEnd) {
+              if (daysLower && !daysLower.includes("daily") && targetDay) {
+                if (daysLower.includes(targetDay.toLowerCase())) {
+                  isDateMatch = true;
+                } else if (!daysLower.includes("monday") && !daysLower.includes("tuesday") && !daysLower.includes("wednesday") && !daysLower.includes("thursday") && !daysLower.includes("friday") && !daysLower.includes("saturday") && !daysLower.includes("sunday")) {
+                  isDateMatch = true;
+                }
+              } else {
+                isDateMatch = true;
+              }
+            }
+          }
+
+          if (!isDateMatch) {
+            const datesField = Array.isArray(data.dates) ? data.dates.join(" ") : String(data.dates || "");
+            const startDateMeta = Array.isArray(data.start_date_meta) ? data.start_date_meta.join(" ") : String(data.start_date_meta || "");
+            const combinedDatesText = `${datesField} ${startDateMeta}`.toLowerCase();
+
+            if (combinedDatesText.includes(filterDate)) {
+              isDateMatch = true;
+            } else {
+              try {
+                const parts = filterDate.split("-");
+                if (parts.length === 3) {
+                  const monthNum = parseInt(parts[1], 10);
+                  const dayNum = parseInt(parts[2], 10);
+                  const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+                  const fullMonthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+                  const mShort = monthNames[monthNum - 1];
+                  const mFull = fullMonthNames[monthNum - 1];
+                  const padDay = dayNum < 10 ? `0${dayNum}` : `${dayNum}`;
+                  const padMonth = monthNum < 10 ? `0${monthNum}` : `${monthNum}`;
+                  const variants = [
+                    `${dayNum} ${mShort}`, `${padDay} ${mShort}`,
+                    `${dayNum} ${mFull}`, `${padDay} ${mFull}`,
+                    `${padDay}/${padMonth}/${parts[0]}`, `${dayNum}/${monthNum}/${parts[0]}`,
+                    `${padDay}-${padMonth}-${parts[0]}`, `${dayNum}-${monthNum}-${parts[0]}`
+                  ];
+                  for (const v of variants) {
+                    if (combinedDatesText.includes(v)) {
+                      isDateMatch = true;
+                      break;
+                    }
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        }
+
+        if (isDateMatch && filterDate === timeInfo.dateStr) {
+          if (isEventEnded(data, timeInfo.time24)) {
+            isDateMatch = false;
+          }
+        }
+        return isDateMatch;
+      });
+    } else if (filterDay) {
+      events = events.filter((data) => {
+        const daysLower = (data.days || "").toLowerCase();
+        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || data.category === "Daily Events";
+        let isMatch = isDaily || daysLower.includes(filterDay.toLowerCase());
+        if (isMatch && timeInfo.weekday.toLowerCase() === filterDay.toLowerCase()) {
+          if (isEventEnded(data, timeInfo.time24)) {
+            isMatch = false;
+          }
+        }
+        return isMatch;
+      });
+    }
+
+    // 3. Perform vector search / ranking if query is provided for specific searches
     if (searchQuery && specificity === "specific") {
       try {
         const embedRes = await ai.models.embedContent({
@@ -615,105 +761,6 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
       } catch (err) {
         console.error("Embedding search failed:", err);
       }
-    }
-    if (filterTimeAfter) {
-      events = events.filter((data) => {
-        if (!data.startTime) return true;
-        return data.startTime >= filterTimeAfter;
-      });
-    }
-    
-    // We removed the strict keyword filter here because it blocked valid semantic search 
-    // results for queries containing words like "today" or "tomorrow" that don't appear in the text.
-    
-    const getWeekdayFromDateStr = (dateStr) => {
-      try {
-        const parts = dateStr.split("-");
-        if (parts.length === 3) {
-          const year = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1;
-          const day = parseInt(parts[2], 10);
-          const d = new Date(year, month, day);
-          const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-          return weekdays[d.getDay()];
-        }
-      } catch (e) {
-        console.error("Error parsing date for weekday", e);
-      }
-      return "";
-    };
-    if (filterDate) {
-      const targetDay = getWeekdayFromDateStr(filterDate);
-      events = events.filter((data) => {
-        const daysStr = Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "");
-        const daysLower = daysStr.toLowerCase();
-        const catStr = String(data.category || "").toLowerCase().trim();
-        const schedStr = String(data.scheduleType || "").toLowerCase().trim();
-        const categoryType = getEventCategoryType(data);
-        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || catStr === "daily events" || categoryType === "daily";
-        const isWeekly = catStr === "weekly events" || schedStr === "recurring" || categoryType === "weekly";
-        const isDateSpecific = catStr === "date-specific events" || catStr.includes("date") || schedStr === "one-time" || categoryType === "date-specific";
-        let isDateMatch = false;
-        if (isDaily) {
-          isDateMatch = true;
-        } else if (isWeekly) {
-          if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
-            isDateMatch = true;
-          }
-        } else {
-          const datesField = Array.isArray(data.dates) ? data.dates.join(" ") : String(data.dates || "");
-          const startDateMeta = Array.isArray(data.start_date_meta) ? data.start_date_meta.join(" ") : String(data.start_date_meta || "");
-          const displayDate = getDisplayDate(data);
-          let meetsDateLimit = true;
-          if (displayDate && filterDate > displayDate) {
-            meetsDateLimit = false;
-          }
-          if (meetsDateLimit) {
-            if (datesField.includes(filterDate) || startDateMeta.includes(filterDate)) {
-              isDateMatch = true;
-            }
-            const evStart = data.startDate || data.originalHeaders && data.originalHeaders.startDate;
-            if (!isDateMatch && evStart) {
-              if (filterDate >= evStart && filterDate <= displayDate) {
-                if (!daysStr) {
-                  isDateMatch = true;
-                } else {
-                  if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
-                    isDateMatch = true;
-                  }
-                }
-              }
-            }
-          }
-        }
-        if (isDateMatch && filterDate === timeInfo.dateStr) {
-          let checkTime = false;
-          if (isDaily || isWeekly) {
-            checkTime = true;
-          } else {
-            const displayDate = getDisplayDate(data);
-            if (!displayDate || filterDate === displayDate) {
-              checkTime = true;
-            }
-          }
-          if (checkTime && isEventEnded(data, timeInfo.time24)) {
-            isDateMatch = false;
-          }
-        }
-        return isDateMatch;
-      });
-    } else if (filterDay) {
-      events = events.filter((data) => {
-        const daysLower = (data.days || "").toLowerCase();
-        const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || data.category === "Daily Events";
-        let isMatch = isDaily || daysLower.includes(filterDay.toLowerCase());
-        if (isMatch && timeInfo.weekday.toLowerCase() === filterDay.toLowerCase()) {
-          if (isEventEnded(data, timeInfo.time24)) {
-            isMatch = false;
-          }
-        }
-        return isMatch;
-      });
     }
     if (returnRaw) {
       return events;
@@ -815,8 +862,9 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         Analyze the user query: "${message}" (use history for context if the query is a follow-up or ambiguous)
         
         Categorize it into one of these buckets:
-        "A": Broad event search based on date/time only. The user wants to see what events are happening in general, but does NOT specify any topic in either the current query or the recent chat history. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm". 
-             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), this is NOT a broad search. This is a specific search about that topic. Choose Bucket B instead!
+        "A": Broad event/activity search based on date and/or time ONLY. The user wants to see what events, activities, or happenings are taking place for a given date or time without specifying any specific topic or category (e.g. "What's happening tomorrow?", "events tomorrow after 5pm", "activities today", "what's happening on Saturday").
+             CRITICAL: If the user query is strictly date and/or time specific without any specific topic words (like dance, yoga, music, movie, concert), choose Bucket A!
+             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), choose Bucket B!
         "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic, or implies a topic based on the recent chat history context. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?", or a follow-up query like "event", "yes, events please", "events there" after discussing "Matrimandir" or "volunteering".
              CRITICAL: If the query is a follow-up about a topic from history, you MUST classify it as "B" and construct a search_query combining the topic and event keyword (e.g. "Matrimandir events").
         "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE CURRENT QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
@@ -1124,8 +1172,9 @@ async function createServer() {
         Analyze the user query: "${lastMessage}" (use history for context if the query is a follow-up or ambiguous)
         
         Categorize it into one of these buckets:
-        "A": Broad event search based on date/time only. The user wants to see what events are happening in general, but does NOT specify any topic in either the current query or the recent chat history. Example: "What's happening tomorrow?", "Events on Friday", "Events after 7pm". 
-             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), this is NOT a broad search. This is a specific search about that topic. Choose Bucket B instead!
+        "A": Broad event/activity search based on date and/or time ONLY. The user wants to see what events, activities, or happenings are taking place for a given date or time without specifying any specific topic or category (e.g. "What's happening tomorrow?", "events tomorrow after 5pm", "activities today", "what's happening on Saturday").
+             CRITICAL: If the user query is strictly date and/or time specific without any specific topic words (like dance, yoga, music, movie, concert), choose Bucket A!
+             CRITICAL: If the user is responding to a clarifying question about a specific topic from history (e.g. they say "event" or "yes" or "events" after we asked "Would you like general info about Matrimandir, or events?"), choose Bucket B!
         "B": Specific event search. The user explicitly asks for events, workshops, or classes about a specific topic, or implies a topic based on the recent chat history context. Example: "Yoga classes on Friday", "Sound healing events", "Are there any music concerts today?", or a follow-up query like "event", "yes, events please", "events there" after discussing "Matrimandir" or "volunteering".
              CRITICAL: If the query is a follow-up about a topic from history, you MUST classify it as "B" and construct a search_query combining the topic and event keyword (e.g. "Matrimandir events").
         "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE CURRENT QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
