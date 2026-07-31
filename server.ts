@@ -431,10 +431,8 @@ function formatEventMarkdown(data) {
     }
   }
   const idEsc = escapeAttr(data.uuid || data.id || "");
-  let topBar = "";
-  if (data.type || datesDisplay) {
-    topBar = `<span class="ec-topbar"><span class="ec-type">${data.type ? `*${escapeAttr(data.type)}*` : ""}</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
-  }
+  const displayType = data.type ? escapeAttr(data.type) : (categoryType === "daily" ? "Daily Event" : categoryType === "weekly" ? "Weekly Event" : "Event");
+  const topBar = `<span class="ec-topbar"><span class="ec-type">*${displayType}*</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
   const header = `${topBar}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
   const row1Parts = [];
   if (timeDisplay) {

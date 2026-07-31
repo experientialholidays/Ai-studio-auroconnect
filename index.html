@@ -200,41 +200,83 @@
         text-underline-offset: 4px;
     }
 
-    /* EVENT CARD STYLE */
+    /* EVENT CARD 3-SEGMENT STYLE */
     .event-card {
         color: var(--text);
         font-size: 0.95rem;
-        display: block;
+        display: flex;
+        flex-direction: column;
         width: 100%;
         box-sizing: border-box;
         background: var(--surface);
         border: 1px solid var(--border);
         border-radius: 12px;
-        padding: 12px 14px;
-        margin: 8px 0 !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 0 !important;
+        margin: 10px 0 !important;
+        box-shadow: 0 1px 4px var(--shadow);
         cursor: pointer;
-        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s, box-shadow 0.2s;
         line-height: 1.35;
         position: relative;
+        overflow: hidden;
     }
     .event-card:hover {
-        background: #f8fafc;
-        border-color: #cbd5e1;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        transform: translateY(-1px);
     }
+
+    /* Segment 1: Above Title */
+    .ec-segment.ec-above-title {
+        background: #e8f0fe; /* Soft Light Blue Segment */
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* Segment 2: Title */
+    .ec-segment.ec-title-segment {
+        background: #ffffff; /* Clean White Title Segment */
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    /* Segment 3: Below Title */
+    .ec-segment.ec-below-title {
+        background: #f1f5f9; /* Soft Slate Gray Details Segment */
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .ec-segment.ec-above-title {
+            background: #1e293b; /* Dark Slate Blue Segment */
+        }
+        .ec-segment.ec-title-segment {
+            background: #18181b; /* Dark Surface Segment */
+        }
+        .ec-segment.ec-below-title {
+            background: #0f172a; /* Dark Navy Details Segment */
+        }
+    }
+
     .ec-topbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 3px;
-        font-size: 0.85rem;
+        font-size: 0.825rem;
+        width: 100%;
     }
     .ec-type {
-        font-weight: 600;
+        font-weight: 700;
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.05em;
-        color: #64748b;
+        color: #1a73e8;
+    }
+    @media (prefers-color-scheme: dark) {
+        .ec-type {
+            color: #8ab4f8;
+        }
     }
     .ec-type em {
         font-style: normal;
@@ -244,26 +286,25 @@
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.05em;
-        color: #64748b;
+        color: var(--text-secondary);
     }
-    .event-card strong {
+    .ec-title-segment strong {
         font-size: 1.05rem;
+        font-weight: 700;
         color: var(--accent);
         display: block;
-        margin-bottom: 3px !important;
+        margin: 0 !important;
         line-height: 1.25;
     }
-    .event-card strong + br {
+    .ec-title-segment strong + br {
         display: none !important;
     }
-    .event-card a {
+    .ec-title-segment a {
         text-decoration: none !important;
         color: var(--accent) !important;
     }
-    .event-card br {
-        display: block;
-        content: "";
-        margin: 2px 0 0 0 !important;
+    .ec-below-title br {
+        display: none !important;
     }
     /* COMPACT FOOTER NAVIGATION */
 
@@ -476,22 +517,67 @@
                 if (currentBotDiv) {
                     let targetDiv = currentBotDiv.querySelector('.msg-content') || currentBotDiv;
                     targetDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
-                    targetDiv.querySelectorAll('p').forEach(p => {
-                        if (p.querySelector('a[href^="#DETAILS::"]')) {
-                            p.classList.add('event-card');
-                            addSwipeLogic(p);
-                            p.onclick = function(e) {
-                                if (e.target.tagName !== 'A') {
-                                    const link = p.querySelector('a');
-                                    if (link) link.click();
-                                }
-                            };
-                        }
-                    });
+                    format3SegmentEventCards(targetDiv);
                     // Do not auto-scroll to the bottom during streaming to let the user scroll by themselves
                 }
             }
         };
+    }
+
+    function format3SegmentEventCards(container) {
+        if (!container) return;
+        container.querySelectorAll('p').forEach(p => {
+            if (p.querySelector('a[href^="#DETAILS::"]')) {
+                p.classList.add('event-card');
+                
+                // Format into 3 distinct horizontal segments if not already done
+                if (!p.querySelector('.ec-above-title')) {
+                    const topBar = p.querySelector('.ec-topbar');
+                    const titleStrong = p.querySelector('strong');
+                    
+                    // Segment 1: Above Title
+                    const aboveDiv = document.createElement('div');
+                    aboveDiv.className = 'ec-segment ec-above-title';
+                    if (topBar) {
+                        aboveDiv.appendChild(topBar);
+                    } else {
+                        aboveDiv.innerHTML = '<div class="ec-topbar"><span class="ec-type">EVENT</span></div>';
+                    }
+                    
+                    // Segment 2: Title
+                    const titleDiv = document.createElement('div');
+                    titleDiv.className = 'ec-segment ec-title-segment';
+                    if (titleStrong) {
+                        titleDiv.appendChild(titleStrong);
+                    }
+                    
+                    // Segment 3: Below Title
+                    const belowDiv = document.createElement('div');
+                    belowDiv.className = 'ec-segment ec-below-title';
+                    
+                    while (p.firstChild) {
+                        const node = p.firstChild;
+                        if (node.nodeName === 'BR') {
+                            p.removeChild(node);
+                        } else {
+                            belowDiv.appendChild(node);
+                        }
+                    }
+                    
+                    p.appendChild(aboveDiv);
+                    p.appendChild(titleDiv);
+                    p.appendChild(belowDiv);
+                }
+
+                addSwipeLogic(p);
+                p.onclick = function(e) {
+                    if (e.target.tagName !== 'A') {
+                        const link = p.querySelector('a');
+                        if (link) link.click();
+                    }
+                };
+            }
+        });
     }
 
     function addSwipeLogic(el) {
@@ -547,20 +633,7 @@
         contentDiv.className = 'msg-content';
         contentDiv.innerHTML = marked.parse(text || "", { breaks: true });
         
-        contentDiv.querySelectorAll('p').forEach(p => {
-            if (p.querySelector('a[href^="#DETAILS::"]')) {
-                p.classList.add('event-card');
-                
-                // Clicking anywhere on the card should trigger the link
-                addSwipeLogic(p);
-                p.onclick = function(e) {
-                    if (e.target.tagName !== 'A') {
-                        const link = p.querySelector('a');
-                        if (link) link.click();
-                    }
-                };
-            }
-        });
+        format3SegmentEventCards(contentDiv);
         
         div.appendChild(contentDiv);
         

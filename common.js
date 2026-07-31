@@ -129,7 +129,7 @@
     .dropdown-user-info { padding: 0.5rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.8rem; color: var(--text-secondary); word-break: break-all; }
     .disclaimer {
         text-align: center;
-        padding: 1rem;
+        padding: 0.85rem 1rem;
         font-size: 0.8rem;
         color: var(--text-secondary);
         font-family: inherit !important;
@@ -137,22 +137,26 @@
         margin-top: auto !important;
         width: 100%;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
     }
     .disclaimer-links {
         display: flex;
-        gap: 0.75rem;
+        gap: 0.5rem 0.75rem;
         justify-content: center;
         align-items: center;
-        margin-top: 0.5rem;
         flex-wrap: wrap;
     }
     .disclaimer-links a {
-        color: var(--accent);
-        text-decoration: none;
+        color: var(--text-secondary);
+        text-decoration: underline;
         font-weight: 500;
+        transition: color 0.2s ease;
     }
     .disclaimer-links a:hover {
-        text-decoration: underline;
+        color: var(--text);
     }
   `;
   document.head.appendChild(styleEl);
@@ -244,11 +248,11 @@
     disclaimerEl.innerHTML = `
       <div>“AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”</div>
       <div class="disclaimer-links">
-        <a href="/about.html" style="${isAbout ? "font-weight: bold;" : ""}">About Us</a>
-        <span>•</span>
         <a href="/privacy.html" style="${isPrivacy ? "font-weight: bold;" : ""}">Privacy Policy</a>
         <span>•</span>
         <a href="/terms.html" style="${isTerms ? "font-weight: bold;" : ""}">Terms & Conditions</a>
+        <span>•</span>
+        <a href="/contact.html" style="${isContact ? "font-weight: bold;" : ""}">Contact Us</a>
       </div>
     `;
     
