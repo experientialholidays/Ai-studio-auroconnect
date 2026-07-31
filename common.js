@@ -11,6 +11,33 @@
   // Inject CSS styles for the common header, typography, dropdown, and footer disclaimer
   const styleEl = document.createElement("style");
   styleEl.textContent = `
+    /* Earthy Auroville Global Color Palette & Variables */
+    :root { 
+        --accent: #C85A32; 
+        --bg: #F5F0EB; 
+        --surface: #FFFFFF;
+        --text: #3D2314;
+        --text-secondary: #6E5D4F;
+        --border: #E6DDD5;
+        --user-msg-bg: #EEF2ED;
+        --input-border: #D8CEC4;
+        --shadow: rgba(61, 35, 20, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --bg: #1A1715; 
+            --surface: #24201D; 
+            --text: #F5E8DF; 
+            --text-secondary: #C4B5A5; 
+            --border: #3A342E;
+            --user-msg-bg: #232B25; 
+            --accent: #E07A5F; 
+            --input-border: #483F37;
+            --shadow: rgba(0,0,0,0.4);
+        }
+    }
+
     /* Global ChatGPT-Style Crisp Typography & Font Weight Enhancement */
     body {
         font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
@@ -18,6 +45,8 @@
         -moz-osx-font-smoothing: grayscale !important;
         text-rendering: optimizeLegibility !important;
         letter-spacing: -0.011em !important;
+        background-color: var(--bg) !important;
+        color: var(--text) !important;
     }
 
     /* Common Header Styles to ensure identical layout on all pages */

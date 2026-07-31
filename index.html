@@ -44,35 +44,38 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
     :root { 
-        --accent: #0b57d0; 
-        --bg: #f8f9fa; 
-        --surface: #ffffff;
-        --text: #1f1f1f;
-        --text-secondary: #444444;
-        --border: #ddd;
-        --user-msg-bg: #e9eef6;
-        --input-border: #dfe1e5;
-        --shadow: rgba(0,0,0,0.05);
+        --accent: #C85A32; 
+        --bg: #F5F0EB; 
+        --surface: #FFFFFF;
+        --text: #3D2314;
+        --text-secondary: #6E5D4F;
+        --border: #E6DDD5;
+        --user-msg-bg: #EEF2ED;
+        --input-border: #D8CEC4;
+        --shadow: rgba(61, 35, 20, 0.08);
     }
 
     @media (prefers-color-scheme: dark) {
         :root {
-            --bg: #000000; 
-            --surface: #1e1e1e; 
-            --text: #f1f3f4; 
-            --text-secondary: #bdc1c6; 
-            --border: #3c4043;
-            --user-msg-bg: #1a73e8; 
-            --accent: #8ab4f8; 
-            --input-border: #5f6368;
-            --shadow: rgba(0,0,0,0.5);
+            --bg: #1A1715; 
+            --surface: #24201D; 
+            --text: #F5E8DF; 
+            --text-secondary: #C4B5A5; 
+            --border: #3A342E;
+            --user-msg-bg: #232B25; 
+            --accent: #E07A5F; 
+            --input-border: #483F37;
+            --shadow: rgba(0,0,0,0.4);
         }
-        .user { color: #ffffff !important; }
+        .user .msg-content { 
+            color: #D8E4DC !important; 
+            border: 1px solid #2E3831 !important;
+        }
         .bot a { 
-            color: #8ab4f8 !important; 
+            color: #E07A5F !important; 
             text-decoration: underline !important; 
             text-underline-offset: 4px;
-            font-weight: bold; 
+            font-weight: 600; 
         }
     }
 
@@ -181,13 +184,15 @@
     }
     
     .user .msg-content {
-        background: var(--accent);
-        color: #ffffff;
+        background: var(--user-msg-bg);
+        color: #26332A;
+        border: 1px solid #DCE5DB;
         border-bottom-right-radius: 0.3rem;
         box-shadow: 0 1px 3px var(--shadow);
         width: fit-content;
         max-width: 80%;
-        padding: 0.4rem 0.85rem;
+        padding: 0.5rem 0.9rem;
+        font-weight: 500;
     }
 
     .bot { 
