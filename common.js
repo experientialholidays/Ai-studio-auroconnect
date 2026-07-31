@@ -1,7 +1,25 @@
 (async function() {
-  // Inject CSS styles for the common header, dropdown, and footer disclaimer
+  // Inject Google Font (Inter) for enhanced text clarity & weight matching ChatGPT
+  if (!document.getElementById("inter-font-link")) {
+    const fontLink = document.createElement("link");
+    fontLink.id = "inter-font-link";
+    fontLink.rel = "stylesheet";
+    fontLink.href = "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap";
+    document.head.appendChild(fontLink);
+  }
+
+  // Inject CSS styles for the common header, typography, dropdown, and footer disclaimer
   const styleEl = document.createElement("style");
   styleEl.textContent = `
+    /* Global ChatGPT-Style Crisp Typography & Font Weight Enhancement */
+    body {
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+        -webkit-font-smoothing: antialiased !important;
+        -moz-osx-font-smoothing: grayscale !important;
+        text-rendering: optimizeLegibility !important;
+        letter-spacing: -0.011em !important;
+    }
+
     /* Common Header Styles to ensure identical layout on all pages */
     .header { 
         background: var(--surface) !important; 
@@ -114,9 +132,27 @@
         padding: 1rem;
         font-size: 0.8rem;
         color: var(--text-secondary);
-        font-family: 'Segoe UI', Roboto, sans-serif !important;
+        font-family: inherit !important;
         border-top: 1px solid var(--border) !important;
         margin-top: auto !important;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .disclaimer-links {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+        align-items: center;
+        margin-top: 0.5rem;
+        flex-wrap: wrap;
+    }
+    .disclaimer-links a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .disclaimer-links a:hover {
+        text-decoration: underline;
     }
   `;
   document.head.appendChild(styleEl);
@@ -153,9 +189,12 @@
     
     const pathname = window.location.pathname;
     const isIndex = pathname === "/" || pathname.endsWith("index.html");
+    const isAbout = pathname.endsWith("about.html");
     const isSubmit = pathname.endsWith("submit.html");
     const isDashboard = pathname.endsWith("dashboard.html");
     const isContact = pathname.endsWith("contact.html");
+    const isPrivacy = pathname.endsWith("privacy.html");
+    const isTerms = pathname.endsWith("terms.html");
     
     let menuHtml = "";
     if (user) {
@@ -164,6 +203,7 @@
     
     menuHtml += `
       <a href="#" id="common-menu-new-session" style="${isIndex ? "font-weight: bold;" : ""}">New Session</a>
+      <a href="/about.html" style="${isAbout ? "font-weight: bold;" : ""}">About</a>
       <a href="/submit.html" style="${isSubmit ? "font-weight: bold;" : ""}">Submit</a>
       <a href="/dashboard.html" style="${isDashboard ? "font-weight: bold;" : ""}">Dashboard</a>
       <a href="/contact.html" style="${isContact ? "font-weight: bold;" : ""}">Contact</a>
@@ -201,7 +241,16 @@
       disclaimerEl.className = "disclaimer";
       document.body.appendChild(disclaimerEl);
     }
-    disclaimerEl.innerHTML = "“AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”";
+    disclaimerEl.innerHTML = `
+      <div>“AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.”</div>
+      <div class="disclaimer-links">
+        <a href="/about.html" style="${isAbout ? "font-weight: bold;" : ""}">About Us</a>
+        <span>•</span>
+        <a href="/privacy.html" style="${isPrivacy ? "font-weight: bold;" : ""}">Privacy Policy</a>
+        <span>•</span>
+        <a href="/terms.html" style="${isTerms ? "font-weight: bold;" : ""}">Terms & Conditions</a>
+      </div>
+    `;
     
     const threeDots = document.getElementById("common-three-dots");
     const dropdownContent = document.getElementById("common-dropdown-content");

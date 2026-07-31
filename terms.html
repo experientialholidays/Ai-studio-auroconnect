@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      (function() {
+        const wrapConsole = (method) => {
+          const original = console[method];
+          if (!original) return;
+          console[method] = function(...args) {
+            const sanitizedArgs = args.map(arg => {
+              if (arg && typeof arg === "object") {
+                try {
+                  const constrName = arg.constructor ? arg.constructor.name : "";
+                  if (constrName === "Y" || constrName === "Ka" || constrName === "Ia" || constrName.includes("Firestore") || constrName.includes("Firebase")) {
+                    return `[Firebase/Firestore Object: ${constrName}]`;
+                  }
+                  JSON.stringify(arg);
+                  return arg;
+                } catch (e) {
+                  return `[Circular Object: ${arg.constructor ? arg.constructor.name : "Object"}]`;
+                }
+              }
+              return arg;
+            });
+            return original.apply(this, sanitizedArgs);
+          };
+        };
+        wrapConsole("log");
+        wrapConsole("warn");
+        wrapConsole("error");
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms and Conditions | AuroConnect</title>
+    <style>
+      :root {
+        --accent: #0b57d0;
+        --bg: #f8f9fa;
+        --surface: #ffffff;
+        --text: #1f1f1f;
+        --text-secondary: #444444;
+        --border: #ddd;
+        --shadow: rgba(0, 0, 0, 0.05);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #1e1e1e;
+          --text: #f1f3f4;
+          --text-secondary: #bdc1c6;
+          --border: #3c4043;
+          --accent: #8ab4f8;
+          --shadow: rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      html {
+        font-size: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        align-items: center;
+        line-height: 1.6;
+      }
+
+      .container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin-top: 2.5rem;
+        margin-bottom: 3rem;
+        width: 90%;
+        max-width: 800px;
+        box-shadow: 0 4px 12px var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+      }
+
+      .effective-date {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        margin-top: -1rem;
+        font-weight: 500;
+      }
+
+      section {
+        margin-bottom: 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.15rem;
+        margin-top: 0.75rem;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      p {
+        margin: 0 0 0.75rem 0;
+        color: var(--text-secondary);
+      }
+
+      ul {
+        margin: 0 0 0.75rem 1.25rem;
+        padding: 0;
+        color: var(--text-secondary);
+      }
+
+      li {
+        margin-bottom: 0.35rem;
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: underline;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 1.5rem;
+          margin-top: 1.5rem;
+        }
+        h1 {
+          font-size: 1.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Terms and Conditions</h1>
+      <div class="effective-date">Effective Date: 1 June 2026</div>
+
+      <section>
+        <h2>1. Acceptance of Terms</h2>
+        <p>By accessing or using AuroConnect ("Platform"), you agree to be bound by these Terms and Conditions.</p>
+        <p>If you do not agree, you must discontinue use of the Platform immediately.</p>
+      </section>
+
+      <section>
+        <h2>2. Nature of the Platform</h2>
+        <p>AuroConnect is an independent discovery and information platform that helps users locate retreats, workshops, volunteer opportunities, community events, and related experiences.</p>
+        <p>AuroConnect is not the organizer, operator, promoter, facilitator, or provider of events listed on the Platform unless expressly stated otherwise.</p>
+      </section>
+
+      <section>
+        <h2>3. No Booking or Travel Agency Relationship</h2>
+        <p>Unless explicitly stated, AuroConnect does not:</p>
+        <ul>
+          <li>Organize events</li>
+          <li>Accept bookings on behalf of organizers</li>
+          <li>Guarantee reservations</li>
+          <li>Act as a travel agency or tour operator</li>
+        </ul>
+        <p>Users are solely responsible for conducting their own due diligence before participating in any listed opportunity.</p>
+      </section>
+
+      <section>
+        <h2>4. Event Information Disclaimer</h2>
+        <p>While we strive to provide accurate information, event details including dates, locations, availability, pricing, facilitators, and conditions may change without notice.</p>
+        <p>Users should independently verify all information directly with event organizers before making financial, travel, or participation commitments.</p>
+      </section>
+
+      <section>
+        <h2>5. User Responsibilities</h2>
+        <p>Users agree:</p>
+        <ul>
+          <li>To provide accurate information</li>
+          <li>Not to misuse the Platform</li>
+          <li>Not to engage in unlawful activities</li>
+          <li>Not to interfere with platform operations</li>
+          <li>Not to upload harmful, misleading, infringing, or inappropriate content</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>6. User Content</h2>
+        <p>Users may submit photographs, videos, testimonials, reviews, comments, written materials, and other content ("User Content").</p>
+        <p>You represent and warrant that:</p>
+        <ul>
+          <li>You own or control all necessary rights to such content</li>
+          <li>The content does not infringe third-party rights</li>
+          <li>Necessary permissions have been obtained from individuals appearing in submitted content</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>7. License to Use User Content</h2>
+        <p>By submitting User Content, you grant AuroConnect a worldwide, perpetual, irrevocable, non-exclusive, royalty-free, transferable, and sublicensable license to:</p>
+        <ul>
+          <li>Use</li>
+          <li>Reproduce</li>
+          <li>Publish</li>
+          <li>Display</li>
+          <li>Distribute</li>
+          <li>Modify</li>
+          <li>Adapt</li>
+          <li>Translate</li>
+          <li>Create derivative works</li>
+        </ul>
+        <p>This includes use on:</p>
+        <ul>
+          <li>Websites</li>
+          <li>Social media platforms</li>
+          <li>Advertising campaigns</li>
+          <li>Digital publications</li>
+          <li>Printed materials</li>
+          <li>Public communications</li>
+        </ul>
+        <p>No compensation shall be payable for such use unless otherwise agreed in writing.</p>
+      </section>
+
+      <section>
+        <h2>8. Right to Remove Content</h2>
+        <p>AuroConnect reserves the unrestricted right, at its sole discretion and without prior notice, to remove, modify, restrict, suspend, reject, or delete any content for any reason, including content that:</p>
+        <ul>
+          <li>Violates laws or regulations</li>
+          <li>Infringes intellectual property rights</li>
+          <li>Is misleading or inaccurate</li>
+          <li>Is offensive, harmful, defamatory, or inappropriate</li>
+          <li>Creates legal, operational, or reputational risk</li>
+        </ul>
+        <p>We are under no obligation to preserve, restore, or continue displaying any content.</p>
+      </section>
+
+      <section>
+        <h2>9. Intellectual Property</h2>
+        <p>All platform content, branding, trademarks, logos, graphics, text, software, and design elements are owned by or licensed to AuroConnect and are protected by applicable intellectual property laws.</p>
+        <p>No rights are granted except as expressly stated in these Terms.</p>
+      </section>
+
+      <section>
+        <h2>10. Third-Party Content</h2>
+        <p>The Platform may contain third-party information and links.</p>
+        <p>AuroConnect does not endorse, verify, or assume responsibility for third-party content, services, websites, products, or representations.</p>
+      </section>
+
+      <section>
+        <h2>11. Limitation of Liability</h2>
+        <p>To the maximum extent permitted by law, AuroConnect shall not be liable for:</p>
+        <ul>
+          <li>Event cancellations</li>
+          <li>Organizer conduct</li>
+          <li>Personal injury</li>
+          <li>Property damage</li>
+          <li>Financial losses</li>
+          <li>Travel disruptions</li>
+          <li>Inaccurate event information</li>
+          <li>User reliance on platform content</li>
+        </ul>
+        <p>Use of the Platform is entirely at your own risk.</p>
+      </section>
+
+      <section>
+        <h2>12. Indemnification</h2>
+        <p>You agree to defend, indemnify, and hold harmless AuroConnect, its affiliates, directors, employees, contractors, and representatives from any claims, liabilities, damages, losses, costs, or expenses arising from:</p>
+        <ul>
+          <li>Your use of the Platform</li>
+          <li>Your violation of these Terms</li>
+          <li>Your submitted content</li>
+          <li>Your infringement of third-party rights</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>13. Termination</h2>
+        <p>We may suspend or terminate access to the Platform at any time, with or without notice, for any reason.</p>
+      </section>
+
+      <section>
+        <h2>14. Changes to Terms</h2>
+        <p>We reserve the right to modify these Terms at any time.</p>
+        <p>Updated versions will be posted on the Platform with a revised Effective Date.</p>
+        <p>Continued use of the Platform constitutes acceptance of any modifications.</p>
+      </section>
+
+      <section>
+        <h2>15. Governing Law and Jurisdiction</h2>
+        <p>These Terms shall be governed by and construed in accordance with the laws of Delhi, India.</p>
+        <p>Any disputes shall be subject to the exclusive jurisdiction of the courts located in Delhi, India.</p>
+      </section>
+
+      <section>
+        <h2>16. Contact Information</h2>
+        <p>Questions regarding these Terms may be directed through the contact information provided on our <a href="/contact.html">Contact page</a>.</p>
+      </section>
+    </div>
+
+    <script src="/common.js" type="module"></script>
+  </body>
+</html>

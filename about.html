@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script>
+      (function() {
+        const wrapConsole = (method) => {
+          const original = console[method];
+          if (!original) return;
+          console[method] = function(...args) {
+            const sanitizedArgs = args.map(arg => {
+              if (arg && typeof arg === "object") {
+                try {
+                  const constrName = arg.constructor ? arg.constructor.name : "";
+                  if (constrName === "Y" || constrName === "Ka" || constrName === "Ia" || constrName.includes("Firestore") || constrName.includes("Firebase")) {
+                    return `[Firebase/Firestore Object: ${constrName}]`;
+                  }
+                  JSON.stringify(arg);
+                  return arg;
+                } catch (e) {
+                  return `[Circular Object: ${arg.constructor ? arg.constructor.name : "Object"}]`;
+                }
+              }
+              return arg;
+            });
+            return original.apply(this, sanitizedArgs);
+          };
+        };
+        wrapConsole("log");
+        wrapConsole("warn");
+        wrapConsole("error");
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | AuroConnect</title>
+    <style>
+      :root {
+        --accent: #0b57d0;
+        --bg: #f8f9fa;
+        --surface: #ffffff;
+        --text: #1f1f1f;
+        --text-secondary: #444444;
+        --border: #ddd;
+        --shadow: rgba(0, 0, 0, 0.05);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #000000;
+          --surface: #1e1e1e;
+          --text: #f1f3f4;
+          --text-secondary: #bdc1c6;
+          --border: #3c4043;
+          --accent: #8ab4f8;
+          --shadow: rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      html {
+        font-size: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        align-items: center;
+        line-height: 1.6;
+      }
+
+      .container {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 2.5rem;
+        margin-top: 2.5rem;
+        margin-bottom: 3rem;
+        width: 90%;
+        max-width: 800px;
+        box-shadow: 0 4px 12px var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 1.75rem;
+        box-sizing: border-box;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        text-align: center;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        margin-top: -1rem;
+      }
+
+      h2 {
+        font-size: 1.3rem;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        color: var(--accent);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.4rem;
+      }
+
+      p {
+        margin: 0 0 1rem 0;
+        color: var(--text-secondary);
+      }
+
+      ul {
+        margin: 0 0 1rem 1.25rem;
+        padding: 0;
+        color: var(--text-secondary);
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      .highlight-box {
+        background: rgba(11, 87, 208, 0.05);
+        border-left: 4px solid var(--accent);
+        padding: 1rem 1.25rem;
+        border-radius: 0.5rem;
+        margin: 0.5rem 0;
+      }
+
+      .highlight-box p {
+        margin: 0;
+        color: var(--text);
+        font-size: 0.95rem;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #ffffff !important;
+      }
+
+      .btn-secondary {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--text) !important;
+      }
+
+      .btn:hover {
+        opacity: 0.9;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 1.5rem;
+          margin-top: 1.5rem;
+        }
+        h1 {
+          font-size: 1.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>About AuroConnect</h1>
+      <div class="subtitle">Your Independent Discovery Platform for Retreats, Workshops & Events</div>
+
+      <p>
+        <strong>AuroConnect</strong> is a community-focused discovery and information platform created to help residents, visitors, guests, and seekers easily find retreats, workshops, volunteer opportunities, cultural programs, and community events in and around Auroville.
+      </p>
+
+      <h2>Our Purpose</h2>
+      <p>
+        Whether you are seeking personal growth through retreats, looking to share skills in workshops, offering volunteer service, or simply connecting with daily activities, AuroConnect makes discovery simple, transparent, and accessible.
+      </p>
+
+      <h2>Key Features</h2>
+      <ul>
+        <li><strong>🤖 AI-Assisted Discovery:</strong> Ask questions naturally to find specific workshops, schedules, venues, and facilitators.</li>
+        <li><strong>📅 Comprehensive Event Directory:</strong> Search and filter through updated listings for retreats, classes, cultural events, and gatherings.</li>
+        <li><strong>✍️ Easy Event Submissions:</strong> Facilitators and organizers can easily submit new events via text forms, Excel files, or PDF posters.</li>
+        <li><strong>📊 Host & Facilitator Dashboard:</strong> Manage submissions, edit listings, and keep event records up to date seamlessly.</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>Independent Platform Disclaimer:</strong> AuroConnect is an independent discovery platform and is not affiliated with, operated by, or endorsed by the Auroville Foundation or any official Auroville unit.</p>
+      </div>
+
+      <h2>Get in Touch</h2>
+      <p>
+        Have questions, suggestions, or need help listing your event? We would love to hear from you.
+      </p>
+
+      <div class="cta-buttons">
+        <a href="/" class="btn btn-primary">Discover Events</a>
+        <a href="/submit.html" class="btn btn-secondary">Submit an Event</a>
+        <a href="/contact.html" class="btn btn-secondary">Contact Us</a>
+      </div>
+    </div>
+
+    <script src="/common.js" type="module"></script>
+  </body>
+</html>
