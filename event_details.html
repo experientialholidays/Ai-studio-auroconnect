@@ -147,8 +147,9 @@
     #event-content {
         overflow-y: auto;
         overscroll-behavior: contain;
-        max-height: calc(80vh - 65px);
-        padding: 16px 20px 32px;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 0 0 32px;
         box-sizing: border-box;
     }
 
@@ -167,28 +168,95 @@
         position: relative;
     }
 
+    /* Segment 1: Above Title (Muted & Subdued) */
+    .ec-segment.ec-above-title {
+        background: #F9F6F3;
+        padding: 10px 16px;
+        border-bottom: 1px solid #ECE5DE;
+        opacity: 1;
+    }
+
+    /* Segment 2: Title (Matching Segment 1 background & text color tone) */
+    .ec-segment.ec-title-segment {
+        background: #F9F6F3;
+        padding: 12px 16px 12px 12px;
+        border-bottom: 1px solid #ECE5DE;
+        border-left: 4px solid #C85A32; /* Accent bar preserved */
+    }
+
+    /* Segment 3: Below Title (Soft Sage Tint) */
+    .ec-segment.ec-below-title {
+        background: #EEF2ED;
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #26332A;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .ec-segment.ec-above-title {
+            background: #23201C;
+            border-bottom-color: #332D27;
+            opacity: 1;
+        }
+        .ec-segment.ec-title-segment {
+            background: #23201C;
+            border-bottom-color: #332D27;
+            border-left: 4px solid #E07A5F;
+        }
+        .ec-segment.ec-below-title {
+            background: #1C241E;
+            color: #D8E4DC;
+            font-weight: 500;
+        }
+    }
+
     .ec-topbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 3px;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+        width: 100%;
     }
-    
     .ec-type {
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         letter-spacing: 0.05em;
-        color: #64748b;
+        color: #6E5D4F; /* Darker segment 1 text */
     }
-    
+    @media (prefers-color-scheme: dark) {
+        .ec-type {
+            color: #C4B5A5; /* Darker/clearer dark mode text */
+        }
+    }
+    .ec-type em {
+        font-style: normal;
+    }
     .ec-date {
         font-weight: 600;
         text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        color: #64748b;
+        font-size: 0.7rem;
+        letter-spacing: 0.04em;
+        color: #6E5D4F; /* Darker segment 1 text */
+    }
+    @media (prefers-color-scheme: dark) {
+        .ec-date {
+            color: #C4B5A5;
+        }
+    }
+    .ec-title-segment strong {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #3D2314 !important; /* Deep Chestnut matching Segment 1 color tone */
+        display: block;
+        margin: 0 !important;
+        line-height: 1.35;
+    }
+    @media (prefers-color-scheme: dark) {
+        .ec-title-segment strong {
+            color: #F5E8DF !important;
+        }
     }
 
     .event-title {
@@ -214,39 +282,46 @@
     /* Media Gallery & Display */
     .media-gallery-container {
         margin-bottom: 16px;
+        width: 100%;
+        padding: 0;
     }
 
     .media-main-frame {
         width: 100%;
-        min-height: 200px;
-        max-height: 520px;
+        height: 400px;
         background: rgba(0, 0, 0, 0.04);
-        border-radius: 10px;
+        border-radius: 0;
         overflow: hidden;
         position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--border);
+        border: none;
+        border-bottom: 1px solid var(--border);
         box-sizing: border-box;
     }
 
     @media (prefers-color-scheme: dark) {
         .media-main-frame {
             background: rgba(255, 255, 255, 0.04);
+            border-bottom-color: var(--border);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .media-main-frame {
+            height: 300px;
         }
     }
 
     .main-display-img {
-        max-width: 100%;
-        max-height: 520px;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        display: block;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
         margin: 0 auto;
         cursor: pointer;
-        transition: opacity 0.2s ease, transform 0.2s ease;
+        transition: opacity 0.2s ease;
     }
 
     .main-display-img:hover {
@@ -360,28 +435,25 @@
 
     .pdf-media-wrapper {
         width: 100%;
-        min-height: 220px;
-        max-height: 520px;
+        height: 100%;
         position: relative;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
         background: rgba(0, 0, 0, 0.03);
-        border-radius: 8px;
+        border-radius: 0;
         overflow: hidden;
     }
 
     .pdf-canvas-display {
-        max-width: 100%;
-        max-height: 520px;
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        display: block;
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        display: block !important;
         margin: 0 auto;
-        border-radius: 4px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        border-radius: 0;
+        box-shadow: none;
     }
 
     .main-display-pdf {
@@ -720,7 +792,7 @@
         }
         #event-content {
             max-height: calc(90vh - 58px);
-            padding: 10px 6px 24px 6px;
+            padding: 0 0 24px !important;
         }
         .event-card {
             border-radius: 0;
@@ -739,20 +811,20 @@
         }
         .media-main-frame {
             width: 100%;
-            max-height: 480px;
-            border-radius: 8px;
+            height: 300px;
+            border-radius: 0;
             border-left: none;
             border-right: none;
         }
         .main-display-img {
-            width: 100%;
-            max-height: 480px;
-            object-fit: contain;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
         .pdf-canvas-display {
-            width: 100%;
-            max-height: 480px;
-            object-fit: contain;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
         }
     }
 
@@ -820,9 +892,10 @@
         <div class="sheet-header-bar" id="sheet-header-bar">
             <div class="sheet-handle" title="Drag down to close"></div>
             <div class="sheet-top-controls">
-                <span id="sheet-title-badge" class="sheet-title-badge">Event Details</span>
+                <!-- Top-most header title removed per user request -->
             </div>
         </div>
+        <div id="event-header-container" style="flex: 0 0 auto; z-index: 10;"></div>
         <div id="event-content"></div>
     </div>
 </div>
@@ -1335,19 +1408,53 @@
 
     function render() {
         initMedia();
+        const headerContainer = document.getElementById("event-header-container");
         const container = document.getElementById("event-content");
         const titleBadge = document.getElementById("sheet-title-badge");
         if (titleBadge) {
             titleBadge.textContent = event.title || "Event Details";
         }
         
+        const cat = (event.category || '').toLowerCase().trim();
+        const isWeeklyOrDaily = cat.includes('daily') || cat.includes('weekly') || (event.days && (event.days.toLowerCase().includes('daily') || event.days.toLowerCase().includes('everyday')));
+
+        const rawDate = event.dates || event.startDate || event.date || '';
+        const formattedDate = isWeeklyOrDaily ? '' : (rawDate ? formatDateToHuman(rawDate) : '');
+        const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
+
+        // Render sticky header into event-header-container
+        if (headerContainer) {
+            headerContainer.innerHTML = `
+            <!-- Segment 1: Type & Category -->
+            <div class="ec-segment ec-above-title" style="padding: 12px 16px 4px;">
+                <div class="ec-topbar">
+                    <span class="ec-type">${event.type || 'EVENT'}</span>
+                    <span class="ec-date">${event.category || ''}</span>
+                </div>
+            </div>
+            
+            <!-- Segment 2: Title (centered) -->
+            <div class="ec-segment ec-title-segment" style="text-align: center; padding: 4px 16px 8px;">
+                <strong style="display: block; text-align: center; font-size: 1.15rem; font-weight: 700; line-height: 1.35;">${event.title || 'Event Details'}</strong>
+            </div>
+            
+            <!-- Segment 3: Below Title (only date or days, time and location in separate lines) -->
+            <div class="ec-segment ec-below-title" style="display: flex; flex-direction: column; gap: 4px; padding: 0 16px 12px; border-bottom: 1px solid var(--border);">
+                ${formattedDate || formattedDays ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">📅 Date:</span> <span style="font-weight: 500; color: var(--text-secondary);">${formattedDate || formattedDays}</span></div>` : ''}
+                ${event.times ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">🕒 Time:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.times}</span></div>` : ''}
+                ${event.venue ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">📍 Location:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.venue}</span></div>` : ''}
+            </div>`;
+        }
+
         let html = `<div class="event-card">`;
-        
+
+        // 2. Media Carousel to occupy full screen width with no padding or empty/vacant space on left or right.
         if (eventImages.length > 0) {
             const firstUrl = eventImages[0];
             const isFirstPdf = isPdf(firstUrl);
 
-            html += `<div class="media-gallery-container">
+            html += `
+            <div class="media-gallery-container">
                 <div class="media-main-frame" id="media-main-frame" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event, false)">
                     <div id="main-media-view-container" class="main-media-view-container">
                     ${isFirstPdf ? `
@@ -1361,7 +1468,7 @@
                         <img id="main-display-image" class="main-display-img" src="${firstUrl}" alt="${event.title || 'Event Image'}" onclick="openLightbox(0)">
                     `}
                     </div>
-                    <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="position: absolute; top: 10px; right: 10px; z-index: 5; background: rgba(0, 0, 0, 0.55); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
+                    <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(0, 0, 0, 0.55); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="18" cy="5" r="3"></circle>
                             <circle cx="6" cy="12" r="3"></circle>
@@ -1382,7 +1489,8 @@
             html += `</div>`;
 
             if (eventImages.length > 1) {
-                html += `<div class="thumbnails-strip-container">
+                html += `
+                <div class="thumbnails-strip-container" style="padding: 0 16px; margin-top: 10px;">
                     <div class="thumbnails-strip" id="thumbnails-strip">`;
                 
                 eventImages.forEach((imgUrl, idx) => {
@@ -1405,75 +1513,39 @@
             html += `</div>`;
         }
 
-        if (eventDocs.length > 0) {
-            html += `<div class="detail-row" style="margin-bottom: 12px; margin-top: 8px;"><span class="detail-label">Attached Documents:</span> `;
-            eventDocs.forEach((docUrl, i) => {
-                const name = docUrl.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
-                html += `<a href="${docUrl}" target="_blank" style="margin-right: 10px; font-weight: 500; text-decoration: underline;">📄 ${name || ('Document ' + (i+1))}</a>`;
-            });
-            html += `</div>`;
-        }
-        
-        html += `<div class="ec-topbar" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <span class="ec-type">${event.type || ''}</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="ec-date">${event.category || ''}</span>
-                ${eventImages.length === 0 ? `
-                <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="background: var(--bg-hover, rgba(0,0,0,0.05)); border: 1px solid var(--border-color, #e0e0e0); border-radius: 50%; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; color: var(--accent, #0066cc); flex-shrink: 0;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                </button>` : ''}
-            </div>
-        </div>`;
-        
-        const cat = (event.category || '').toLowerCase().trim();
-        const isWeeklyOrDaily = cat.includes('daily') || cat.includes('weekly') || (event.days && (event.days.toLowerCase().includes('daily') || event.days.toLowerCase().includes('everyday')));
+        // 3. Below media and above description:
+        // Remaining fields and Contact block
+        // Two-column CSS Grid to ensure contact is always top-right aligned on any screens
+        html += `<div class="details-mid-section" style="display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 16px; align-items: start;">`;
 
-        const rawDate = event.dates || event.startDate || event.date || '';
-        const formattedDate = isWeeklyOrDaily ? '' : (rawDate ? formatDateToHuman(rawDate) : '');
-        const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
-        if (formattedDate) {
-            html += `<div class="detail-row"><span class="detail-label">Date:</span> ${formattedDate}</div>`;
-        }
-        
-        if (event.days) {
-            if (formattedDays) {
-                html += `<div class="detail-row"><span class="detail-label">Days:</span> ${formattedDays}</div>`;
-            }
-        }
-        if (event.times) {
-            html += `<div class="detail-row"><span class="detail-label">Time:</span> ${event.times}</div>`;
-        }
-        if (event.venue) {
-            html += `<div class="detail-row"><span class="detail-label">Location:</span> ${event.venue}</div>`;
-        }
+        // Remaining fields column:
+        html += `<div class="remaining-fields" style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">`;
+
         if (event.cost) {
-            html += `<div class="detail-row"><span class="detail-label">Contribution:</span> ${event.cost}</div>`;
+            html += `
+            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">Contribution:</span>
+                <span style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none;">${event.cost}</span>
+            </div>`;
         }
         if (event.audience) {
-            html += `<div class="detail-row"><span class="detail-label">Key info:</span> ${event.audience}</div>`;
+            html += `
+            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
+                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">Key info:</span>
+                <span style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none;">${event.audience}</span>
+            </div>`;
         }
-        if (event.contactPerson) {
-            html += `<div class="detail-row"><span class="detail-label">Contact Person:</span> ${event.contactPerson}</div>`;
-        }
-        if (event.whatsapp) {
-            const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
-            const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
-            html += `<div class="detail-row"><span class="detail-label">WhatsApp:</span> ${waDisplay}</div>`;
-        }
-        if (event.contact || event.phone) {
-            const phoneVal = String(event.contact || event.phone).trim();
-            if (phoneVal !== event.whatsapp) {
-                html += `<div class="detail-row"><span class="detail-label">Phone:</span> ${phoneVal}</div>`;
-            }
-        }
-        if (event.email) {
-            html += `<div class="detail-row"><span class="detail-label">Email:</span> ${event.email.trim()}</div>`;
+
+        if (eventDocs.length > 0) {
+            html += `
+            <div class="detail-row" style="margin-bottom: 4px;">
+                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Attached Documents</span>
+                <div style="display: flex; flex-direction: column; gap: 6px;">`;
+            eventDocs.forEach((docUrl, i) => {
+                const name = docUrl.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
+                html += `<a href="${docUrl}" target="_blank" style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">📄 ${name || ('Document ' + (i+1))}</a>`;
+            });
+            html += `</div></div>`;
         }
 
         let rawWebsite = event.website || event.externalLinks || event.links || '';
@@ -1485,20 +1557,76 @@
         }
 
         if (linksList.length > 0) {
-            const linksHtml = linksList.map(link => {
+            html += `
+            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">External links:</span>
+                <div style="display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: baseline;">`;
+            linksList.forEach((link, idx) => {
                 const fullUrl = link.startsWith('http') ? link : 'https://' + link;
                 let displayUrl = link.replace(/^https?:\/\//i, '').replace(/\/$/, '');
-                if (displayUrl.length > 35) displayUrl = displayUrl.substring(0, 32) + '...';
-                return `<a href="${fullUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-weight: 500; word-break: break-all;">🔗 ${displayUrl || fullUrl}</a>`;
-            }).join(' &nbsp;|&nbsp; ');
-            html += `<div class="detail-row" style="margin-top: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 6px;"><span class="detail-label">External links:</span> ${linksHtml}</div>`;
+                if (displayUrl.length > 30) displayUrl = displayUrl.substring(0, 27) + '...';
+                html += `<a href="${fullUrl}" target="_blank" style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">🔗 ${displayUrl || fullUrl}</a>`;
+                if (idx < linksList.length - 1) {
+                    html += `<span style="color: var(--text-secondary); font-size: 0.8rem; margin: 0 2px;">|</span>`;
+                }
+            });
+            html += `</div></div>`;
         }
-        
-        if (event.description) {
-            html += `<div class="description">${event.description}</div>`;
+
+        html += `</div>`; // End of remaining-fields column
+
+        // Contact Column on Right:
+        if (event.contactPerson || event.whatsapp || event.contact || event.phone || event.email) {
+            html += `
+            <div class="contact-sidebar" style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end; text-align: right; max-width: 200px; min-width: 140px;">`;
+            
+            if (event.contactPerson) {
+                html += `
+                <div style="display: flex; align-items: baseline; gap: 6px; justify-content: flex-end; margin-bottom: 4px;">
+                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); white-space: nowrap;">Contact:</span>
+                    <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); line-height: 1.3;">${event.contactPerson}</span>
+                </div>`;
+            } else {
+                html += `
+                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 4px;">Contact</div>`;
+            }
+            
+            if (event.whatsapp) {
+                const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
+                const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
+                const waNumber = cleanWa.replace(/[^0-9]/g, '');
+                const waHref = "https://wa.me/" + waNumber;
+                html += `<div style="font-size: 0.9rem; line-height: 1.3;"><a href="${waHref}" target="_blank" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${waDisplay}</a></div>`;
+            }
+            
+            if (event.contact || event.phone) {
+                const phoneVal = String(event.contact || event.phone).trim();
+                if (phoneVal !== event.whatsapp) {
+                    const telVal = phoneVal.replace(/[^0-9+]/g, '');
+                    html += `<div style="font-size: 0.9rem; line-height: 1.3;"><a href="tel:${telVal}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${phoneVal}</a></div>`;
+                }
+            }
+            
+            if (event.email) {
+                html += `<div style="font-size: 0.9rem; line-height: 1.3; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${event.email.trim()}</a></div>`;
+            }
+            
+            html += `</div>`;
         }
-        
-        // Render floating contact icons
+
+        html += `</div>`; // End of details-mid-section
+
+        // 4. Description at the bottom
+        const descText = event.description || 
+                         (event.originalHeaders ? (event.originalHeaders.description || event.originalHeaders.details || event.originalHeaders.about || event.originalHeaders['event description'] || event.originalHeaders['description / details'] || '') : '');
+        if (descText) {
+            html += `
+            <div class="description" style="margin: 8px 16px 16px; padding-top: 16px; border-top: 1px solid var(--border); white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: var(--text);">
+                ${descText}
+            </div>`;
+        }
+
+        // Floating Action Buttons (email/whatsapp buttons)
         const floatingContainer = document.getElementById("floating-contact-container");
         if (floatingContainer) {
             let floatingHtml = '';
@@ -1546,9 +1674,9 @@
             }
             floatingContainer.innerHTML = floatingHtml;
         }
-        
-        html += `</div>`;
-        
+
+        html += `</div>`; // End of .event-card
+
         container.innerHTML = html;
         const mainImg = document.getElementById("main-display-image");
         if (mainImg) {

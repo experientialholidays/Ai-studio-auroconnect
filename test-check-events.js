@@ -22,10 +22,8 @@ async function run() {
     const data = doc.data();
     console.log("ID:", doc.id);
     console.log("Category:", data.category);
-    console.log("StartDate:", data.startDate);
-    console.log("EndDate:", data.endDate);
-    console.log("Dates:", data.dates);
-    console.log("Days:", data.days);
+    console.log("Description (top-level):", data.description);
+    console.log("Description (originalHeaders):", data.originalHeaders ? data.originalHeaders['description'] : undefined);
     console.log("Original Headers:", Object.keys(data.originalHeaders || {}));
     console.log("----------------------");
   });
