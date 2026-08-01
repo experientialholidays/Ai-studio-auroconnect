@@ -706,20 +706,53 @@
         line-height: 1.2;
     }
 
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
         #main-content {
-            padding: 1rem 4%;
+            padding: 0 !important;
+        }
+        .details-container {
+            width: 100% !important;
+            max-width: 100% !important;
+            border-radius: 16px 16px 0 0;
+            border-left: none;
+            border-right: none;
+            max-height: 90vh;
+        }
+        #event-content {
+            max-height: calc(90vh - 58px);
+            padding: 10px 6px 24px 6px;
         }
         .event-card {
-            border-radius: 8px;
-            padding: 16px;
-            margin: 6px 0;
+            border-radius: 0;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .sheet-header-bar {
+            padding: 8px 10px;
+        }
+        .sheet-title-badge {
+            max-width: 100%;
+            font-size: 1.05rem;
+        }
+        .media-gallery-container {
+            margin-bottom: 12px;
         }
         .media-main-frame {
-            max-height: 380px;
+            width: 100%;
+            max-height: 480px;
+            border-radius: 8px;
+            border-left: none;
+            border-right: none;
         }
         .main-display-img {
-            max-height: 380px;
+            width: 100%;
+            max-height: 480px;
+            object-fit: contain;
+        }
+        .pdf-canvas-display {
+            width: 100%;
+            max-height: 480px;
+            object-fit: contain;
         }
     }
 
