@@ -869,14 +869,18 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
              CRITICAL: If the query is a follow-up about a topic from history, you MUST classify it as "B" and construct a search_query combining the topic and event keyword (e.g. "Matrimandir events").
         "C": General information, facts, services, or conversational questions. Use this for places (e.g., "Matrimandir"), services (e.g., "bus service", "volunteering"), or broad topics. IF THE CURRENT QUERY IS AMBIGUOUS (e.g., just "Matrimandir" could mean "events at Matrimandir" or "information about Matrimandir"), classify it as "C".
 
+        CRITICAL FILTERING RULES:
+        1. Only populate "filter_date", "filter_day", and "filter_time_after" if they are EXPLICITLY mentioned or clearly requested in the query or history context.
+        2. If the user asks for a specific topic (e.g. "sound healing", "yoga") WITHOUT specifying a date, day of the week, or time, you MUST leave "filter_date", "filter_day", and "filter_time_after" empty or null. DO NOT automatically assume today's date or today's day of the week!
+
         Return ONLY a valid JSON object matching this schema:
         {
             "bucket": "A", 
-            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets). If the user query is a short follow-up or response (e.g., 'event', 'yes', 'show events') to a topic from history, expand this to a clear search string including that topic (e.g. 'Matrimandir events').",
-            "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g. 'Here are the events for tomorrow:'). DO NOT include any conversational fluff, polite fillers, greeting words, or open-ended questions. Keep it direct and factual.",
-            "filter_date": "YYYY-MM-DD",
-            "filter_day": "Monday",
-            "filter_time_after": "HH:MM (e.g., morning=06:00, afternoon=12:00, evening=17:00, night=20:00)"
+            "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
+            "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g., 'Here are the upcoming sound healing events:' or 'Here are the events for tomorrow:'). DO NOT include any conversational fluff, polite fillers, greeting words, or open-ended questions. Keep it direct and factual.",
+            "filter_date": "YYYY-MM-DD. CRITICAL: Only populate if a specific date or relative term (like 'today', 'tomorrow') is explicitly requested. Otherwise, leave empty.",
+            "filter_day": "Monday, Tuesday, etc. CRITICAL: Only populate if a specific day of the week is explicitly requested or resolved from relative terms. Otherwise, leave empty.",
+            "filter_time_after": "HH:MM (e.g., 17:00). CRITICAL: Only populate if a specific time of day is explicitly requested. Otherwise, leave empty."
         }`;
     const classRes = await ai.models.generateContent({
       model: MODEL,
@@ -893,14 +897,14 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       bucket = parsed.bucket || "C";
       searchQuery = parsed.search_query || message;
       introText = parsed.intro_text || "";
-      filterDate = parsed.filter_date;
-      filterDay = parsed.filter_day;
-      filterTimeAfter = parsed.filter_time_after;
+      filterDate = parsed.filter_date || "";
+      filterDay = parsed.filter_day || "";
+      filterTimeAfter = parsed.filter_time_after || "";
     } catch {
     }
     ws.send(JSON.stringify({ type: "start_stream" }));
     if (bucket === "A") {
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u26A1 Searching events directly in Firebase...</i>\n\n" }));
+      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, timeZone);
       let botReply = "";
       if (Array.isArray(rawEvents)) {
@@ -914,7 +918,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
       chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
     } else if (bucket === "B") {
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F50D} Extracting topic matches. AI is curating events...</i>\n\n" }));
+      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, timeZone);
       const curationPrompt = `
              You are an expert AI event curator for Auroville.
@@ -929,7 +933,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
              
              CRITICAL COMPLIANCE AND STYLE RULES FOR EVENT DISPLAY:
              1. Your response MUST be strictly objective, direct, and factual. Completely remove all conversational fluff, polite fillers (e.g. "Certainly!", "Here are the events you requested"), and any follow-up/open-ended questions.
-             2. If matching events are found, list them directly.
+             2. If matching events are found, you MUST start your response with this introductory sentence exactly: "${introText}". Then list the matching events directly on the following lines. Do not add any other greeting or introductory text.
              3. If no events match the specific topic query, state simply: "No matching events found." and stop. Do NOT apologize, and do NOT ask if they want to try searching for anything else.
              4. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
              5. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.

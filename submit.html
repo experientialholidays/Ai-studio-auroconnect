@@ -139,7 +139,7 @@
       }
 
       .btn-primary:hover {
-        background: #0a4ab3;
+        opacity: 0.9;
       }
 
       @media (prefers-color-scheme: dark) {
@@ -147,7 +147,7 @@
           color: #000;
         }
         .btn-primary:hover {
-          background: #7ba2df;
+          opacity: 0.9;
         }
       }
 
@@ -819,6 +819,10 @@
                 placeholder="https://example.com/auroville-info"
                 style="width: 100%; padding: 0.5rem 0.8rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.9rem; box-sizing: border-box;"
               />
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); cursor: pointer; user-select: none; margin-top: 0.15rem;">
+                <input type="checkbox" id="scrape-deep" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent);" />
+                Deep website crawl (scrapes up to 15 same-site subpages)
+              </label>
               <button class="btn btn-primary" id="scrape-url-btn" style="max-width: 100%; margin-top: 0.5rem;">
                 Read Webpage
               </button>
@@ -1185,7 +1189,7 @@
           >
           <textarea
             id="ev-audience"
-            placeholder="e.g. Adults, Kids, Prerequisites"
+            placeholder="e.g. Adults, Kids, registration required, open to all"
             rows="1"
             style="
               width: 100%;
@@ -1383,9 +1387,9 @@
             style="display: flex; flex-direction: column; gap: 0.5rem"
           >
             <input
-              type="url"
+              type="text"
               class="ev-link"
-              placeholder="https://"
+              placeholder="e.g. google.com or https://google.com"
               style="
                 width: 100%;
                 padding: 0.5rem;
@@ -1896,9 +1900,9 @@
         const inputs = linksContainer.querySelectorAll("input");
         if (inputs.length < 5) {
           const newLink = document.createElement("input");
-          newLink.type = "url";
+          newLink.type = "text";
           newLink.className = "ev-link";
-          newLink.placeholder = "https://";
+          newLink.placeholder = "e.g. google.com or https://google.com";
           newLink.style.cssText =
             "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(newLink);
@@ -1954,6 +1958,50 @@
       const allKnowledgeLoading = document.getElementById("all-knowledge-loading");
       const allKnowledgeTableWrapper = document.getElementById("all-knowledge-table-wrapper");
       const allKnowledgeTbody = document.getElementById("all-knowledge-tbody");
+
+      // State to track async race conditions
+      let currentMyEventsRequestId = 0;
+      let currentAllEventsRequestId = 0;
+
+      // Debounce helper
+      function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+      }
+
+      // Complete, multi-field search helper to search completely (including originalHeaders keys & values)
+      function isEventMatchQuery(e, query) {
+        if (!query) return true;
+        const q = query.toLowerCase().trim();
+        
+        // Check top level string properties
+        const fields = [
+          'title', 'description', 'venue', 'category', 'type', 'audience', 
+          'contactPerson', 'contact', 'whatsapp', 'email', 'excelFilename', 'submittedBy', 'cost', 'days', 'times'
+        ];
+        for (const f of fields) {
+          if (e[f] && String(e[f]).toLowerCase().includes(q)) return true;
+        }
+        
+        // Recursively check originalHeaders keys and values
+        if (e.originalHeaders) {
+          for (const key of Object.keys(e.originalHeaders)) {
+            if (key.toLowerCase().includes(q)) return true;
+            const val = e.originalHeaders[key];
+            if (val) {
+              if (typeof val === 'object') {
+                if (JSON.stringify(val).toLowerCase().includes(q)) return true;
+              } else if (String(val).toLowerCase().includes(q)) {
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      }
 
       // Tab 1 Filters
       const myEventsSearch = document.getElementById("my-events-search");
@@ -2456,18 +2504,18 @@
         if (websiteLinksArray.length > 0) {
           websiteLinksArray.forEach((link) => {
             const input = document.createElement("input");
-            input.type = "url";
+            input.type = "text";
             input.className = "ev-link";
-            input.placeholder = "https://";
+            input.placeholder = "e.g. google.com or https://google.com";
             input.value = link;
             input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
             linksContainer.appendChild(input);
           });
         } else {
           const input = document.createElement("input");
-          input.type = "url";
+          input.type = "text";
           input.className = "ev-link";
-          input.placeholder = "https://";
+          input.placeholder = "e.g. google.com or https://google.com";
           input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(input);
         }
@@ -2570,7 +2618,7 @@
         document.getElementById("one-time-container").style.display = "flex";
         document.getElementById("recurring-container").style.display = "none";
         document.getElementById("links-container").innerHTML =
-          '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+          '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
       }
@@ -2655,6 +2703,9 @@
       async function loadMyEvents() {
         const currentUser = getCurrentUser();
         if (!currentUser) return;
+
+        const requestId = ++currentMyEventsRequestId;
+
         myEventsLoading.style.display = "block";
         myEventsTableWrapper.style.display = "none";
         myEventsTbody.innerHTML = "";
@@ -2668,6 +2719,8 @@
           const eventsCol = collection(db, "events");
           const q = query(eventsCol, where("submittedBy", "==", currentUser.email));
           const snapshot = await getDocs(q);
+
+          if (requestId !== currentMyEventsRequestId) return;
 
           let events = [];
           snapshot.forEach((docSnap) => {
@@ -2792,22 +2845,7 @@
           }
 
           if (searchQuery) {
-            filteredEvents = filteredEvents.filter((e) => {
-              return (
-                (e.title || "").toLowerCase().includes(searchQuery) ||
-                (e.description || "").toLowerCase().includes(searchQuery) ||
-                (e.venue || "").toLowerCase().includes(searchQuery) ||
-                (e.category || "").toLowerCase().includes(searchQuery) ||
-                (e.type || "").toLowerCase().includes(searchQuery) ||
-                (e.audience || "").toLowerCase().includes(searchQuery) ||
-                (e.contactPerson || "").toLowerCase().includes(searchQuery) ||
-                (e.contact || "").toLowerCase().includes(searchQuery) ||
-                (e.whatsapp || "").toLowerCase().includes(searchQuery) ||
-                (e.email || "").toLowerCase().includes(searchQuery) ||
-                (e.excelFilename || "").toLowerCase().includes(searchQuery) ||
-                (e.submittedBy || "").toLowerCase().includes(searchQuery)
-              );
-            });
+            filteredEvents = filteredEvents.filter((e) => isEventMatchQuery(e, searchQuery));
           }
 
           // Auto-select filtered events if any filter is active
@@ -2938,7 +2976,7 @@
                   <!-- Full-width Description -->
                   <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.25rem; border-top: 1px dashed var(--border); padding-top: 0.75rem;">
                     <strong style="font-size: 0.85rem; color: var(--text-secondary);">Description:</strong>
-                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || "No description provided."}</div>
+                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || (ev.originalHeaders ? (ev.originalHeaders.description || ev.originalHeaders.details || ev.originalHeaders.about || ev.originalHeaders['event description'] || ev.originalHeaders['description / details'] || '') : '') || "No description provided."}</div>
                   </div>
 
                 </div>
@@ -3074,6 +3112,9 @@
       // Load All Events (Admin Only)
       async function loadAllDatabaseEvents() {
         if (!getCurrentUser()) return;
+
+        const requestId = ++currentAllEventsRequestId;
+
         allEventsLoading.style.display = "block";
         allEventsTableWrapper.style.display = "none";
         allEventsTbody.innerHTML = "";
@@ -3086,6 +3127,8 @@
         try {
           const eventsCol = collection(db, "events");
           const snapshot = await getDocs(eventsCol);
+
+          if (requestId !== currentAllEventsRequestId) return;
 
           let rawEvents = [];
           snapshot.forEach((docSnap) => {
@@ -3210,22 +3253,7 @@
           }
 
           if (searchQuery) {
-            events = events.filter((e) => {
-              return (
-                (e.title || "").toLowerCase().includes(searchQuery) ||
-                (e.description || "").toLowerCase().includes(searchQuery) ||
-                (e.venue || "").toLowerCase().includes(searchQuery) ||
-                (e.category || "").toLowerCase().includes(searchQuery) ||
-                (e.type || "").toLowerCase().includes(searchQuery) ||
-                (e.audience || "").toLowerCase().includes(searchQuery) ||
-                (e.contactPerson || "").toLowerCase().includes(searchQuery) ||
-                (e.contact || "").toLowerCase().includes(searchQuery) ||
-                (e.whatsapp || "").toLowerCase().includes(searchQuery) ||
-                (e.email || "").toLowerCase().includes(searchQuery) ||
-                (e.excelFilename || "").toLowerCase().includes(searchQuery) ||
-                (e.submittedBy || "").toLowerCase().includes(searchQuery)
-              );
-            });
+            events = events.filter((e) => isEventMatchQuery(e, searchQuery));
           }
 
           // Auto-select filtered events if any filter is active
@@ -3363,7 +3391,7 @@
                   <!-- Full-width Description -->
                   <div style="grid-column: span 3; display: flex; flex-direction: column; gap: 0.25rem; border-top: 1px dashed var(--border); padding-top: 0.75rem;">
                     <strong style="font-size: 0.85rem; color: var(--text-secondary);">Description:</strong>
-                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || "No description provided."}</div>
+                    <div style="white-space: pre-wrap; font-size: 0.85rem; line-height: 1.45; color: var(--text); background: rgba(0,0,0,0.015); padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);">${ev.description || (ev.originalHeaders ? (ev.originalHeaders.description || ev.originalHeaders.details || ev.originalHeaders.about || ev.originalHeaders['event description'] || ev.originalHeaders['description / details'] || '') : '') || "No description provided."}</div>
                   </div>
 
                 </div>
@@ -3494,7 +3522,7 @@
 
       // Bind search/filter triggers
       // Tab 1 (User Events)
-      if (myEventsSearch) myEventsSearch.oninput = () => loadMyEvents();
+      if (myEventsSearch) myEventsSearch.oninput = debounce(() => loadMyEvents(), 300);
       if (myEventsCategory) myEventsCategory.onchange = () => loadMyEvents();
       if (myEventsExcel) myEventsExcel.onchange = () => loadMyEvents();
       if (myEventsVenue) myEventsVenue.onchange = () => loadMyEvents();
@@ -3515,7 +3543,7 @@
           loadAllDatabaseEvents();
         };
       }
-      if (adminEventsSearch) adminEventsSearch.oninput = () => loadAllDatabaseEvents();
+      if (adminEventsSearch) adminEventsSearch.oninput = debounce(() => loadAllDatabaseEvents(), 300);
       if (adminEventsCategory) adminEventsCategory.onchange = () => loadAllDatabaseEvents();
       if (adminEventsExcel) adminEventsExcel.onchange = () => loadAllDatabaseEvents();
       if (adminEventsVenue) adminEventsVenue.onchange = () => loadAllDatabaseEvents();
@@ -4054,9 +4082,9 @@
               linksContainer.innerHTML = "";
               data.links.forEach((linkVal) => {
                 const input = document.createElement("input");
-                input.type = "url";
+                input.type = "text";
                 input.className = "ev-link";
-                input.placeholder = "https://";
+                input.placeholder = "e.g. google.com or https://google.com";
                 input.value = linkVal;
                 input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); height: 38px; box-sizing: border-box;";
                 linksContainer.appendChild(input);
@@ -4427,7 +4455,11 @@
               headers: {
                 "Content-Type": "application/json"
               },
-              body: JSON.stringify({ token, url: urlVal }),
+              body: JSON.stringify({ 
+                token, 
+                url: urlVal,
+                deep: document.getElementById("scrape-deep")?.checked || false
+              }),
             });
 
             if (!response.ok) {
@@ -4582,8 +4614,14 @@
 
           const linkInputs = document.querySelectorAll(".ev-link");
           const links = Array.from(linkInputs)
-            .map((inp) => inp.value)
-            .filter((val) => val.trim() !== "");
+            .map((inp) => {
+              let val = inp.value.trim();
+              if (val && !/^https?:\/\//i.test(val)) {
+                val = "https://" + val;
+              }
+              return val;
+            })
+            .filter((val) => val !== "");
 
           const contactValue = document.getElementById("ev-contact-code").value + " " + document.getElementById("ev-contact").value;
           const whatsappValue = document.getElementById("ev-whatsapp-code").value + " " + document.getElementById("ev-whatsapp").value;
@@ -4671,7 +4709,7 @@
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
               document.getElementById("links-container").innerHTML =
-                '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+                '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
               document.getElementById("media-container").innerHTML =
                 '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
             }

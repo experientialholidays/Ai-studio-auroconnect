@@ -99,7 +99,7 @@
         flex-direction: column;
         align-items: center;
         border-bottom: 1px solid var(--border);
-        background: var(--surface);
+        background: #F9F6F3;
         position: sticky;
         top: 0;
         z-index: 10;
@@ -171,15 +171,15 @@
     /* Segment 1: Above Title (Muted & Subdued) */
     .ec-segment.ec-above-title {
         background: #F9F6F3;
-        padding: 10px 16px;
-        border-bottom: 1px solid #ECE5DE;
+        padding: 12px 16px 2px;
+        border-bottom: none;
         opacity: 1;
     }
 
     /* Segment 2: Title (Matching Segment 1 background & text color tone) */
     .ec-segment.ec-title-segment {
         background: #F9F6F3;
-        padding: 12px 16px 12px 12px;
+        padding: 4px 16px 12px 12px;
         border-bottom: 1px solid #ECE5DE;
         border-left: 4px solid #C85A32; /* Accent bar preserved */
     }
@@ -194,9 +194,12 @@
     }
 
     @media (prefers-color-scheme: dark) {
+        .sheet-header-bar {
+            background: #23201C;
+        }
         .ec-segment.ec-above-title {
             background: #23201C;
-            border-bottom-color: #332D27;
+            border-bottom: none;
             opacity: 1;
         }
         .ec-segment.ec-title-segment {
@@ -828,6 +831,42 @@
         }
     }
 
+    .details-boxes-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+    .detail-box {
+        background: var(--user-msg-bg);
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        padding: 14px;
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        gap: 14px;
+        align-items: start;
+        box-sizing: border-box;
+    }
+    .detail-box-title {
+        text-align: left;
+        font-weight: 700;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        color: var(--accent);
+        letter-spacing: 0.05em;
+        border-right: 1px solid var(--border);
+        padding-right: 10px;
+        margin: 0;
+    }
+    .detail-box-content {
+        text-align: left;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        color: var(--text);
+    }
+
     .floating-contact-container {
         position: fixed;
         right: 24px;
@@ -891,11 +930,8 @@
     <div class="details-container" id="details-sheet" onclick="event.stopPropagation()">
         <div class="sheet-header-bar" id="sheet-header-bar">
             <div class="sheet-handle" title="Drag down to close"></div>
-            <div class="sheet-top-controls">
-                <!-- Top-most header title removed per user request -->
-            </div>
+            <div id="dynamic-header-container" style="width: 100%;"></div>
         </div>
-        <div id="event-header-container" style="flex: 0 0 auto; z-index: 10;"></div>
         <div id="event-content"></div>
     </div>
 </div>
@@ -1408,12 +1444,8 @@
 
     function render() {
         initMedia();
-        const headerContainer = document.getElementById("event-header-container");
         const container = document.getElementById("event-content");
-        const titleBadge = document.getElementById("sheet-title-badge");
-        if (titleBadge) {
-            titleBadge.textContent = event.title || "Event Details";
-        }
+        const dynamicHeader = document.getElementById("dynamic-header-container");
         
         const cat = (event.category || '').toLowerCase().trim();
         const isWeeklyOrDaily = cat.includes('daily') || cat.includes('weekly') || (event.days && (event.days.toLowerCase().includes('daily') || event.days.toLowerCase().includes('everyday')));
@@ -1422,27 +1454,24 @@
         const formattedDate = isWeeklyOrDaily ? '' : (rawDate ? formatDateToHuman(rawDate) : '');
         const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
 
-        // Render sticky header into event-header-container
-        if (headerContainer) {
-            headerContainer.innerHTML = `
-            <!-- Segment 1: Type & Category -->
-            <div class="ec-segment ec-above-title" style="padding: 12px 16px 4px;">
-                <div class="ec-topbar">
-                    <span class="ec-type">${event.type || 'EVENT'}</span>
-                    <span class="ec-date">${event.category || ''}</span>
+        // Render sticky header into dynamic-header-container in the main header
+        if (dynamicHeader) {
+            dynamicHeader.innerHTML = `
+            <div class="sheet-main-header-content" style="width: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 2px 0 6px; box-sizing: border-box;">
+                <!-- Type & Category -->
+                <div class="ec-topbar" style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 2px;">
+                    <span class="ec-type" style="font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: var(--accent);">${event.type || 'EVENT'}</span>
+                    <span class="ec-date" style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">${event.category || ''}</span>
                 </div>
-            </div>
-            
-            <!-- Segment 2: Title (centered) -->
-            <div class="ec-segment ec-title-segment" style="text-align: center; padding: 4px 16px 8px;">
-                <strong style="display: block; text-align: center; font-size: 1.15rem; font-weight: 700; line-height: 1.35;">${event.title || 'Event Details'}</strong>
-            </div>
-            
-            <!-- Segment 3: Below Title (only date or days, time and location in separate lines) -->
-            <div class="ec-segment ec-below-title" style="display: flex; flex-direction: column; gap: 4px; padding: 0 16px 12px; border-bottom: 1px solid var(--border);">
-                ${formattedDate || formattedDays ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">📅 Date:</span> <span style="font-weight: 500; color: var(--text-secondary);">${formattedDate || formattedDays}</span></div>` : ''}
-                ${event.times ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">🕒 Time:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.times}</span></div>` : ''}
-                ${event.venue ? `<div style="font-size: 0.9rem; line-height: 1.3;"><span style="font-weight: 700;">📍 Location:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.venue}</span></div>` : ''}
+                <!-- Main Title -->
+                <h1 style="margin: 4px 0; font-size: 1.25rem; font-weight: 800; line-height: 1.35; color: var(--text); text-align: center;">${event.title || 'Event Details'}</h1>
+                <!-- Date, Time, Location -->
+                ${(formattedDate || formattedDays || event.times || event.venue) ? `
+                <div class="ec-below-title" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border);">
+                    ${formattedDate || formattedDays ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">📅 Date:</span> <span style="font-weight: 500; color: var(--text-secondary);">${formattedDate || formattedDays}</span></div>` : ''}
+                    ${event.times ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">🕒 Time:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.times}</span></div>` : ''}
+                    ${event.venue ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">📍 Location:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.venue}</span></div>` : ''}
+                </div>` : ''}
             </div>`;
         }
 
@@ -1514,40 +1543,63 @@
         }
 
         // 3. Below media and above description:
-        // Remaining fields and Contact block
-        // Two-column CSS Grid to ensure contact is always top-right aligned on any screens
-        html += `<div class="details-mid-section" style="display: grid; grid-template-columns: 1fr auto; gap: 24px; padding: 16px; align-items: start;">`;
+        // Four beautiful same-color boxes for Contribution, External Links, Contact, Key Info
+        html += `<div class="details-boxes-grid">`;
 
-        // Remaining fields column:
-        html += `<div class="remaining-fields" style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">`;
-
-        if (event.cost) {
+        // Box 1: Contribution
+        if (event.cost && event.cost.trim()) {
             html += `
-            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
-                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">Contribution:</span>
-                <span style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none;">${event.cost}</span>
-            </div>`;
-        }
-        if (event.audience) {
-            html += `
-            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px;">
-                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">Key info:</span>
-                <span style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none;">${event.audience}</span>
+            <div class="detail-box">
+                <div class="detail-box-title">Contribution</div>
+                <div class="detail-box-content">${event.cost.trim()}</div>
             </div>`;
         }
 
-        if (eventDocs.length > 0) {
+        // Box 2: Key Info
+        if (event.audience && event.audience.trim()) {
             html += `
-            <div class="detail-row" style="margin-bottom: 4px;">
-                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Attached Documents</span>
-                <div style="display: flex; flex-direction: column; gap: 6px;">`;
-            eventDocs.forEach((docUrl, i) => {
-                const name = docUrl.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
-                html += `<a href="${docUrl}" target="_blank" style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">📄 ${name || ('Document ' + (i+1))}</a>`;
-            });
-            html += `</div></div>`;
+            <div class="detail-box">
+                <div class="detail-box-title">Key Info</div>
+                <div class="detail-box-content">${event.audience.trim()}</div>
+            </div>`;
         }
 
+        // Box 3: Contact Info
+        let contactHtml = '';
+        if (event.contactPerson || event.whatsapp || event.contact || event.phone || event.email) {
+            contactHtml = `<div style="display: flex; flex-direction: column; gap: 6px;">`;
+            if (event.contactPerson) {
+                contactHtml += `<div style="font-size: 0.9rem; font-weight: 600; color: var(--text);">${event.contactPerson}</div>`;
+            }
+            if (event.whatsapp) {
+                const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
+                const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
+                const waNumber = cleanWa.replace(/[^0-9]/g, '');
+                const waHref = "https://wa.me/" + waNumber;
+                contactHtml += `<div style="font-size: 0.85rem;"><a href="${waHref}" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">💬 ${waDisplay}</a></div>`;
+            }
+            if (event.contact || event.phone) {
+                const phoneVal = String(event.contact || event.phone).trim();
+                if (phoneVal !== event.whatsapp) {
+                    const telVal = phoneVal.replace(/[^0-9+]/g, '');
+                    contactHtml += `<div style="font-size: 0.85rem;"><a href="tel:${telVal}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">📞 ${phoneVal}</a></div>`;
+                }
+            }
+            if (event.email) {
+                contactHtml += `<div style="font-size: 0.85rem; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${event.email.trim()}">✉️ ${event.email.trim()}</a></div>`;
+            }
+            contactHtml += `</div>`;
+        }
+
+        if (contactHtml) {
+            html += `
+            <div class="detail-box">
+                <div class="detail-box-title">Contact</div>
+                <div class="detail-box-content">${contactHtml}</div>
+            </div>`;
+        }
+
+        // Box 4: External Links
         let rawWebsite = event.website || event.externalLinks || event.links || '';
         let linksList = [];
         if (Array.isArray(rawWebsite)) {
@@ -1556,73 +1608,52 @@
             linksList = rawWebsite.split(/[\n,\s]+/).map(s => s.trim()).filter(Boolean);
         }
 
+        let linksHtml = '';
         if (linksList.length > 0) {
-            html += `
-            <div class="detail-row" style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
-                <span class="detail-label" style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; font-size: 0.72rem; letter-spacing: 0.05em; white-space: nowrap;">External links:</span>
-                <div style="display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: baseline;">`;
-            linksList.forEach((link, idx) => {
+            linksHtml = `<div style="display: flex; flex-direction: column; gap: 6px;">`;
+            linksList.forEach((link) => {
                 const fullUrl = link.startsWith('http') ? link : 'https://' + link;
                 let displayUrl = link.replace(/^https?:\/\//i, '').replace(/\/$/, '');
-                if (displayUrl.length > 30) displayUrl = displayUrl.substring(0, 27) + '...';
-                html += `<a href="${fullUrl}" target="_blank" style="font-size: 0.9rem; line-height: 1.3; font-weight: 500; color: var(--text-secondary); text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">🔗 ${displayUrl || fullUrl}</a>`;
-                if (idx < linksList.length - 1) {
-                    html += `<span style="color: var(--text-secondary); font-size: 0.8rem; margin: 0 2px;">|</span>`;
-                }
+                if (displayUrl.length > 25) displayUrl = displayUrl.substring(0, 22) + '...';
+                linksHtml += `<a href="${fullUrl}" target="_blank" style="font-size: 0.9rem; font-weight: 500; color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">🔗 ${displayUrl || fullUrl}</a>`;
             });
-            html += `</div></div>`;
+            linksHtml += `</div>`;
         }
 
-        html += `</div>`; // End of remaining-fields column
-
-        // Contact Column on Right:
-        if (event.contactPerson || event.whatsapp || event.contact || event.phone || event.email) {
-            html += `
-            <div class="contact-sidebar" style="display: flex; flex-direction: column; gap: 6px; align-items: flex-end; text-align: right; max-width: 200px; min-width: 140px;">`;
-            
-            if (event.contactPerson) {
-                html += `
-                <div style="display: flex; align-items: baseline; gap: 6px; justify-content: flex-end; margin-bottom: 4px;">
-                    <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); white-space: nowrap;">Contact:</span>
-                    <span style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary); line-height: 1.3;">${event.contactPerson}</span>
-                </div>`;
+        if (eventDocs.length > 0) {
+            if (!linksHtml) {
+                linksHtml = `<div style="display: flex; flex-direction: column; gap: 6px;">`;
             } else {
-                html += `
-                <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: 4px;">Contact</div>`;
+                linksHtml = linksHtml.replace(/<\/div>$/, `<div style="margin-top: 8px; border-top: 1px dashed var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 6px;">`);
             }
-            
-            if (event.whatsapp) {
-                const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
-                const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
-                const waNumber = cleanWa.replace(/[^0-9]/g, '');
-                const waHref = "https://wa.me/" + waNumber;
-                html += `<div style="font-size: 0.9rem; line-height: 1.3;"><a href="${waHref}" target="_blank" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${waDisplay}</a></div>`;
-            }
-            
-            if (event.contact || event.phone) {
-                const phoneVal = String(event.contact || event.phone).trim();
-                if (phoneVal !== event.whatsapp) {
-                    const telVal = phoneVal.replace(/[^0-9+]/g, '');
-                    html += `<div style="font-size: 0.9rem; line-height: 1.3;"><a href="tel:${telVal}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${phoneVal}</a></div>`;
-                }
-            }
-            
-            if (event.email) {
-                html += `<div style="font-size: 0.9rem; line-height: 1.3; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--text-secondary); text-decoration: none; font-weight: 500;">${event.email.trim()}</a></div>`;
-            }
-            
-            html += `</div>`;
+            eventDocs.forEach((docUrl, i) => {
+                const name = docUrl.split('/').pop().split('?')[0].replace(/^event-media\/\d+_/, "");
+                let displayName = name || ('Document ' + (i+1));
+                if (displayName.length > 25) displayName = displayName.substring(0, 22) + '...';
+                linksHtml += `<a href="${docUrl}" target="_blank" style="font-size: 0.9rem; font-weight: 500; color: var(--accent); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">📄 ${displayName}</a>`;
+            });
+            linksHtml += `</div>`;
         }
 
-        html += `</div>`; // End of details-mid-section
+        if (linksHtml) {
+            html += `
+            <div class="detail-box">
+                <div class="detail-box-title">External Links</div>
+                <div class="detail-box-content">${linksHtml}</div>
+            </div>`;
+        }
 
-        // 4. Description at the bottom
-        const descText = event.description || 
-                         (event.originalHeaders ? (event.originalHeaders.description || event.originalHeaders.details || event.originalHeaders.about || event.originalHeaders['event description'] || event.originalHeaders['description / details'] || '') : '');
+        html += `</div>`; // End of .details-boxes-grid
+
+        // 4. Description at the bottom (wrapped in a clean, elegant card matching the other detail boxes)
+        const rawDesc = event.description || 
+                        (event.originalHeaders ? (event.originalHeaders.description || event.originalHeaders.details || event.originalHeaders.about || event.originalHeaders['event description'] || event.originalHeaders['description / details'] || '') : '');
+        const descText = String(rawDesc).trim();
         if (descText) {
             html += `
-            <div class="description" style="margin: 8px 16px 16px; padding-top: 16px; border-top: 1px solid var(--border); white-space: pre-wrap; font-size: 0.95rem; line-height: 1.5; color: var(--text);">
-                ${descText}
+            <div class="description-card" style="margin: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--user-msg-bg); box-sizing: border-box; text-align: left !important; display: block; width: calc(100% - 32px);">
+                <div style="font-weight: 700; font-size: 0.82rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-align: left !important;">Description</div>
+                <div style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text); text-align: left !important; word-break: break-word; overflow-wrap: break-word;">${descText}</div>
             </div>`;
         }
 
