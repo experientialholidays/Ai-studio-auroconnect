@@ -489,7 +489,7 @@
         width: max-content;
     }
     .preset-btn {
-        background: var(--surface);
+        background: var(--user-msg-bg);
         border: 1px solid var(--border);
         color: var(--text);
         padding: 0.4rem 0.85rem;
@@ -511,11 +511,7 @@
         transform: translateY(0);
     }
     .welcome-presets-container {
-        margin-top: 1rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        width: 100%;
+        display: none;
     }
     .savitri-card {
         margin: 0.5rem 0 1rem 0;
@@ -702,10 +698,6 @@
             if (data.success && data.presets) {
                 presets = data.presets;
                 updatePresetsVisibility();
-                const welcomeDiv = document.getElementById("welcome-message-bubble");
-                if (welcomeDiv) {
-                    renderWelcomePresets(welcomeDiv);
-                }
             }
         } catch (e) {
             console.error("Error loading presets:", e);
@@ -713,28 +705,14 @@
     }
 
     function renderWelcomePresets(botDiv) {
-        if (!botDiv || presets.length === 0) return;
-        const contentDiv = botDiv.querySelector('.msg-content') || botDiv;
-        if (contentDiv.querySelector('.welcome-presets-container')) return; // already rendered
-        
-        const welcomePresets = document.createElement('div');
-        welcomePresets.className = 'welcome-presets-container';
-        presets.forEach(p => {
-            const btn = document.createElement('button');
-            btn.className = 'preset-btn';
-            btn.textContent = p.text;
-            btn.onclick = () => send(p.query);
-            welcomePresets.appendChild(btn);
-        });
-        contentDiv.appendChild(welcomePresets);
+        // Obsolete, presets are now always in the horizontal scrolling presets bar
     }
 
     function updatePresetsVisibility() {
         const presetsBar = document.getElementById('presets-bar');
         if (!presetsBar) return;
         
-        const hasUserMsg = document.querySelectorAll('.msg.user').length > 0;
-        if (hasUserMsg && presets.length > 0) {
+        if (presets.length > 0) {
             presetsBar.style.display = 'block';
             const inner = presetsBar.querySelector('.presets-bar-inner');
             if (inner) {
@@ -756,6 +734,7 @@
         safeRemoveItem("auro_session_id");
         window.location.href = window.location.pathname + "?new_session=true&t=" + Date.now();
     }
+    window.startNewSession = startNewSession;
 
     function connect() {
         if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
@@ -787,7 +766,6 @@
                 const botDiv = appendMsg('bot', content);
                 if (data.type === "welcome") {
                     botDiv.id = "welcome-message-bubble";
-                    renderWelcomePresets(botDiv);
                 }
             }
             else if (data.type === "modal") {
