@@ -183,7 +183,7 @@ export default function App() {
           const activeSession = parsed.find((s: any) => s.id === lastActiveId) || parsed[0];
           setMessages(activeSession.messages);
           
-          if (!activeSession.savitriQuote) {
+          if (!activeSession.savitriQuote || !activeSession.savitriQuote.book) {
             fetchSavitriQuoteForSession(lastActiveId);
           }
         } else {
@@ -218,6 +218,14 @@ export default function App() {
         ]);
       });
   }, []);
+
+  // Automatically fetch Savitri quote for active session if missing or old format
+  useEffect(() => {
+    const currentSession = sessions.find((s) => s.id === activeSessionId);
+    if (activeSessionId && currentSession && (!currentSession.savitriQuote || !currentSession.savitriQuote.book)) {
+      fetchSavitriQuoteForSession(activeSessionId);
+    }
+  }, [activeSessionId, sessions]);
 
   // Fetch Excel visual catalog list
   const fetchCatalogEvents = async (query = "", day = "", category = "") => {
@@ -269,7 +277,7 @@ export default function App() {
 
   const fetchSavitriQuoteForSession = async (sessionId: string) => {
     try {
-      const res = await fetch("/api/savitri-quote");
+      const res = await fetch("/api/savitri-quote?t=" + Date.now());
       const data = await res.json();
       if (data.success) {
         setSessions(prev => {
@@ -778,6 +786,9 @@ export default function App() {
                             {isAssistant && (msg.id === "welcome_msg" || msgIdx === 0) && activeSession?.savitriQuote && (
                               <div className="mt-5 p-5 rounded-lg bg-amber-50/40 border-l-4 border-amber-400 text-slate-800 font-serif italic relative">
                                 <div className="absolute -top-3 right-3 text-5xl text-amber-200/50 select-none font-serif">”</div>
+                                <div className="text-[10px] sm:text-[11px] font-sans not-italic font-bold text-amber-800 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                  ✨ Savitri Verse for Reflection
+                                </div>
                                 <div className="space-y-2">
                                   {activeSession.savitriQuote.lines.map((line: string, lIdx: number) => (
                                     <p key={lIdx} className="text-[15px] leading-relaxed tracking-wide font-medium text-slate-950">
@@ -793,6 +804,23 @@ export default function App() {
                                     <span className="text-amber-400">•</span>
                                     <span className="text-amber-900 font-semibold">{activeSession.savitriQuote.canto}</span>
                                   </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {isAssistant && (msg.id === "welcome_msg" || msgIdx === 0) && presets.length > 0 && (
+                              <div className="mt-5 pt-4 border-t border-slate-100">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Suggested prompts</p>
+                                <div className="flex flex-wrap gap-2">
+                                  {presets.map((item, idx) => (
+                                    <button
+                                      key={item.id || idx}
+                                      onClick={() => handleSendMessage(item.query)}
+                                      className="px-3 py-2 bg-slate-50 border border-slate-200 hover:border-emerald-500 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-700 flex items-center gap-1.5 cursor-pointer hover:shadow-xs transition-all active:scale-95 duration-150"
+                                    >
+                                      {item.text}
+                                    </button>
+                                  ))}
                                 </div>
                               </div>
                             )}
@@ -834,24 +862,6 @@ export default function App() {
 
                 <div ref={messagesEndRef} />
               </div>
-
-              {/* Suggestions row inside Chat tab (Fresh Start) */}
-              {messages.length <= 1 && presets.length > 0 && (
-                <div className="px-4 py-3 border-t border-slate-100 bg-white/40">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Suggested prompts</p>
-                  <div className="flex flex-wrap gap-2">
-                    {presets.map((item, idx) => (
-                      <button
-                        key={item.id || idx}
-                        onClick={() => handleSendMessage(item.query)}
-                        className="px-3 py-2 bg-white border border-slate-200/80 hover:border-emerald-500 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-700 flex items-center gap-1.5 cursor-pointer hover:shadow-xs transition-all active:scale-95 duration-150"
-                      >
-                        {item.text}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Ongoing Chat: Horizontal Scrolling Presets above Input Box */}
               {messages.length > 1 && presets.length > 0 && (

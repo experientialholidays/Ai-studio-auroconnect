@@ -1504,6 +1504,9 @@ ${searchQuery || lastMessage}`;
   }
 
   app.get("/api/savitri-quote", (req, res) => {
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
     try {
         if (savitriLines.length === 0) {
             return res.json({

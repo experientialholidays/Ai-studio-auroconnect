@@ -370,10 +370,10 @@
             window.startNewSession();
           } else {
             localStorage.removeItem("auro_session_id");
-            location.reload();
+            window.location.href = "/?new_session=true&t=" + Date.now();
           }
         } else {
-          window.location.href = "/?new_session=true";
+          window.location.href = "/?new_session=true&t=" + Date.now();
         }
       };
     }

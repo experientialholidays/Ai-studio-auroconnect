@@ -517,6 +517,56 @@
         gap: 0.5rem;
         width: 100%;
     }
+    .savitri-card {
+        margin: 0.5rem 0 1rem 0;
+        padding: 1.25rem;
+        background: #FAF5EF; /* Warm earthy cream */
+        border-left: 4px solid var(--accent, #C85A32);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        position: relative;
+        font-family: Georgia, serif;
+        box-sizing: border-box;
+        width: 100%;
+    }
+    .savitri-card-header {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #A06040; /* Earthy rust/orange-brown */
+        margin-bottom: 0.75rem;
+        font-family: 'Inter', sans-serif;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    @media (prefers-color-scheme: dark) {
+        .savitri-card-header {
+            color: #E08F65;
+        }
+    }
+    @media (prefers-color-scheme: dark) {
+        .savitri-card {
+            background: #251F1C;
+            border-left-color: var(--accent, #E07A5F);
+        }
+    }
+    .savitri-quote-text {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text);
+        font-style: italic;
+        margin-bottom: 0.75rem;
+    }
+    .savitri-author-citation {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-family: 'Inter', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
     </style>
 </head>
 <body>
@@ -589,6 +639,62 @@
     const chatWin = document.getElementById('chat-window');
 
     let presets = [];
+    let currentSavitriQuote = null;
+
+    async function fetchSavitriQuote() {
+        try {
+            const res = await fetch("/api/savitri-quote?t=" + Date.now());
+            const data = await res.json();
+            if (data.success) {
+                currentSavitriQuote = data;
+                renderSavitriQuote();
+            }
+        } catch (e) {
+            console.error("Error fetching Savitri quote:", e);
+        }
+    }
+
+    function renderSavitriQuote() {
+        if (!currentSavitriQuote) return;
+        
+        // Remove existing if any to avoid duplicates
+        const existing = document.getElementById("savitri-quote-card");
+        if (existing) existing.remove();
+        
+        const card = document.createElement("div");
+        card.id = "savitri-quote-card";
+        card.className = "savitri-card";
+        
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "savitri-card-header";
+        headerDiv.innerHTML = `✨ Savitri Verse for Reflection`;
+        card.appendChild(headerDiv);
+        
+        const textDiv = document.createElement("div");
+        textDiv.className = "savitri-quote-text";
+        
+        currentSavitriQuote.lines.forEach(line => {
+            const p = document.createElement("p");
+            p.style.margin = "0 0 0.25rem 0";
+            p.textContent = `“${line}”`;
+            textDiv.appendChild(p);
+        });
+        
+        const citationDiv = document.createElement("div");
+        citationDiv.className = "savitri-author-citation";
+        citationDiv.innerHTML = `— Sri Aurobindo, <em>Savitri</em> (${currentSavitriQuote.book} • ${currentSavitriQuote.canto})`;
+        
+        card.appendChild(textDiv);
+        card.appendChild(citationDiv);
+        
+        // Prepend to chat window so it is always at the very top
+        if (chatWin.firstChild) {
+            chatWin.insertBefore(card, chatWin.firstChild);
+        } else {
+            chatWin.appendChild(card);
+        }
+    }
+
     async function loadPresets() {
         try {
             const res = await fetch("/api/presets");
@@ -648,7 +754,7 @@
 
     function startNewSession() {
         safeRemoveItem("auro_session_id");
-        location.reload();
+        window.location.href = window.location.pathname + "?new_session=true&t=" + Date.now();
     }
 
     function connect() {
@@ -668,11 +774,17 @@
             const data = JSON.parse(e.data);
             if (data.type === "history_load") {
                 chatWin.innerHTML = ""; 
+                renderSavitriQuote(); // Always prepend the beautiful Savitri quote card at the very top of the conversation
                 data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content));
                 updatePresetsVisibility();
             } 
             else if (data.type === "welcome" || data.type === "static_response") {
-                const botDiv = appendMsg('bot', data.content);
+                let content = data.content;
+                // Strip Savitri text from welcome message content if it contains it to avoid duplication
+                if (data.type === "welcome" && content.includes("\n\n---\n\n✨ **Savitri Verse for Reflection** ✨")) {
+                    content = content.split("\n\n---\n\n✨ **Savitri Verse for Reflection** ✨")[0];
+                }
+                const botDiv = appendMsg('bot', content);
                 if (data.type === "welcome") {
                     botDiv.id = "welcome-message-bubble";
                     renderWelcomePresets(botDiv);
@@ -857,6 +969,7 @@
 
     document.getElementById('send-btn').onclick = () => send();
     document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
+    fetchSavitriQuote();
     connect();
     loadPresets();
 </script>
