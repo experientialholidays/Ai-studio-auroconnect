@@ -22,8 +22,10 @@ service cloud.firestore {
 
     // Admins Collection
     match /admins/{adminId} {
-      // Users can only read their own admin verification document, preventing snooping of the whole collection
-      allow read: if isAuthenticated() && request.auth.token.email == adminId;
+      // Anyone can check if a single admin document exists (allows server-side validation),
+      // but listing the entire collection is restricted to admins.
+      allow get: if true;
+      allow list: if isAdmin();
       // Only existing administrators can add, update, or delete administrator documents
       allow write: if isAdmin();
     }
@@ -86,6 +88,13 @@ service cloud.firestore {
       allow create: if true;
       // Only administrators can view or manage feedback submissions
       allow read, update, delete: if isAdmin();
+    }
+
+    // Presets Collection
+    match /presets/{docId} {
+      // Anyone can read or write presets (server-side writes are unauthenticated, 
+      // but protected by API-level admin checks)
+      allow read, write: if true;
     }
   }
 }

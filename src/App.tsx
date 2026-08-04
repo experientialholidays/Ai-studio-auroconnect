@@ -130,6 +130,7 @@ export default function App() {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [presets, setPresets] = useState<{ id?: string, text: string, query: string }[]>([]);
 
   // Local & Drive Settings
   const [showSettings, setShowSettings] = useState(false);
@@ -181,6 +182,10 @@ export default function App() {
           setActiveSessionId(lastActiveId);
           const activeSession = parsed.find((s: any) => s.id === lastActiveId) || parsed[0];
           setMessages(activeSession.messages);
+          
+          if (!activeSession.savitriQuote) {
+            fetchSavitriQuoteForSession(lastActiveId);
+          }
         } else {
           startNewSession();
         }
@@ -193,6 +198,25 @@ export default function App() {
     
     // Load visual catalog
     fetchCatalogEvents();
+
+    // Load presets
+    fetch("/api/presets")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.presets && data.presets.length > 0) {
+          setPresets(data.presets);
+        }
+      })
+      .catch((err) => {
+        console.error("Error loading presets from API, falling back to static ones:", err);
+        setPresets([
+          { text: "What's happening today? 📅", query: "What's happening today?" },
+          { text: "Savitri Reading Circle 📖", query: "Savitri reading circle" },
+          { text: "Yoga & Healing 🧘", query: "Water yoga and meditation" },
+          { text: "Bamboo workshop 🎋", query: "bamboo workshop" },
+          { text: "Horse therapy 🐴", query: "Horse assisted therapy" }
+        ]);
+      });
   }, []);
 
   // Fetch Excel visual catalog list
@@ -243,9 +267,40 @@ export default function App() {
     localStorage.setItem("auroconnect_sessions", JSON.stringify(updated));
   };
 
+  const fetchSavitriQuoteForSession = async (sessionId: string) => {
+    try {
+      const res = await fetch("/api/savitri-quote");
+      const data = await res.json();
+      if (data.success) {
+        setSessions(prev => {
+          const updated = prev.map(s => {
+            if (s.id === sessionId) {
+              return {
+                ...s,
+                savitriQuote: {
+                  lines: data.lines,
+                  book: data.book,
+                  bookTitle: data.bookTitle,
+                  canto: data.canto,
+                  cantoTitle: data.cantoTitle
+                }
+              };
+            }
+            return s;
+          });
+          localStorage.setItem("auroconnect_sessions", JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error("Error fetching Savitri quote:", e);
+    }
+  };
+
   const startNewSession = () => {
+    const newId = "sess_" + Math.random().toString(36).substring(2, 11);
     const defaultSession: ChatSession = {
-      id: "sess_" + Math.random().toString(36).substring(2, 11),
+      id: newId,
       title: "Discover Auroville",
       messages: [
         {
@@ -260,10 +315,12 @@ export default function App() {
     };
     const updated = [defaultSession, ...sessions.filter(s => s.messages.length > 1)];
     setSessions(updated);
-    setActiveSessionId(defaultSession.id);
+    setActiveSessionId(newId);
     setMessages(defaultSession.messages);
     localStorage.setItem("auroconnect_sessions", JSON.stringify(updated));
-    localStorage.setItem("auroconnect_active_session_id", defaultSession.id);
+    localStorage.setItem("auroconnect_active_session_id", newId);
+
+    fetchSavitriQuoteForSession(newId);
   };
 
   const switchSession = (id: string) => {
@@ -520,6 +577,8 @@ export default function App() {
     }, 1800);
   };
 
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col antialiased selection:bg-emerald-100 selection:text-emerald-900">
       
@@ -691,7 +750,7 @@ export default function App() {
               {/* Chat Message Box */}
               <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
                 
-                {messages.map((msg) => {
+                {messages.map((msg, msgIdx) => {
                   const isAssistant = msg.role === "assistant";
                   return (
                     <div
@@ -715,6 +774,28 @@ export default function App() {
                             <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
                               {msg.content}
                             </ReactMarkdown>
+
+                            {isAssistant && (msg.id === "welcome_msg" || msgIdx === 0) && activeSession?.savitriQuote && (
+                              <div className="mt-5 p-5 rounded-lg bg-amber-50/40 border-l-4 border-amber-400 text-slate-800 font-serif italic relative">
+                                <div className="absolute -top-3 right-3 text-5xl text-amber-200/50 select-none font-serif">”</div>
+                                <div className="space-y-2">
+                                  {activeSession.savitriQuote.lines.map((line: string, lIdx: number) => (
+                                    <p key={lIdx} className="text-[15px] leading-relaxed tracking-wide font-medium text-slate-950">
+                                      {line}
+                                    </p>
+                                  ))}
+                                  <div className="pt-3 font-sans not-italic text-[10px] sm:text-[11px] text-amber-800/80 tracking-wider uppercase font-medium flex flex-wrap gap-1.5 items-center">
+                                    <span className="font-semibold text-slate-900">Sri Aurobindo</span>
+                                    <span className="text-amber-400">•</span>
+                                    <span>Savitri</span>
+                                    <span className="text-amber-400">•</span>
+                                    <span className="text-amber-900 font-semibold">{activeSession.savitriQuote.book}</span>
+                                    <span className="text-amber-400">•</span>
+                                    <span className="text-amber-900 font-semibold">{activeSession.savitriQuote.canto}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                         </div>
                         <span className={`text-[10px] text-slate-400 px-2 ${!isAssistant && "text-right"}`}>
                           {msg.timestamp}
@@ -754,16 +835,33 @@ export default function App() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Suggestions row inside Chat tab */}
-              {messages.length === 1 && (
-                <div className="px-4 py-2 border-t border-slate-100 bg-white/40">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 px-1">Suggested prompts</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SUGGESTED_QUERIES.map((item, idx) => (
+              {/* Suggestions row inside Chat tab (Fresh Start) */}
+              {messages.length <= 1 && presets.length > 0 && (
+                <div className="px-4 py-3 border-t border-slate-100 bg-white/40">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Suggested prompts</p>
+                  <div className="flex flex-wrap gap-2">
+                    {presets.map((item, idx) => (
                       <button
-                        key={idx}
+                        key={item.id || idx}
                         onClick={() => handleSendMessage(item.query)}
-                        className="px-3 py-1.5 bg-white border border-slate-200/80 hover:border-emerald-500 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer hover:shadow-xs transition-colors"
+                        className="px-3 py-2 bg-white border border-slate-200/80 hover:border-emerald-500 rounded-xl text-xs font-semibold text-slate-600 hover:text-emerald-700 flex items-center gap-1.5 cursor-pointer hover:shadow-xs transition-all active:scale-95 duration-150"
+                      >
+                        {item.text}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ongoing Chat: Horizontal Scrolling Presets above Input Box */}
+              {messages.length > 1 && presets.length > 0 && (
+                <div className="px-4 py-2 bg-white border-t border-slate-100">
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none whitespace-nowrap scroll-smooth" style={{ WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" }}>
+                    {presets.map((item, idx) => (
+                      <button
+                        key={item.id || idx}
+                        onClick={() => handleSendMessage(item.query)}
+                        className="inline-flex shrink-0 px-3 py-1.5 bg-slate-50 hover:bg-emerald-50 border border-slate-200 hover:border-emerald-500 rounded-full text-xs font-semibold text-slate-600 hover:text-emerald-700 items-center gap-1.5 cursor-pointer shadow-3xs transition-all duration-200 active:scale-95"
                       >
                         {item.text}
                       </button>

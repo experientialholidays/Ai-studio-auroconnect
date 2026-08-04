@@ -468,6 +468,55 @@
             width: 100%;
         }
     }
+
+    /* PRESET SUGGESTIONS STYLE */
+    .presets-bar {
+        display: none;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+        padding: 0.6rem 1rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE 10+ */
+    }
+    .presets-bar::-webkit-scrollbar {
+        display: none; /* Safari and Chrome */
+    }
+    .presets-bar-inner {
+        display: flex;
+        gap: 0.5rem;
+        width: max-content;
+    }
+    .preset-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        padding: 0.4rem 0.85rem;
+        border-radius: 1.25rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        white-space: nowrap;
+    }
+    .preset-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--bg);
+        transform: translateY(-1px);
+    }
+    .preset-btn:active {
+        transform: translateY(0);
+    }
+    .welcome-presets-container {
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        width: 100%;
+    }
     </style>
 </head>
 <body>
@@ -475,6 +524,10 @@
 <div class="header"></div>
 
 <div id="chat-window"></div>
+
+<div id="presets-bar" class="presets-bar">
+    <div class="presets-bar-inner"></div>
+</div>
 
 <div class="input-area">
     <div class="input-box">
@@ -535,6 +588,64 @@
     let currentBotDiv = null;
     const chatWin = document.getElementById('chat-window');
 
+    let presets = [];
+    async function loadPresets() {
+        try {
+            const res = await fetch("/api/presets");
+            const data = await res.json();
+            if (data.success && data.presets) {
+                presets = data.presets;
+                updatePresetsVisibility();
+                const welcomeDiv = document.getElementById("welcome-message-bubble");
+                if (welcomeDiv) {
+                    renderWelcomePresets(welcomeDiv);
+                }
+            }
+        } catch (e) {
+            console.error("Error loading presets:", e);
+        }
+    }
+
+    function renderWelcomePresets(botDiv) {
+        if (!botDiv || presets.length === 0) return;
+        const contentDiv = botDiv.querySelector('.msg-content') || botDiv;
+        if (contentDiv.querySelector('.welcome-presets-container')) return; // already rendered
+        
+        const welcomePresets = document.createElement('div');
+        welcomePresets.className = 'welcome-presets-container';
+        presets.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = 'preset-btn';
+            btn.textContent = p.text;
+            btn.onclick = () => send(p.query);
+            welcomePresets.appendChild(btn);
+        });
+        contentDiv.appendChild(welcomePresets);
+    }
+
+    function updatePresetsVisibility() {
+        const presetsBar = document.getElementById('presets-bar');
+        if (!presetsBar) return;
+        
+        const hasUserMsg = document.querySelectorAll('.msg.user').length > 0;
+        if (hasUserMsg && presets.length > 0) {
+            presetsBar.style.display = 'block';
+            const inner = presetsBar.querySelector('.presets-bar-inner');
+            if (inner) {
+                inner.innerHTML = '';
+                presets.forEach(p => {
+                    const btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.textContent = p.text;
+                    btn.onclick = () => send(p.query);
+                    inner.appendChild(btn);
+                });
+            }
+        } else {
+            presetsBar.style.display = 'none';
+        }
+    }
+
     function startNewSession() {
         safeRemoveItem("auro_session_id");
         location.reload();
@@ -558,9 +669,14 @@
             if (data.type === "history_load") {
                 chatWin.innerHTML = ""; 
                 data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content));
+                updatePresetsVisibility();
             } 
             else if (data.type === "welcome" || data.type === "static_response") {
-                appendMsg('bot', data.content);
+                const botDiv = appendMsg('bot', data.content);
+                if (data.type === "welcome") {
+                    botDiv.id = "welcome-message-bubble";
+                    renderWelcomePresets(botDiv);
+                }
             }
             else if (data.type === "modal") {
                 openModal(data.content); 
@@ -699,6 +815,10 @@
             // Scroll to the start/top of the bot's reply so the user starts reading from the top
             chatWin.scrollTop = div.offsetTop - 20;
         }
+        
+        // Update presets bar visibility when a message is appended
+        updatePresetsVisibility();
+        
         return div;
     }
 
@@ -709,7 +829,7 @@
         try {
             connect();
             while (ws.readyState !== WebSocket.OPEN) await new Promise(r => setTimeout(r, 50));
-            if (!msg) appendMsg('user', text);
+            appendMsg('user', text);
             ws.send(JSON.stringify({ 
                 message: text, 
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
@@ -738,6 +858,7 @@
     document.getElementById('send-btn').onclick = () => send();
     document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
     connect();
+    loadPresets();
 </script>
 <script src="/common.js" type="module"></script>
 </body>

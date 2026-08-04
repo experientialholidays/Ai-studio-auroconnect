@@ -6,8 +6,8 @@ import { createServer as createViteServer } from "vite";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
-import { db, firebaseConfig } from "./src/server/firebase-ai.js";
-import { collection, doc, getDoc, getDocs, setDoc } from "firebase/firestore";
+import { db, firebaseConfig, verifyAuthToken } from "./src/server/firebase-ai.js";
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -16,8 +16,30 @@ import knowledgeRouter from "./src/server/knowledge.js";
 import scraperRouter from "./src/server/scraper.js";
 import excelRouter from "./src/server/excel.js";
 
-
 import dotenv from "dotenv";
+dotenv.config();
+
+// Admin verification utility
+async function checkIfAdmin(token: string): Promise<boolean> {
+    if (!token) return false;
+    const verified = await verifyAuthToken(token);
+    if (!verified || !verified.email) return false;
+    
+    // Hardcoded master admin
+    if (verified.email === "info.experientialholidays@gmail.com") {
+        return true;
+    }
+    
+    // Check in 'admins' collection using client SDK
+    try {
+        const adminDocRef = doc(db, "admins", verified.email);
+        const adminDoc = await getDoc(adminDocRef);
+        return adminDoc.exists();
+    } catch (e) {
+        console.error("Error verifying admin in Firestore admins collection:", e);
+    }
+    return false;
+}
 dotenv.config();
 
 function cosineSimilarity(a: number[], b: number[]) {
@@ -1399,6 +1421,143 @@ ${searchQuery || lastMessage}`;
     res.json(firebaseConfig);
   });
 
+  app.get("/api/presets", async (req, res) => {
+    try {
+        const presetsCol = collection(db, "presets");
+        const snapshot = await getDocs(presetsCol);
+        let presets: any[] = [];
+        snapshot.forEach((docSnap) => {
+            presets.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        // Seed default presets if none exist
+        if (presets.length === 0) {
+            const defaultPresets = [
+                { text: "What's happening today? 📅", query: "What's happening today?" },
+                { text: "Savitri Reading Circle 📖", query: "Savitri reading circle" },
+                { text: "Yoga & Healing 🧘", query: "Water yoga and meditation" },
+                { text: "Bamboo workshop 🎋", query: "bamboo workshop" },
+                { text: "Horse therapy 🐴", query: "Horse assisted therapy" }
+            ];
+            const promises = defaultPresets.map(async (preset) => {
+                const docRef = await addDoc(collection(db, "presets"), preset);
+                return { id: docRef.id, ...preset };
+            });
+            presets = await Promise.all(promises);
+        }
+
+        res.json({ success: true, presets });
+    } catch (err: any) {
+        console.error("Error fetching/seeding presets:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post("/api/presets", express.json(), async (req, res) => {
+    try {
+        const { text, query, token } = req.body;
+        if (!text || !query) {
+            return res.status(400).json({ success: false, error: "text and query are required" });
+        }
+
+        const isAdmin = await checkIfAdmin(token);
+        if (!isAdmin) {
+            return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+        }
+
+        const docRef = await addDoc(collection(db, "presets"), { text, query });
+        res.json({ success: true, preset: { id: docRef.id, text, query } });
+    } catch (err: any) {
+        console.error("Error adding preset:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.delete("/api/presets/:id", express.json(), async (req, res) => {
+    try {
+        const id = req.params.id;
+        const token = req.query.token as string || req.body.token;
+
+        const isAdmin = await checkIfAdmin(token);
+        if (!isAdmin) {
+            return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+        }
+
+        await deleteDoc(doc(db, "presets", id));
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error("Error deleting preset:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Load Savitri lines JSON dynamically
+  let savitriLines: any[] = [];
+  try {
+    const savitriPath = path.join(process.cwd(), "src/server/savitri-lines.json");
+    if (fs.existsSync(savitriPath)) {
+        savitriLines = JSON.parse(fs.readFileSync(savitriPath, "utf8"));
+        console.log(`Loaded ${savitriLines.length} Savitri lines for quote endpoint.`);
+    }
+  } catch (e) {
+    console.error("Error loading Savitri lines:", e);
+  }
+
+  app.get("/api/savitri-quote", (req, res) => {
+    try {
+        if (savitriLines.length === 0) {
+            return res.json({
+                success: true,
+                lines: [
+                    "IT WAS the hour before the Gods awake.",
+                    "Across the path of the divine Event",
+                    "The huge foreboding mind of Night, alone",
+                    "In her unlit temple of eternity,"
+                ],
+                book: "BOOK ONE",
+                bookTitle: "The Book of Beginnings",
+                canto: "Canto One",
+                cantoTitle: "The Symbol Dawn"
+            });
+        }
+
+        let attempts = 0;
+        while (attempts < 100) {
+            const idx = Math.floor(Math.random() * (savitriLines.length - 4));
+            const first = savitriLines[idx];
+            const second = savitriLines[idx + 1];
+            const third = savitriLines[idx + 2];
+            const fourth = savitriLines[idx + 3];
+
+            // Ensure they are consecutive and belong to the same Canto and Book
+            if (first.canto === fourth.canto && first.book === fourth.book) {
+                return res.json({
+                    success: true,
+                    lines: [first.text, second.text, third.text, fourth.text],
+                    book: first.book,
+                    bookTitle: first.bookTitle,
+                    canto: first.canto,
+                    cantoTitle: first.cantoTitle
+                });
+            }
+            attempts++;
+        }
+
+        // Fallback to first 4 lines
+        const firstFour = savitriLines.slice(0, 4);
+        res.json({
+            success: true,
+            lines: firstFour.map(l => l.text),
+            book: firstFour[0].book,
+            bookTitle: firstFour[0].bookTitle,
+            canto: firstFour[0].canto,
+            cantoTitle: firstFour[0].cantoTitle
+        });
+    } catch (err: any) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   app.get("/api/events", async (req, res) => {
     try {
         const query = (req.query.query || "") as string;
@@ -1432,11 +1591,9 @@ ${searchQuery || lastMessage}`;
   app.get("/api/events/:id", async (req, res) => {
     try {
         const id = req.params.id;
-        const colRef = collection(db, "events");
-        const snapshot = await getDocs(colRef);
-        const docSnap = snapshot.docs.find(d => d.id === id);
+        const docSnap = await getDoc(doc(db, "events", id));
         
-        if (docSnap) {
+        if (docSnap.exists()) {
             const evData = docSnap.data();
             res.json({ success: true, event: { uuid: docSnap.id, ...evData, times: formatDisplayTimes(evData.times || "") } });
         } else {
@@ -1616,10 +1773,51 @@ ${searchQuery || lastMessage}`;
 
     loadSessionHistory().then((hasHistory) => {
       if (!hasHistory) {
+        // Fetch a random Savitri quote to embed inside the welcome message
+        let savitriPart = "";
+        if (savitriLines && savitriLines.length > 0) {
+            try {
+                let attempts = 0;
+                let quote = null;
+                while (attempts < 100) {
+                    const idx = Math.floor(Math.random() * (savitriLines.length - 4));
+                    const first = savitriLines[idx];
+                    const second = savitriLines[idx + 1];
+                    const third = savitriLines[idx + 2];
+                    const fourth = savitriLines[idx + 3];
+                    if (first.canto === fourth.canto && first.book === fourth.book) {
+                        quote = {
+                            lines: [first.text, second.text, third.text, fourth.text],
+                            bookTitle: first.bookTitle,
+                            cantoTitle: first.cantoTitle,
+                            book: first.book,
+                            canto: first.canto
+                        };
+                        break;
+                    }
+                    attempts++;
+                }
+                if (!quote) {
+                    const firstFour = savitriLines.slice(0, 4);
+                    quote = {
+                        lines: firstFour.map(l => l.text),
+                        bookTitle: savitriLines[0].bookTitle,
+                        cantoTitle: savitriLines[0].cantoTitle,
+                        book: savitriLines[0].book,
+                        canto: savitriLines[0].canto
+                    };
+                }
+                
+                savitriPart = `\n\n---\n\n✨ **Savitri Verse for Reflection** ✨\n\n> *“${quote.lines.join("”*<br>*“")}”*\n>\n> — **Sri Aurobindo**, *Savitri (${quote.book} • ${quote.canto})*`;
+            } catch (quoteErr) {
+                console.error("Error generating Savitri quote for welcome message:", quoteErr);
+            }
+        }
+
         // Send welcome if there's no history
         ws.send(JSON.stringify({ 
             type: "welcome", 
-            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*" 
+            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*" + savitriPart
         }));
       }
     });

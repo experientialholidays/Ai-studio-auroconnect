@@ -33,6 +33,13 @@ export interface ChatSession {
   title: string;
   messages: ChatMessage[];
   createdAt: string;
+  savitriQuote?: {
+    lines: string[];
+    book: string;
+    bookTitle: string;
+    canto: string;
+    cantoTitle: string;
+  };
 }
 
 export interface SearchQueryResponse {

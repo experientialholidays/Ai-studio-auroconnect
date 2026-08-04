@@ -1533,6 +1533,7 @@
         <button class="tab-btn" id="btn-tab-all-events">All DB Events (Admin)</button>
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
         <button class="tab-btn" id="btn-tab-contact-messages">Contact Messages (Admin)</button>
+        <button class="tab-btn" id="btn-tab-preset-prompts">Preset Prompts (Admin)</button>
       </div>
 
       <!-- Tab 1: My Submitted Events -->
@@ -1858,6 +1859,51 @@
           </table>
         </div>
       </div>
+
+      <!-- Tab 5: Preset Prompts (Admin Only) -->
+      <div class="tab-content" id="tab-preset-prompts">
+        <h3>Chatbot Preset Prompts</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          Configure the prefilled questions and quick suggestions displayed in the AI Chatbot window.
+        </p>
+
+        <!-- Form to Add Preset -->
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+          <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text);">Add New Preset Prompt</h4>
+          <form id="add-preset-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; width: 100%;">
+              <div style="flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Button Display Label (e.g., Yoga & Healing 🧘)</label>
+                <input type="text" id="new-preset-text" required placeholder="Label displayed on the chip..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              </div>
+              <div style="flex: 2; min-width: 300px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Full AI Prompt Query (e.g., Tell me about Yoga and Meditation programs today)</label>
+                <input type="text" id="new-preset-query" required placeholder="Exact query text sent to the chatbot..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              </div>
+            </div>
+            <button class="btn btn-primary" id="btn-add-preset" style="align-self: flex-start; padding: 0.5rem 1.25rem; font-size: 0.85rem; margin-top: 0.5rem;">
+              Create Preset
+            </button>
+          </form>
+        </div>
+
+        <!-- Preset Table -->
+        <div id="presets-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        <div class="table-wrapper" id="presets-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Button Chip Label</th>
+                <th>Full AI Query Text</th>
+                <th style="width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="presets-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script type="module">
@@ -1983,11 +2029,13 @@
       const btnTabAllEvents = document.getElementById("btn-tab-all-events");
       const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
       const btnTabContactMessages = document.getElementById("btn-tab-contact-messages");
+      const btnTabPresetPrompts = document.getElementById("btn-tab-preset-prompts");
 
       const tabMyEvents = document.getElementById("tab-my-events");
       const tabAllEvents = document.getElementById("tab-all-events");
       const tabAllKnowledge = document.getElementById("tab-all-knowledge");
       const tabContactMessages = document.getElementById("tab-contact-messages");
+      const tabPresetPrompts = document.getElementById("tab-preset-prompts");
 
       const myEventsLoading = document.getElementById("my-events-loading");
       const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
@@ -2006,6 +2054,13 @@
       const contactMessagesTbody = document.getElementById("contact-messages-tbody");
       const contactMessagesSearch = document.getElementById("contact-messages-search");
       const btnClearContactFilters = document.getElementById("btn-clear-contact-filters");
+
+      const presetsLoading = document.getElementById("presets-loading");
+      const presetsTableWrapper = document.getElementById("presets-table-wrapper");
+      const presetsTbody = document.getElementById("presets-tbody");
+      const btnAddPreset = document.getElementById("btn-add-preset");
+      const newPresetText = document.getElementById("new-preset-text");
+      const newPresetQuery = document.getElementById("new-preset-query");
 
       // State to track async race conditions
       let currentMyEventsRequestId = 0;
@@ -2741,12 +2796,14 @@
         btnTabAllEvents.classList.toggle("active", activeTabId === "all-events");
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         btnTabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
+        btnTabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
 
         // Tab contents
         tabMyEvents.classList.toggle("active", activeTabId === "my-events");
         tabAllEvents.classList.toggle("active", activeTabId === "all-events");
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         tabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
+        tabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
 
         if (activeTabId === "all-events") {
           loadAllDatabaseEvents();
@@ -2754,6 +2811,8 @@
           loadAllKnowledgeDocs();
         } else if (activeTabId === "contact-messages") {
           loadContactMessages();
+        } else if (activeTabId === "preset-prompts") {
+          loadPresetPrompts();
         } else {
           loadMyEvents();
         }
@@ -2763,6 +2822,7 @@
       btnTabAllEvents.onclick = () => switchTab("all-events");
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
       btnTabContactMessages.onclick = () => switchTab("contact-messages");
+      btnTabPresetPrompts.onclick = () => switchTab("preset-prompts");
 
       // Load My Submitted Events
       async function loadMyEvents() {
@@ -3943,6 +4003,124 @@
         };
       }
 
+      // Preset Prompts Manager Logic (Admin Only)
+      let cachedPresets = [];
+
+      async function loadPresetPrompts() {
+        if (!getCurrentUser()) return;
+        presetsLoading.style.display = "block";
+        presetsTableWrapper.style.display = "none";
+        presetsTbody.innerHTML = "";
+
+        try {
+          const res = await fetch("/api/presets");
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || "Failed to load presets");
+
+          cachedPresets = data.presets || [];
+          renderPresetPrompts(cachedPresets);
+          presetsLoading.style.display = "none";
+        } catch (error) {
+          console.error("Error loading preset prompts:", error);
+          presetsLoading.innerHTML = `<span style="color: red;">Error loading preset prompts: ${error.message}</span>`;
+        }
+      }
+
+      function renderPresetPrompts(presets) {
+        presetsTbody.innerHTML = "";
+
+        if (presets.length === 0) {
+          presetsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No preset prompts found in database. The chatbot will fall back to static suggestions.</td></tr>`;
+          presetsTableWrapper.style.display = "block";
+          return;
+        }
+
+        presets.forEach((preset) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td style="font-weight: 600;">${escapeHTML(preset.text || "")}</td>
+            <td style="font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(preset.query || "")}</td>
+            <td>
+              <button class="btn-danger btn-delete-preset" data-id="${preset.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Delete</button>
+            </td>
+          `;
+
+          tr.querySelector(".btn-delete-preset").onclick = async () => {
+            if (confirm(`Are you sure you want to delete the preset "${preset.text}"?`)) {
+              try {
+                const user = getCurrentUser();
+                if (!user) throw new Error("Not logged in");
+                const token = await user.getIdToken();
+
+                const res = await fetch(`/api/presets/${preset.id}?token=${encodeURIComponent(token)}`, {
+                  method: "DELETE"
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || "Failed to delete preset");
+
+                loadPresetPrompts();
+              } catch (err) {
+                alert("Failed to delete preset: " + err.message);
+              }
+            }
+          };
+
+          presetsTbody.appendChild(tr);
+        });
+
+        presetsTableWrapper.style.display = "block";
+      }
+
+      // Handle Adding New Preset
+      const addPresetForm = document.getElementById("add-preset-form");
+      if (addPresetForm) {
+        addPresetForm.onsubmit = async (e) => {
+          e.preventDefault();
+          const text = newPresetText.value.trim();
+          const queryVal = newPresetQuery.value.trim();
+
+          if (!text || !queryVal) return;
+
+          try {
+            const btn = document.getElementById("btn-add-preset");
+            const originalText = btn.innerText;
+            btn.innerText = "Adding...";
+            btn.disabled = true;
+
+            const user = getCurrentUser();
+            if (!user) throw new Error("Not logged in");
+            const token = await user.getIdToken();
+
+            const res = await fetch("/api/presets", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                text: text,
+                query: queryVal,
+                token: token
+              })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || "Failed to add preset");
+
+            newPresetText.value = "";
+            newPresetQuery.value = "";
+            btn.innerText = originalText;
+            btn.disabled = false;
+
+            alert("Preset prompt added successfully!");
+            loadPresetPrompts();
+          } catch (err) {
+            alert("Error adding preset: " + err.message);
+            const btn = document.getElementById("btn-add-preset");
+            btn.innerText = "Create Preset";
+            btn.disabled = false;
+          }
+        };
+      }
+
       // Main reload trigger for everything
       window.loadDashboard = function() {
         if (!getCurrentUser()) return;
@@ -3957,6 +4135,9 @@
           }
           if (tabContactMessages.classList.contains("active")) {
             loadContactMessages();
+          }
+          if (tabPresetPrompts.classList.contains("active")) {
+            loadPresetPrompts();
           }
         }
       }
