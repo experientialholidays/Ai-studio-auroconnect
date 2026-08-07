@@ -7,7 +7,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
 import { db, firebaseConfig, verifyAuthToken } from "./src/server/firebase-ai.js";
-import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -1608,6 +1608,48 @@ ${searchQuery || lastMessage}`;
     }
   });
 
+  app.get("/api/chat-sessions", async (req, res) => {
+    try {
+        const token = req.query.token as string;
+
+        const isAdmin = await checkIfAdmin(token);
+        if (!isAdmin) {
+            return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+        }
+
+        const chatSessionsCol = collection(db, "chat_sessions");
+
+        // Active cleanup: delete any session older than 45 days
+        try {
+            const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+            const expiredQuery = query(chatSessionsCol, where("updatedAt", "<", fortyFiveDaysAgo));
+            const expiredSnapshot = await getDocs(expiredQuery);
+            const deletePromises: Promise<void>[] = [];
+            expiredSnapshot.forEach((docSnap) => {
+                deletePromises.push(deleteDoc(docSnap.ref));
+            });
+            if (deletePromises.length > 0) {
+                await Promise.all(deletePromises);
+                console.log(`Cleaned up ${deletePromises.length} expired chat sessions.`);
+            }
+        } catch (cleanupErr) {
+            console.error("Error during active chat sessions cleanup:", cleanupErr);
+        }
+
+        const q = query(chatSessionsCol, orderBy("updatedAt", "desc"));
+        const snapshot = await getDocs(q);
+        const sessions: any[] = [];
+        snapshot.forEach((docSnap) => {
+            sessions.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        res.json({ success: true, sessions });
+    } catch (err: any) {
+        console.error("Error fetching chat sessions:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
   // Load Savitri lines directly from Firestore database
   let savitriLines: any[] = [];
   const loadSavitriLinesFromFirestore = async () => {
@@ -1869,9 +1911,12 @@ ${searchQuery || lastMessage}`;
   async function saveChatSession(sessionId: string, history: any[]) {
     try {
       const sessionDocRef = doc(db, "chat_sessions", sessionId);
+      const now = new Date();
+      const expireDate = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000); // 45 days in the future
       await setDoc(sessionDocRef, {
         messages: history,
-        updatedAt: new Date().toISOString()
+        updatedAt: now.toISOString(),
+        expireAt: expireDate.toISOString()
       }, { merge: true });
     } catch (err) {
       console.error("Error saving chat session history to Firestore:", err);
@@ -1897,6 +1942,12 @@ ${searchQuery || lastMessage}`;
           const data = docSnap.data();
           if (data && Array.isArray(data.messages)) {
             const updatedAtMs = data.updatedAt ? new Date(data.updatedAt).getTime() : Date.now();
+            const isExpired = Date.now() - updatedAtMs > 45 * 24 * 60 * 60 * 1000; // 45 days
+            if (isExpired) {
+              await deleteDoc(sessionDocRef);
+              console.log(`Deleted expired session ${sessionId} upon load attempt.`);
+              return false;
+            }
             chatHistory = data.messages.map(m => ({
               ...m,
               timestamp: m.timestamp || updatedAtMs

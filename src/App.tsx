@@ -32,18 +32,27 @@ import { AuroEvent, ChatMessage, ChatSession } from "./types.js";
 
 const WELCOME_TEXT = `🌟 **Welcome to Auroville Explorer!** 🌟
 
-I am your AI companion, here to help you experience Auroville, not just visit it. 🌿
+I am your AI companion, here to help you explore and experience Auroville. 🌿✨
 
-✨ Auroville is a place to experience yourself and the world differently, to grow, create, and connect. Whether you're here for a day, a week, or longer, immerse yourself through:
+Auroville is a place to experience yourself and the world differently—to grow, create, and connect.
 
-🧘 **Deepen within** through meditations, yoga, and talks on Sri Aurobindo's works.
-🎨 **Immerse in art** & exhibitions, join pottery, writing, or cultural workshops.
-🎶 **Feel the rhythm** with music concerts, choir, and dance classes.
-🌱 **Reconnect with nature** in forest walks, permaculture & eco-living workshops.
-💆 **Heal and energize** through Ayurveda, Reiki, massage, and movement therapies.
-🤝 **Be part of** community learning, volunteering, and sharing circles.
+Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.
 
-*Just ask me anything or click one of the quick search options below!*`;
+🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.
+
+🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.
+
+🎶 Feel the rhythm with music concerts, choir, and dance classes.
+
+🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.
+
+💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.
+
+🤝 Be part of the community through learning, volunteering, and sharing circles.
+
+Curious about Auroville or looking for something specific? Just ask.
+
+Let's explore Auroville together. 💫`;
 
 const SUGGESTED_QUERIES = [
   { text: "What's happening today? 📅", query: "What's happening today?" },
@@ -184,11 +193,22 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setSessions(parsed);
-        if (parsed.length > 0) {
-          const lastActiveId = localStorage.getItem("auroconnect_active_session_id") || parsed[0].id;
+        const updatedParsed = parsed.map((s: any) => {
+          if (s.messages && Array.isArray(s.messages)) {
+            s.messages = s.messages.map((m: any) => {
+              if (m.id === "welcome_msg") {
+                return { ...m, content: WELCOME_TEXT };
+              }
+              return m;
+            });
+          }
+          return s;
+        });
+        setSessions(updatedParsed);
+        if (updatedParsed.length > 0) {
+          const lastActiveId = localStorage.getItem("auroconnect_active_session_id") || updatedParsed[0].id;
           setActiveSessionId(lastActiveId);
-          const activeSession = parsed.find((s: any) => s.id === lastActiveId) || parsed[0];
+          const activeSession = updatedParsed.find((s: any) => s.id === lastActiveId) || updatedParsed[0];
           setMessages(activeSession.messages);
           
           if (!activeSession.savitriQuote || !activeSession.savitriQuote.book) {

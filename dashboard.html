@@ -1667,6 +1667,7 @@
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
         <button class="tab-btn" id="btn-tab-contact-messages">Contact Messages (Admin)</button>
         <button class="tab-btn" id="btn-tab-preset-prompts">Preset Prompts (Admin)</button>
+        <button class="tab-btn" id="btn-tab-chat-logs">Chat Logs (Admin)</button>
       </div>
 
       <!-- Tab 1: My Submitted Events -->
@@ -2037,6 +2038,121 @@
           </table>
         </div>
       </div>
+
+      <!-- Tab 6: User Chat Logs (Admin Only) -->
+      <div class="tab-content" id="tab-chat-logs">
+        <style>
+          .chat-log-row {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+          }
+          .chat-log-row:hover {
+            background-color: var(--bg) !important;
+          }
+          .chat-log-details-row {
+            background-color: var(--bg);
+          }
+          .chat-log-details-container {
+            padding: 1.25rem;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            margin: 0.5rem 0;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px var(--shadow);
+          }
+          .chat-log-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            margin-top: 1rem;
+          }
+          .chat-log-bubble {
+            max-width: 90%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+          }
+          .chat-log-bubble.user {
+            background-color: var(--bg);
+            color: var(--text);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            border: 1px solid var(--border);
+          }
+          .chat-log-bubble.bot {
+            background-color: rgba(200, 90, 50, 0.08);
+            color: var(--text);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            border: 1px solid rgba(200, 90, 50, 0.2);
+          }
+          .chat-log-bubble-header {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+          }
+          .chat-log-bubble-header.user {
+            color: var(--text-secondary);
+          }
+          .chat-log-bubble-header.bot {
+            color: var(--accent);
+          }
+          .chat-log-text {
+            white-space: pre-wrap;
+            word-break: break-word;
+          }
+          .chat-log-empty-msg {
+            color: var(--text-secondary);
+            font-style: italic;
+            font-size: 0.85rem;
+            padding: 1rem;
+            text-align: center;
+          }
+        </style>
+
+        <h3>User Chat Sessions & Logs</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          View user chat sessions with session IDs, timestamps, and full conversation traces. Click on any row to toggle the dropdown and view the complete dialogue.
+        </p>
+
+        <!-- Filters/Search for Chat Logs -->
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+            <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Search Chat History</label>
+              <input type="text" id="chat-logs-search" placeholder="Search by message content or session ID..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+            </div>
+            <button class="btn-clear-filters" id="btn-clear-chat-logs-filters" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline; margin-top: 1.25rem;">Clear Search</button>
+          </div>
+        </div>
+
+        <div id="chat-logs-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        <div class="table-wrapper" id="chat-logs-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 200px;">Session ID</th>
+                <th style="width: 180px;">Last Active At</th>
+                <th>Conversations / Last Exchange</th>
+                <th style="width: 100px; text-align: center;">Messages</th>
+              </tr>
+            </thead>
+            <tbody id="chat-logs-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script type="module">
@@ -2218,6 +2334,15 @@
       const btnAddPreset = document.getElementById("btn-add-preset");
       const newPresetText = document.getElementById("new-preset-text");
       const newPresetQuery = document.getElementById("new-preset-query");
+
+      // Chat Logs variables
+      const btnTabChatLogs = document.getElementById("btn-tab-chat-logs");
+      const tabChatLogs = document.getElementById("tab-chat-logs");
+      const chatLogsLoading = document.getElementById("chat-logs-loading");
+      const chatLogsTableWrapper = document.getElementById("chat-logs-table-wrapper");
+      const chatLogsTbody = document.getElementById("chat-logs-tbody");
+      const chatLogsSearch = document.getElementById("chat-logs-search");
+      const btnClearChatLogsFilters = document.getElementById("btn-clear-chat-logs-filters");
 
       // State to track async race conditions
       let currentMyEventsRequestId = 0;
@@ -2979,6 +3104,7 @@
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         btnTabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         btnTabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
+        if (btnTabChatLogs) btnTabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
 
         // Tab contents
         tabMyEvents.classList.toggle("active", activeTabId === "my-events");
@@ -2986,6 +3112,7 @@
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         tabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         tabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
+        if (tabChatLogs) tabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
 
         if (activeTabId === "all-events") {
           loadAllDatabaseEvents();
@@ -2995,6 +3122,8 @@
           loadContactMessages();
         } else if (activeTabId === "preset-prompts") {
           loadPresetPrompts();
+        } else if (activeTabId === "chat-logs") {
+          loadChatLogs();
         } else {
           loadMyEvents();
         }
@@ -3005,6 +3134,7 @@
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
       btnTabContactMessages.onclick = () => switchTab("contact-messages");
       btnTabPresetPrompts.onclick = () => switchTab("preset-prompts");
+      if (btnTabChatLogs) btnTabChatLogs.onclick = () => switchTab("chat-logs");
 
       // Load My Submitted Events
       async function loadMyEvents() {
@@ -4303,6 +4433,201 @@
         };
       }
 
+      // User Chat Logs Logic (Admin Only)
+      let cachedChatSessions = [];
+      let chatLogsListenersBound = false;
+
+      async function loadChatLogs() {
+        if (!getCurrentUser()) return;
+        
+        const chatLogsLoading = document.getElementById("chat-logs-loading");
+        const chatLogsTableWrapper = document.getElementById("chat-logs-table-wrapper");
+        const chatLogsTbody = document.getElementById("chat-logs-tbody");
+
+        if (chatLogsLoading) chatLogsLoading.style.display = "block";
+        if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "none";
+        if (chatLogsTbody) chatLogsTbody.innerHTML = "";
+
+        try {
+          const user = getCurrentUser();
+          if (!user) throw new Error("Not logged in");
+          const token = await user.getIdToken();
+
+          const res = await fetch(`/api/chat-sessions?token=${encodeURIComponent(token)}`);
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || "Failed to load chat sessions");
+
+          cachedChatSessions = data.sessions || [];
+          renderChatLogs(cachedChatSessions);
+          if (chatLogsLoading) chatLogsLoading.style.display = "none";
+
+          if (!chatLogsListenersBound) {
+            setupChatLogsListeners();
+          }
+        } catch (error) {
+          console.error("Error loading chat logs:", error);
+          if (chatLogsLoading) {
+            chatLogsLoading.innerHTML = `<span style="color: red;">Error loading chat logs: ${error.message}</span>`;
+          }
+        }
+      }
+
+      function setupChatLogsListeners() {
+        const chatLogsSearch = document.getElementById("chat-logs-search");
+        const btnClearChatLogsFilters = document.getElementById("btn-clear-chat-logs-filters");
+
+        if (chatLogsSearch) {
+          chatLogsSearch.addEventListener("input", debounce(() => {
+            filterChatLogs();
+          }, 300));
+        }
+
+        if (btnClearChatLogsFilters) {
+          btnClearChatLogsFilters.onclick = () => {
+            if (chatLogsSearch) chatLogsSearch.value = "";
+            renderChatLogs(cachedChatSessions);
+          };
+        }
+
+        chatLogsListenersBound = true;
+      }
+
+      function filterChatLogs() {
+        const chatLogsSearch = document.getElementById("chat-logs-search");
+        const queryVal = chatLogsSearch ? chatLogsSearch.value.toLowerCase().trim() : "";
+        if (!queryVal) {
+          renderChatLogs(cachedChatSessions);
+          return;
+        }
+
+        const filtered = cachedChatSessions.filter(session => {
+          if (session.id && session.id.toLowerCase().includes(queryVal)) return true;
+          if (session.messages && Array.isArray(session.messages)) {
+            return session.messages.some(m => m.text && m.text.toLowerCase().includes(queryVal));
+          }
+          return false;
+        });
+
+        renderChatLogs(filtered);
+      }
+
+      function renderChatLogs(sessions) {
+        const chatLogsTbody = document.getElementById("chat-logs-tbody");
+        const chatLogsTableWrapper = document.getElementById("chat-logs-table-wrapper");
+        if (!chatLogsTbody) return;
+
+        chatLogsTbody.innerHTML = "";
+
+        if (sessions.length === 0) {
+          chatLogsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No chat sessions found matching criteria.</td></tr>`;
+          if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "block";
+          return;
+        }
+
+        sessions.forEach((session) => {
+          let lastUserMsg = "";
+          let lastBotMsg = "";
+          let totalMsgCount = 0;
+
+          if (session.messages && Array.isArray(session.messages)) {
+            totalMsgCount = session.messages.length;
+            const userMsgs = session.messages.filter(m => m.role === "user");
+            const botMsgs = session.messages.filter(m => m.role === "model" || m.role === "assistant" || m.role === "bot");
+            
+            if (userMsgs.length > 0) lastUserMsg = userMsgs[userMsgs.length - 1].text || "";
+            if (botMsgs.length > 0) lastBotMsg = botMsgs[botMsgs.length - 1].text || "";
+          }
+
+          const lastActiveDate = session.updatedAt ? new Date(session.updatedAt).toLocaleString() : "Unknown";
+
+          let exchangeHTML = "";
+          if (lastUserMsg || lastBotMsg) {
+            exchangeHTML = `
+              <div style="font-size: 0.85rem; max-width: 500px;">
+                ${lastUserMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--text-secondary); margin-bottom: 0.15rem;"><strong>In:</strong> ${escapeHTML(lastUserMsg)}</div>` : ""}
+                ${lastBotMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--accent);"><strong>Out:</strong> ${escapeHTML(lastBotMsg)}</div>` : ""}
+              </div>
+            `;
+          } else {
+            exchangeHTML = `<span class="chat-log-empty-msg">Empty session history</span>`;
+          }
+
+          const rowId = `chat-row-${session.id}`;
+          const detailsRowId = `chat-details-${session.id}`;
+
+          const trMain = document.createElement("tr");
+          trMain.id = rowId;
+          trMain.className = "chat-log-row";
+          trMain.innerHTML = `
+            <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600; color: var(--text);">${escapeHTML(session.id)}</td>
+            <td style="font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(lastActiveDate)}</td>
+            <td>${exchangeHTML}</td>
+            <td style="text-align: center; font-weight: 600;">${totalMsgCount}</td>
+          `;
+
+          const trDetails = document.createElement("tr");
+          trDetails.id = detailsRowId;
+          trDetails.className = "chat-log-details-row";
+          trDetails.style.display = "none";
+
+          let bubblesHTML = "";
+          if (session.messages && Array.isArray(session.messages) && session.messages.length > 0) {
+            session.messages.forEach((msg) => {
+              const isUser = msg.role === "user";
+              const roleLabel = isUser ? "User Query" : "AuroConnect Assistant";
+              const roleClass = isUser ? "user" : "bot";
+              const timestampLabel = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+
+              bubblesHTML += `
+                <div class="chat-log-bubble ${roleClass}">
+                  <div class="chat-log-bubble-header ${roleClass}">
+                    <span>${roleLabel}</span>
+                    <span>${timestampLabel}</span>
+                  </div>
+                  <div class="chat-log-text">${escapeHTML(msg.text || "").replace(/\n/g, "<br>")}</div>
+                </div>
+              `;
+            });
+          } else {
+            bubblesHTML = `<div class="chat-log-empty-msg">No conversation messages recorded in this session.</div>`;
+          }
+
+          trDetails.innerHTML = `
+            <td colspan="4" style="padding: 1.25rem; background: var(--bg); border-top: 1px solid var(--border);">
+              <div class="chat-log-details-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
+                  <span style="font-weight: 600; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
+                    💬 Full Conversation Trace
+                  </span>
+                  <button class="btn" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 4px;" onclick="navigator.clipboard.writeText('${session.id}').then(() => alert('Session ID copied!'))">
+                    Copy Session ID
+                  </button>
+                </div>
+                <div class="chat-log-flow">
+                  ${bubblesHTML}
+                </div>
+              </div>
+            </td>
+          `;
+
+          trMain.onclick = () => {
+            const currentDisplay = trDetails.style.display;
+            if (currentDisplay === "none") {
+              trDetails.style.display = "table-row";
+              trMain.style.backgroundColor = "var(--bg)";
+            } else {
+              trDetails.style.display = "none";
+              trMain.style.backgroundColor = "";
+            }
+          };
+
+          chatLogsTbody.appendChild(trMain);
+          chatLogsTbody.appendChild(trDetails);
+        });
+
+        if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "block";
+      }
+
       // Main reload trigger for everything
       window.loadDashboard = function() {
         if (!getCurrentUser()) return;
@@ -4320,6 +4645,10 @@
           }
           if (tabPresetPrompts.classList.contains("active")) {
             loadPresetPrompts();
+          }
+          const tabChatLogs = document.getElementById("tab-chat-logs");
+          if (tabChatLogs && tabChatLogs.classList.contains("active")) {
+            loadChatLogs();
           }
         }
       }
