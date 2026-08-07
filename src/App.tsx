@@ -38,17 +38,16 @@ Auroville is a place to experience yourself and the world differently—to grow,
 
 Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.
 
-🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.
+<br>
 
-🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.
-
-🎶 Feel the rhythm with music concerts, choir, and dance classes.
-
-🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.
-
-💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.
-
+🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  
+🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  
+🎶 Feel the rhythm with music concerts, choir, and dance classes.  
+🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  
+💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  
 🤝 Be part of the community through learning, volunteering, and sharing circles.
+
+<br>
 
 Curious about Auroville or looking for something specific? Just ask.
 
@@ -196,8 +195,8 @@ export default function App() {
         const updatedParsed = parsed.map((s: any) => {
           if (s.messages && Array.isArray(s.messages)) {
             s.messages = s.messages.map((m: any) => {
-              if (m.id === "welcome_msg") {
-                return { ...m, content: WELCOME_TEXT };
+              if (m.id === "welcome_msg" || (m.role === "assistant" && m.content && m.content.includes("Welcome to Auroville Explorer"))) {
+                return { ...m, id: "welcome_msg", content: WELCOME_TEXT };
               }
               return m;
             });
@@ -205,6 +204,7 @@ export default function App() {
           return s;
         });
         setSessions(updatedParsed);
+        localStorage.setItem("auroconnect_sessions", JSON.stringify(updatedParsed));
         if (updatedParsed.length > 0) {
           const lastActiveId = localStorage.getItem("auroconnect_active_session_id") || updatedParsed[0].id;
           setActiveSessionId(lastActiveId);

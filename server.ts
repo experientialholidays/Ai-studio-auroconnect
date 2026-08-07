@@ -1953,10 +1953,29 @@ ${searchQuery || lastMessage}`;
               timestamp: m.timestamp || updatedAtMs
             }));
             if (chatHistory.length > 0) {
-              const convertedHistory = chatHistory.map(m => ({
-                role: m.role,
-                content: m.text
-              }));
+              const convertedHistory = chatHistory.map(m => {
+                let content = m.text || "";
+                if (content.includes("Hello! I am **AuroConnect**") || content.includes("events and happenings in Auroville")) {
+                  content = "🌟 Welcome to Auroville Explorer! 🌟\n\n" +
+                            "I am your AI companion, here to help you explore and experience Auroville. 🌿✨\n\n" +
+                            "Auroville is a place to experience yourself and the world differently—to grow, create, and connect.\n\n" +
+                            "Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.\n\n" +
+                            "<br>\n\n" +
+                            "🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  \n" +
+                            "🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  \n" +
+                            "🎶 Feel the rhythm with music concerts, choir, and dance classes.  \n" +
+                            "🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  \n" +
+                            "💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  \n" +
+                            "🤝 Be part of the community through learning, volunteering, and sharing circles.\n\n" +
+                            "<br>\n\n" +
+                            "Curious about Auroville or looking for something specific? Just ask.\n\n" +
+                            "Let's explore Auroville together. 💫";
+                }
+                return {
+                  role: m.role,
+                  content: content
+                };
+              });
               ws.send(JSON.stringify({
                 type: "history_load",
                 content: convertedHistory
@@ -2022,7 +2041,20 @@ ${searchQuery || lastMessage}`;
         // Send welcome if there's no history
         ws.send(JSON.stringify({ 
             type: "welcome", 
-            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can now also ask me **anything** you want to know about Auroville, as I have a comprehensive knowledge base covering visits, eateries, communities, history, and more!\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*\n- *Where can I eat and is the Solar Kitchen open?*\n- *How can I plan my visit or stay in Auroville?*\n- *What is the vision and history of Auroville?*" + savitriPart
+            content: "🌟 Welcome to Auroville Explorer! 🌟\n\n" +
+                     "I am your AI companion, here to help you explore and experience Auroville. 🌿✨\n\n" +
+                     "Auroville is a place to experience yourself and the world differently—to grow, create, and connect.\n\n" +
+                     "Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.\n\n" +
+                     "<br>\n\n" +
+                     "🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  \n" +
+                     "🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  \n" +
+                     "🎶 Feel the rhythm with music concerts, choir, and dance classes.  \n" +
+                     "🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  \n" +
+                     "💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  \n" +
+                     "🤝 Be part of the community through learning, volunteering, and sharing circles.\n\n" +
+                     "<br>\n\n" +
+                     "Curious about Auroville or looking for something specific? Just ask.\n\n" +
+                     "Let's explore Auroville together. 💫" + savitriPart
         }));
       }
     });
