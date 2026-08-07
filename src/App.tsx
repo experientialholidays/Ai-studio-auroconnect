@@ -104,6 +104,13 @@ const getEventDaysDisplay = (event: any) => {
   return event.dates || event.days || "";
 };
 
+function cleanMessageContent(text: string): string {
+  if (!text) return "";
+  return text
+    .replace(/<i>\s*(?:🔍|⚡|💭|💬)?\s*(?:Analyzing query\.\.\.|Searching events.*?|Extracting topic matches.*?|Extracting top matches.*?|Pulling down all daily events.*?|Processing general question.*?)\s*<\/i>/gi, "")
+    .trim();
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<"chat" | "catalog">("chat");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -112,6 +119,7 @@ export default function App() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [streamedText, setStreamedText] = useState("");
+  const [currentStatus, setCurrentStatus] = useState<string>("");
   
   // Visual Catalog States
   const [catalogEvents, setCatalogEvents] = useState<AuroEvent[]>([]);
@@ -389,6 +397,7 @@ export default function App() {
     // Prepare endpoint streaming fetch
     setIsLoading(true);
     setStreamedText("");
+    setCurrentStatus("Analyzing query...");
 
     try {
       const response = await fetch("/api/chat", {
@@ -428,7 +437,11 @@ export default function App() {
             if (dataStr === "[DONE]") break;
             try {
               const parsed = JSON.parse(dataStr);
+              if (parsed.status !== undefined) {
+                setCurrentStatus(parsed.status);
+              }
               if (parsed.chunk) {
+                setCurrentStatus("");
                 streamBuffer += parsed.chunk;
                 setStreamedText(streamBuffer);
               }
@@ -760,6 +773,16 @@ export default function App() {
                 
                 {messages.map((msg, msgIdx) => {
                   const isAssistant = msg.role === "assistant";
+                  const cleanedContent = cleanMessageContent(msg.content);
+                  const isWelcomeMsg = isAssistant && msg.id === "welcome_msg";
+                  
+                  if (isAssistant && !cleanedContent && !isWelcomeMsg) {
+                    return null;
+                  }
+                  if (isWelcomeMsg && !cleanedContent && !activeSession?.savitriQuote && presets.length === 0) {
+                    return null;
+                  }
+
                   return (
                     <div
                       key={msg.id}
@@ -779,9 +802,11 @@ export default function App() {
                               : "bg-emerald-600 text-white"
                           }`}
                         >
-                            <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
-                              {msg.content}
-                            </ReactMarkdown>
+                            {cleanedContent ? (
+                              <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
+                                {cleanedContent}
+                              </ReactMarkdown>
+                            ) : null}
 
                             {isAssistant && (msg.id === "welcome_msg" || msgIdx === 0) && activeSession?.savitriQuote && (
                               <div className="mt-5 p-5 rounded-lg bg-amber-50/40 border-l-4 border-amber-400 text-slate-800 font-serif italic relative">
@@ -833,30 +858,32 @@ export default function App() {
                   );
                 })}
 
-                {/* Simulated Stream Loader */}
+                {/* Stream Status & Loader */}
                 {isLoading && (
-                  <div className="flex justify-start items-start gap-3">
-                    <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 mt-1 animate-pulse shrink-0">
+                  <div className="flex justify-start items-center gap-3 py-1">
+                    <div className="p-1.5 rounded-lg bg-emerald-100 text-emerald-800 shrink-0 animate-pulse">
                       <Sparkles className="w-4 h-4" />
                     </div>
-                    <div className="flex flex-col w-full space-y-1">
-                      <div className="p-4 rounded-2xl bg-white border border-slate-100 text-slate-800 shadow-xs">
-                        {streamedText ? (
+                    {!cleanMessageContent(streamedText) ? (
+                      <div className="flex items-center gap-2 text-xs text-slate-500 font-medium py-1">
+                        <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0" />
+                        <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0 [animation-delay:0.2s]" />
+                        <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0 [animation-delay:0.4s]" />
+                        <span className="font-mono text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100/80">
+                          {currentStatus || "Analyzing query..."}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col w-full space-y-1">
+                        <div className="p-4 rounded-2xl bg-white border border-slate-100 text-slate-800 shadow-xs">
                           <div className="prose prose-sm prose-emerald max-w-none text-slate-800">
                             <ReactMarkdown components={markdownComponents} rehypePlugins={[rehypeRaw]}>
-                              {streamedText}
+                              {cleanMessageContent(streamedText)}
                             </ReactMarkdown>
                           </div>
-                        ) : (
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
-                            <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0" />
-                            <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0 [animation-delay:0.2s]" />
-                            <span className="w-2 h-2 bg-emerald-600 rounded-full animate-bounce shrink-0 [animation-delay:0.4s]" />
-                            <span className="font-medium font-mono">Assistant is reading spreadsheet events...</span>
-                          </div>
-                        )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 )}
 

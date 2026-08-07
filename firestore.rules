@@ -96,5 +96,10 @@ service cloud.firestore {
       // but protected by API-level admin checks)
       allow read, write: if true;
     }
+
+    // Savitri Lines Collection
+    match /savitri_lines/{docId} {
+      allow read, write: if true;
+    }
   }
 }

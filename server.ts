@@ -293,9 +293,81 @@ function shortenWeekdays(str) {
   });
   return res;
 }
+function formatDailyDaysDisplay(daysVal) {
+  if (!daysVal) return "Daily";
+  let str = Array.isArray(daysVal) ? daysVal.join(", ") : String(daysVal).trim();
+  if (!str) return "Daily";
+
+  const lower = str.toLowerCase();
+  if (lower.includes("except") || lower.includes("exc")) {
+    const match = str.match(/(?:except|exc)\s+(.+)$/i);
+    if (match) {
+      const excPart = match[1].trim();
+      const excDays = getShortWeekdays(excPart);
+      return `Daily except ${excDays || excPart}`;
+    }
+  }
+
+  const allWeekdaysOrdered = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const fullToShort = {
+    "monday": "Mon", "tuesday": "Tue", "wednesday": "Wed", "thursday": "Thu", "friday": "Fri", "saturday": "Sat", "sunday": "Sun",
+    "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "thurs": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun"
+  };
+
+  let tokens = [];
+  if (str.startsWith("[")) {
+    try { tokens = JSON.parse(str.replace(/'/g, '"')); } catch(e) { tokens = str.split(/[\n,\s]+/); }
+  } else {
+    tokens = str.split(/[\n,\s]+/);
+  }
+
+  const activeDays = new Set();
+  let isExplicitDaily = false;
+
+  tokens.forEach(t => {
+    const clean = t.trim().toLowerCase().replace(/[^a-z]/g, "");
+    if (!clean) return;
+    if (fullToShort[clean]) {
+      activeDays.add(fullToShort[clean]);
+    } else if (clean === "daily" || clean === "everyday" || clean === "day") {
+      isExplicitDaily = true;
+    }
+  });
+
+  if (isExplicitDaily && activeDays.size === 0) {
+    return "Daily";
+  }
+
+  if (activeDays.size === 7 || activeDays.size === 0) {
+    return "Daily";
+  }
+
+  const missingDays = allWeekdaysOrdered.filter(d => !activeDays.has(d));
+  if (missingDays.length > 0 && missingDays.length <= 4) {
+    return `Daily except ${missingDays.join(", ")}`;
+  }
+
+  const activeArr = allWeekdaysOrdered.filter(d => activeDays.has(d));
+  return activeArr.length > 0 ? activeArr.join(", ") : "Daily";
+}
+
 function formatDatesDisplay(data, categoryType) {
-  const evStart = data.startDate || data.originalHeaders && data.originalHeaders.startDate || "";
-  const evEnd = data.endDate || data.originalHeaders && data.originalHeaders.endDate || "";
+  if (categoryType === "weekly") {
+    const daysVal = data.days || (data.originalHeaders && data.originalHeaders.days) || "";
+    const shortDays = getShortWeekdays(daysVal);
+    if (shortDays) {
+      return shortDays;
+    }
+    return "Weekly";
+  }
+
+  if (categoryType === "daily") {
+    const daysVal = data.days || (data.originalHeaders && data.originalHeaders.days) || "";
+    return formatDailyDaysDisplay(daysVal);
+  }
+
+  const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+  const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
   const isWeekdayStr = (s) => {
     if (!s) return false;
     const lower = s.toLowerCase().trim();
@@ -335,10 +407,9 @@ function formatDatesDisplay(data, categoryType) {
       }
     }
   }
-  let hasRealDate = false;
+
   let datesDisplay = "";
   if (evStart) {
-    hasRealDate = true;
     const readableStart = parseExcelDateToReadable(evStart);
     if (evEnd && evEnd !== evStart) {
       const readableEnd = parseExcelDateToReadable(evEnd);
@@ -349,38 +420,13 @@ function formatDatesDisplay(data, categoryType) {
   } else if (parsedDates.length > 0) {
     const allWeekdays = parsedDates.every((d) => isWeekdayStr(d));
     if (!allWeekdays) {
-      hasRealDate = true;
       datesDisplay = parsedDates.join(", ");
     } else {
-      hasRealDate = true;
       datesDisplay = getShortWeekdays(parsedDates);
     }
   }
 
-  let finalDisplay = "";
-  if (categoryType === "daily" || categoryType === "weekly") {
-    const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
-    const shortDays = getShortWeekdays(daysVal);
-    if (shortDays) {
-      finalDisplay = shortDays;
-    } else {
-      finalDisplay = categoryType === "daily" ? "Daily" : "Weekly";
-    }
-  } else {
-    if (datesDisplay) {
-      finalDisplay = datesDisplay;
-    } else {
-      const daysVal = data.days || data.originalHeaders && data.originalHeaders.days || "";
-      const shortDays = getShortWeekdays(daysVal);
-      if (shortDays) {
-        finalDisplay = `Every ${shortDays}`;
-      } else {
-        finalDisplay = "";
-      }
-    }
-  }
-
-  return shortenWeekdays(finalDisplay);
+  return shortenWeekdays(datesDisplay);
 }
 function isEventEnded(event, currentTime24) {
   const { start, end } = getEventStartAndEndTimes(event);
@@ -866,8 +912,7 @@ function getCurrentTimeInfo(userTimeZone) {
 async function handleStreamingChat(message, ws, chatHistory, timeZone) {
   try {
     const timeInfo = getCurrentTimeInfo(timeZone);
-    ws.send(JSON.stringify({ type: "start_stream" }));
-    ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F50D} Analyzing query...</i>" }));
+    ws.send(JSON.stringify({ type: "status", status: "Analyzing query..." }));
     const TWENTY_HOURS_MS = 20 * 60 * 60 * 1000;
     const now = Date.now();
     const recentHistory = chatHistory
@@ -924,59 +969,120 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       filterTimeAfter = parsed.filter_time_after || "";
     } catch {
     }
-    ws.send(JSON.stringify({ type: "start_stream" }));
     if (bucket === "A") {
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" }));
+      ws.send(JSON.stringify({ type: "status", status: "Searching events" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, timeZone);
       let botReply = "";
       if (Array.isArray(rawEvents)) {
         const output = formatCategorizedEvents(rawEvents, introText);
         botReply = output;
-        ws.send(JSON.stringify({ type: "stream_chunk", chunk: output }));
       } else {
         botReply = "No upcoming events match the requested criteria.";
-        ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
       }
+      ws.send(JSON.stringify({ type: "status", status: "" }));
+      ws.send(JSON.stringify({ type: "start_stream" }));
+      ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
       chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
       chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
     } else if (bucket === "B") {
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" }));
-      const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, timeZone);
-      const curationPrompt = `
-             You are an expert AI event curator for Auroville.
-             User Query: "${message}"
-             Today's Date: ${timeInfo.formattedNow}
-             
-             Here are the raw events retrieved from our database:
-             ${rawEvents}
-             
-             Based strictly on the User Query, carefully filter and present these events nicely to the user.
-             Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
-             
-             CRITICAL COMPLIANCE AND STYLE RULES FOR EVENT DISPLAY:
-             1. Your response MUST be strictly objective, direct, and factual. Completely remove all conversational fluff, polite fillers (e.g. "Certainly!", "Here are the events you requested"), and any follow-up/open-ended questions.
-             2. If matching events are found, you MUST start your response with this introductory sentence exactly: "${introText}". Then list the matching events directly on the following lines. Do not add any other greeting or introductory text.
-             3. If no events match the specific topic query, state simply: "No matching events found." and stop. Do NOT apologize, and do NOT ask if they want to try searching for anything else.
-             4. Each event in the raw database list is provided as a unique markdown string starting with \`**[Event Title](#DETAILS::uuid)**\`.
-             5. You MUST preserve and output the EXACT, unmodified markdown string for each event you select.
-             6. Do NOT escape the brackets or asterisks (e.g. do not write \\[ or \\*\\*). Output the markdown exactly as provided so the client can render it as interactive cards.
-             7. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
-             `;
-      const res = await ai.models.generateContent({
-        model: MODEL,
-        contents: [
-          ...recentHistory.map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
-          { role: "user", parts: [{ text: curationPrompt }] }
-        ],
-        config: { temperature: 0.3 }
-      });
-      let textAccumulator = res.text || "";
-      textAccumulator = textAccumulator.replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/\\\(/g, "(").replace(/\\\)/g, ")").replace(/\\\*/g, "*").replace(/\\\_/g, "_");
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
+      ws.send(JSON.stringify({ type: "status", status: "Extracting top matches" }));
+      const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, true, timeZone);
+      let botReply = "";
+
+      if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+        botReply = "I couldn't find any upcoming events matching those criteria.";
+      } else {
+        const eventSummaries = rawEvents.map((ev) => {
+          const id = ev.uuid || ev.id || "";
+          const title = ev.title || "";
+          const type = ev.type || "";
+          const category = ev.category || "";
+          const dateOrDay = ev.dates || ev.days || ev.startDate || "";
+          const time = ev.times || ev.startTime || "";
+          const location = ev.venue || "";
+          const keyInfo = ev.audience || "";
+          const cost = ev.cost || "";
+          const descSnippet = ev.description ? String(ev.description).slice(0, 150).replace(/\n+/g, " ") : "";
+          return {
+            id,
+            title,
+            type,
+            category,
+            dateOrDay,
+            time,
+            location,
+            keyInfo,
+            cost,
+            snippet: descSnippet
+          };
+        });
+
+        const curationPrompt = `
+You are an expert AI event curator for Auroville.
+User Query: "${message}"
+Today's Date: ${timeInfo.formattedNow}
+
+Candidate Events:
+${JSON.stringify(eventSummaries, null, 2)}
+
+Based strictly on the User Query, carefully filter these candidate events to select ONLY the ones that match the requested topic or intent (e.g. if the user asks for Yoga, select only Yoga event IDs).
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "selected_ids": ["array of matching event IDs"],
+  "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g. 'Here are the upcoming sound healing events:'). Use '${introText}' if appropriate."
+}
+
+If no candidate events match the requested topic, return:
+{
+  "selected_ids": [],
+  "intro_text": ""
+}
+Do not include any conversational fluff, Markdown formatting outside JSON, or text outside the JSON object.
+`;
+
+        const res = await ai.models.generateContent({
+          model: MODEL,
+          contents: [
+            ...recentHistory.map((h) => ({ role: h.role, parts: [{ text: h.text }] })),
+            { role: "user", parts: [{ text: curationPrompt }] }
+          ],
+          config: {
+            temperature: 0.1,
+            responseMimeType: "application/json"
+          }
+        });
+
+        let selectedIds: string[] = [];
+        let customIntro = introText;
+        try {
+          const parsed = JSON.parse(res.text || "{}");
+          selectedIds = Array.isArray(parsed.selected_ids) ? parsed.selected_ids : [];
+          if (parsed.intro_text && typeof parsed.intro_text === "string" && parsed.intro_text.trim()) {
+            customIntro = parsed.intro_text.trim();
+          }
+        } catch (e) {
+          console.error("Failed to parse Bucket B curation response:", e);
+        }
+
+        let matchedEvents = selectedIds
+          .map((id) => rawEvents.find((ev) => (ev.uuid || ev.id) === id))
+          .filter(Boolean);
+
+        if (matchedEvents.length === 0) {
+          botReply = "No matching events found.";
+        } else {
+          botReply = formatCategorizedEvents(matchedEvents, customIntro);
+        }
+      }
+
+      ws.send(JSON.stringify({ type: "status", status: "" }));
+      ws.send(JSON.stringify({ type: "start_stream" }));
+      ws.send(JSON.stringify({ type: "stream_chunk", chunk: botReply }));
       chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
-      chatHistory.push({ role: "model", text: textAccumulator, timestamp: Date.now() });
+      chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
     } else {
-      ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>\u{1F4AD} Processing general question...</i>\n\n" }));
+      ws.send(JSON.stringify({ type: "status", status: "Processing general question..." }));
       let knowledgeContext = "";
       try {
         let queryEmbedding = null;
@@ -1087,6 +1193,8 @@ ${searchQuery || message}`;
       });
       let textAccumulator = res.text || "";
       textAccumulator = textAccumulator.replace(/\\\[/g, "[").replace(/\\\]/g, "]").replace(/\\\(/g, "(").replace(/\\\)/g, ")").replace(/\\\*/g, "*").replace(/\\\_/g, "_");
+      ws.send(JSON.stringify({ type: "status", status: "" }));
+      ws.send(JSON.stringify({ type: "start_stream" }));
       ws.send(JSON.stringify({ type: "stream_chunk", chunk: textAccumulator }));
       chatHistory.push({ role: "user", text: message, timestamp: Date.now() });
       chatHistory.push({ role: "model", text: textAccumulator, timestamp: Date.now() });
@@ -1099,9 +1207,9 @@ ${searchQuery || message}`;
     } else if (err.status === 503) {
       errorMsg = "The AI model is currently experiencing high demand. Please try again in a few moments.";
     }
-    ws.send(JSON.stringify({ type: "stream_chunk", chunk: `
-
-<i>\u26A0\uFE0F ERROR processing request: ${errorMsg}</i>` }));
+    ws.send(JSON.stringify({ type: "status", status: "" }));
+    ws.send(JSON.stringify({ type: "start_stream" }));
+    ws.send(JSON.stringify({ type: "stream_chunk", chunk: `\n\n<i>⚠️ ERROR processing request: ${errorMsg}</i>` }));
   }
 }
 
@@ -1179,7 +1287,7 @@ async function createServer() {
             return res.end();
         }
 
-        res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Analyzing query...</i>" })}\n\n`);
+        res.write(`data: ${JSON.stringify({ status: "Analyzing query..." })}\n\n`);
 
         const TWENTY_HOURS_MS = 20 * 60 * 60 * 1000;
         const now = Date.now();
@@ -1236,20 +1344,26 @@ async function createServer() {
         } catch { }
 
         if (bucket === "A") {
-             res.write(`data: ${JSON.stringify({ chunk: "<i>⚡ Searching events directly in Firebase...</i>\n\n" })}\n\n`);
+             res.write(`data: ${JSON.stringify({ status: "Searching events" })}\n\n`);
              const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, tz);
+             let output = "";
              if (Array.isArray(rawEvents)) {
-                 const output = formatCategorizedEvents(rawEvents, introText);
-                 res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
+                 output = formatCategorizedEvents(rawEvents, introText);
              } else {
-                 res.write(`data: ${JSON.stringify({ chunk: "No upcoming events match the requested criteria." })}\n\n`);
+                 output = "No upcoming events match the requested criteria.";
              }
+             res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
+             res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
         }
         else if (bucket === "B") {
-             res.write(`data: ${JSON.stringify({ chunk: "<i>🔍 Extracting topic matches. AI is curating events...</i>\n\n" })}\n\n`);
+             res.write(`data: ${JSON.stringify({ status: "Extracting top matches" })}\n\n`);
              const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, tz);
              
-             const curationPrompt = `
+             if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+                 res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
+                 res.write(`data: ${JSON.stringify({ chunk: "No matching events found." })}\n\n`);
+             } else {
+                 const curationPrompt = `
              You are an expert AI event curator for Auroville.
              User Query: "${lastMessage}"
              Today's Date: ${timeInfo.formattedNow}
@@ -1270,21 +1384,23 @@ async function createServer() {
              7. Do NOT wrap the events in markdown code blocks (such as \`\`\`markdown or backticks).
              `;
 
-             const aiRes = await ai.models.generateContent({
-                 model: MODEL,
-                 contents: [
-                     ...recentHistory.map((h: any) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.text }] })),
-                     { role: "user", parts: [{ text: curationPrompt }] }
-                 ],
-                 config: { temperature: 0.3 }
-             });
+                 const aiRes = await ai.models.generateContent({
+                     model: MODEL,
+                     contents: [
+                         ...recentHistory.map((h: any) => ({ role: h.role === "assistant" ? "model" : "user", parts: [{ text: h.text }] })),
+                         { role: "user", parts: [{ text: curationPrompt }] }
+                     ],
+                     config: { temperature: 0.3 }
+                 });
 
-             let textAccumulator = aiRes.text || "";
-             textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
-             res.write(`data: ${JSON.stringify({ chunk: textAccumulator })}\n\n`);
+                 let textAccumulator = aiRes.text || "";
+                 textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+                 res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
+                 res.write(`data: ${JSON.stringify({ chunk: textAccumulator })}\n\n`);
+             }
         }
         else {
-             res.write(`data: ${JSON.stringify({ chunk: "<i>💭 Processing general question...</i>\n\n" })}\n\n`);
+             res.write(`data: ${JSON.stringify({ status: "Processing general question..." })}\n\n`);
              
              let knowledgeContext = "";
              try {
@@ -1403,6 +1519,7 @@ ${searchQuery || lastMessage}`;
 
              let textAccumulator = aiRes.text || "";
              textAccumulator = textAccumulator.replace(/\\\[/g, '[').replace(/\\\]/g, ']').replace(/\\\(/g, '(').replace(/\\\)/g, ')').replace(/\\\*/g, '*').replace(/\\\_/g, '_');
+             res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
              res.write(`data: ${JSON.stringify({ chunk: textAccumulator })}\n\n`);
         }
         
@@ -1491,23 +1608,43 @@ ${searchQuery || lastMessage}`;
     }
   });
 
-  // Load Savitri lines JSON dynamically
+  // Load Savitri lines directly from Firestore database
   let savitriLines: any[] = [];
-  try {
-    const savitriPath = path.join(process.cwd(), "src/server/savitri-lines.json");
-    if (fs.existsSync(savitriPath)) {
-        savitriLines = JSON.parse(fs.readFileSync(savitriPath, "utf8"));
-        console.log(`Loaded ${savitriLines.length} Savitri lines for quote endpoint.`);
-    }
-  } catch (e) {
-    console.error("Error loading Savitri lines:", e);
-  }
+  const loadSavitriLinesFromFirestore = async () => {
+    try {
+      console.log("Loading Savitri lines dataset directly from Firestore database...");
+      const metaSnap = await getDoc(doc(db, "presets", "savitri_meta"));
+      let totalChunks = 0;
+      if (metaSnap.exists() && metaSnap.data()?.totalChunks) {
+        totalChunks = metaSnap.data().totalChunks;
+      }
 
-  app.get("/api/savitri-quote", (req, res) => {
+      const allLines: any[] = [];
+      for (let i = 0; i < totalChunks; i++) {
+        const chunkSnap = await getDoc(doc(db, "presets", `savitri_chunk_${i}`));
+        if (chunkSnap.exists() && Array.isArray(chunkSnap.data()?.lines)) {
+          allLines.push(...chunkSnap.data().lines);
+        }
+      }
+
+      if (allLines.length > 0) {
+        savitriLines = allLines;
+        console.log(`Successfully loaded ${savitriLines.length} Savitri lines directly from Firestore database.`);
+      }
+    } catch (e) {
+      console.error("Error loading Savitri lines from Firestore:", e);
+    }
+  };
+  loadSavitriLinesFromFirestore();
+
+  app.get("/api/savitri-quote", async (req, res) => {
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
     try {
+        if (savitriLines.length === 0) {
+            await loadSavitriLinesFromFirestore();
+        }
         if (savitriLines.length === 0) {
             return res.json({
                 success: true,
@@ -1532,8 +1669,13 @@ ${searchQuery || lastMessage}`;
             const third = savitriLines[idx + 2];
             const fourth = savitriLines[idx + 3];
 
-            // Ensure they are consecutive and belong to the same Canto and Book
-            if (first.canto === fourth.canto && first.book === fourth.book) {
+            // Ensure they are consecutive, belong to same Canto/Book, AND are non-duplicate lines
+            if (first && second && third && fourth &&
+                first.canto === fourth.canto && 
+                first.book === fourth.book &&
+                first.text !== second.text && 
+                second.text !== third.text && 
+                third.text !== fourth.text) {
                 return res.json({
                     success: true,
                     lines: [first.text, second.text, third.text, fourth.text],
@@ -1546,15 +1688,19 @@ ${searchQuery || lastMessage}`;
             attempts++;
         }
 
-        // Fallback to first 4 lines
-        const firstFour = savitriLines.slice(0, 4);
-        res.json({
+        // Fallback to distinct 4 stanza lines
+        return res.json({
             success: true,
-            lines: firstFour.map(l => l.text),
-            book: firstFour[0].book,
-            bookTitle: firstFour[0].bookTitle,
-            canto: firstFour[0].canto,
-            cantoTitle: firstFour[0].cantoTitle
+            lines: [
+                "IT WAS the hour before the Gods awake.",
+                "Across the path of the divine Event",
+                "The huge foreboding mind of Night, alone",
+                "In her unlit temple of eternity,"
+            ],
+            book: "BOOK ONE",
+            bookTitle: "The Book of Beginnings",
+            canto: "Canto One",
+            cantoTitle: "The Symbol Dawn"
         });
     } catch (err: any) {
         res.status(500).json({ success: false, error: err.message });
@@ -1788,7 +1934,12 @@ ${searchQuery || lastMessage}`;
                     const second = savitriLines[idx + 1];
                     const third = savitriLines[idx + 2];
                     const fourth = savitriLines[idx + 3];
-                    if (first.canto === fourth.canto && first.book === fourth.book) {
+                    if (first && second && third && fourth &&
+                        first.canto === fourth.canto && 
+                        first.book === fourth.book &&
+                        first.text !== second.text && 
+                        second.text !== third.text && 
+                        third.text !== fourth.text) {
                         quote = {
                             lines: [first.text, second.text, third.text, fourth.text],
                             bookTitle: first.bookTitle,
@@ -1820,7 +1971,7 @@ ${searchQuery || lastMessage}`;
         // Send welcome if there's no history
         ws.send(JSON.stringify({ 
             type: "welcome", 
-            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*" + savitriPart
+            content: "👋 Hello! I am **AuroConnect**, your AI assistant for events and happenings in Auroville.\n\nYou can now also ask me **anything** you want to know about Auroville, as I have a comprehensive knowledge base covering visits, eateries, communities, history, and more!\n\nYou can ask things like:\n- *What's happening tomorrow?*\n- *Are there any Yoga classes?*\n- *Show me events this Saturday.*\n- *Where can I eat and is the Solar Kitchen open?*\n- *How can I plan my visit or stay in Auroville?*\n- *What is the vision and history of Auroville?*" + savitriPart
         }));
       }
     });

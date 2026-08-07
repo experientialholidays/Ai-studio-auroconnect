@@ -98,6 +98,20 @@
         "submittedAt": { "type": "string" }
       },
       "required": ["text"]
+    },
+    "SavitriLine": {
+      "title": "SavitriLine",
+      "description": "Individual line from Sri Aurobindo's Savitri with book and canto metadata.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "book": { "type": "string" },
+        "bookTitle": { "type": "string" },
+        "canto": { "type": "string" },
+        "cantoTitle": { "type": "string" },
+        "lineIndex": { "type": "integer" }
+      },
+      "required": ["text", "book", "canto", "lineIndex"]
     }
   },
   "firestore": {
@@ -124,6 +138,10 @@
     "/feedback/{docId}": {
       "schema": "Feedback",
       "description": "User feedback collection."
+    },
+    "/savitri_lines/{docId}": {
+      "schema": "SavitriLine",
+      "description": "Collection of all Savitri lines."
     }
   }
 }

@@ -109,6 +109,7 @@
         border: 1.5px solid var(--border) !important;
         box-shadow: 0 1px 4px var(--shadow) !important;
         transition: transform 0.2s ease !important;
+        cursor: pointer !important;
     }
 
     .header-logo-link:hover .header-logo-img {
@@ -360,6 +361,15 @@
       };
     }
     
+    const logoImg = headerEl.querySelector(".header-logo-img");
+    if (logoImg) {
+      logoImg.onclick = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openLogoLightbox();
+      };
+    }
+    
     const newSessionBtn = document.getElementById("common-menu-new-session");
     if (newSessionBtn) {
       newSessionBtn.onclick = function(e) {
@@ -429,6 +439,157 @@
       console.error("Direct google sign-in failed:", err);
       alert("Sign in failed: " + err.message);
     }
+  }
+
+  function openLogoLightbox() {
+    let overlay = document.getElementById("logo-lightbox-overlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "logo-lightbox-overlay";
+      overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100000;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+      `;
+      
+      const img = document.createElement("img");
+      img.id = "logo-lightbox-img";
+      img.src = "https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/Auroconnect_logo.png?alt=media&token=6defdb8f-f913-48b2-aa71-c0cccb82d642";
+      img.style.cssText = `
+        max-width: 85vw;
+        max-height: 70vh;
+        border-radius: 50%;
+        border: 4px solid #FFFFFF;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        transform: scale(0.8);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      `;
+      
+      const title = document.createElement("div");
+      title.textContent = "AuroConnect";
+      title.style.cssText = `
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 1.5rem;
+        letter-spacing: -0.02em;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+      `;
+
+      const subtitle = document.createElement("div");
+      subtitle.textContent = "Connecting Auroville Events & Communities";
+      subtitle.style.cssText = `
+        color: rgba(255, 255, 255, 0.7);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 400;
+        margin-top: 0.5rem;
+        text-align: center;
+        padding: 0 1rem;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s ease 0.15s, transform 0.3s ease 0.15s;
+      `;
+
+      const closeBtn = document.createElement("button");
+      closeBtn.innerHTML = "&times;";
+      closeBtn.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: none;
+        border: none;
+        color: #FFFFFF;
+        font-size: 2.5rem;
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.2s;
+        padding: 10px;
+        line-height: 1;
+      `;
+      closeBtn.onmouseenter = () => closeBtn.style.opacity = "1";
+      closeBtn.onmouseleave = () => closeBtn.style.opacity = "0.8";
+
+      overlay.appendChild(closeBtn);
+      overlay.appendChild(img);
+      overlay.appendChild(title);
+      overlay.appendChild(subtitle);
+      
+      document.body.appendChild(overlay);
+
+      const closeLightbox = (shouldGoBack = true) => {
+        overlay.style.opacity = "0";
+        overlay.style.pointerEvents = "none";
+        img.style.transform = "scale(0.8)";
+        const t = overlay.querySelector("div:nth-of-type(1)");
+        if (t) {
+          t.style.opacity = "0";
+          t.style.transform = "translateY(10px)";
+        }
+        const s = overlay.querySelector("div:nth-of-type(2)");
+        if (s) {
+          s.style.opacity = "0";
+          s.style.transform = "translateY(10px)";
+        }
+        if (shouldGoBack && history.state && history.state.lightbox === "logo") {
+          history.back();
+        }
+      };
+
+      overlay.onclick = () => closeLightbox(true);
+      closeBtn.onclick = () => closeLightbox(true);
+      img.onclick = (e) => e.stopPropagation();
+
+      window.addEventListener("popstate", (e) => {
+        if (overlay.style.opacity === "1") {
+          closeLightbox(false);
+        }
+      });
+    }
+
+    overlay.style.display = "flex";
+    overlay.style.pointerEvents = "auto";
+    
+    try {
+      history.pushState({ lightbox: "logo" }, "");
+    } catch (e) {
+      console.warn("Could not push state to history:", e);
+    }
+    
+    setTimeout(() => {
+      overlay.style.opacity = "1";
+      const img = document.getElementById("logo-lightbox-img");
+      if (img) img.style.transform = "scale(1)";
+      
+      const title = overlay.querySelector("div:nth-of-type(1)");
+      if (title) {
+        title.style.opacity = "1";
+        title.style.transform = "translateY(0)";
+      }
+      
+      const subtitle = overlay.querySelector("div:nth-of-type(2)");
+      if (subtitle) {
+        subtitle.style.opacity = "1";
+        subtitle.style.transform = "translateY(0)";
+      }
+    }, 10);
   }
 
   window.addEventListener("click", function(e) {

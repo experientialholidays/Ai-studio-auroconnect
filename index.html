@@ -563,6 +563,38 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+    
+    /* Clean, non-bubble, modern loading status indicator */
+    #chat-status-indicator {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-style: italic;
+        margin-top: 0.25rem;
+        align-self: flex-start;
+        animation: statusFadeIn 0.2s ease-out;
+        font-weight: 500;
+    }
+    .status-spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--border);
+        border-top: 2px solid var(--accent);
+        border-radius: 50%;
+        animation: statusSpin 0.8s linear infinite;
+        flex-shrink: 0;
+    }
+    @keyframes statusFadeIn {
+        from { opacity: 0; transform: translateY(3px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes statusSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
     </style>
 </head>
 <body>
@@ -691,6 +723,44 @@
         }
     }
 
+    function showStatus(statusText) {
+        if (!statusText) {
+            hideStatus();
+            return;
+        }
+        
+        let indicator = document.getElementById("chat-status-indicator");
+        if (!indicator) {
+            indicator = document.createElement("div");
+            indicator.id = "chat-status-indicator";
+            
+            const spinner = document.createElement("div");
+            spinner.className = "status-spinner";
+            indicator.appendChild(spinner);
+            
+            const textSpan = document.createElement("span");
+            textSpan.id = "chat-status-text";
+            indicator.appendChild(textSpan);
+            
+            chatWin.appendChild(indicator);
+        }
+        
+        const textSpan = indicator.querySelector("#chat-status-text");
+        if (textSpan) {
+            textSpan.textContent = statusText;
+        }
+        
+        // Auto-scroll to show the status indicator
+        chatWin.scrollTop = chatWin.scrollHeight;
+    }
+
+    function hideStatus() {
+        const indicator = document.getElementById("chat-status-indicator");
+        if (indicator) {
+            indicator.remove();
+        }
+    }
+
     async function loadPresets() {
         try {
             const res = await fetch("/api/presets");
@@ -752,12 +822,14 @@
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             if (data.type === "history_load") {
+                hideStatus();
                 chatWin.innerHTML = ""; 
                 renderSavitriQuote(); // Always prepend the beautiful Savitri quote card at the very top of the conversation
                 data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content));
                 updatePresetsVisibility();
             } 
             else if (data.type === "welcome" || data.type === "static_response") {
+                hideStatus();
                 let content = data.content;
                 // Strip Savitri text from welcome message content if it contains it to avoid duplication
                 if (data.type === "welcome" && content.includes("\n\n---\n\n✨ **Savitri Verse for Reflection** ✨")) {
@@ -771,10 +843,15 @@
             else if (data.type === "modal") {
                 openModal(data.content); 
             } 
+            else if (data.type === "status") {
+                showStatus(data.status);
+            }
             else if (data.type === "start_stream") {
+                hideStatus();
                 currentBotDiv = appendMsg('bot', '');
             } 
             else if (data.type === "stream_chunk") {
+                hideStatus();
                 if (currentBotDiv) {
                     let targetDiv = currentBotDiv.querySelector('.msg-content') || currentBotDiv;
                     targetDiv.innerHTML = marked.parse(data.chunk, { breaks: true });
@@ -920,6 +997,7 @@
             connect();
             while (ws.readyState !== WebSocket.OPEN) await new Promise(r => setTimeout(r, 50));
             appendMsg('user', text);
+            showStatus("Analyzing query...");
             ws.send(JSON.stringify({ 
                 message: text, 
                 timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone 
