@@ -825,7 +825,8 @@
                 hideStatus();
                 chatWin.innerHTML = ""; 
                 renderSavitriQuote(); // Always prepend the beautiful Savitri quote card at the very top of the conversation
-                data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content));
+                data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content, false));
+                chatWin.scrollTop = chatWin.scrollHeight;
                 updatePresetsVisibility();
             } 
             else if (data.type === "welcome" || data.type === "static_response") {
@@ -835,6 +836,18 @@
                 if (data.type === "welcome" && content.includes("\n\n---\n\n✨ **Savitri Verse for Reflection** ✨")) {
                     content = content.split("\n\n---\n\n✨ **Savitri Verse for Reflection** ✨")[0];
                 }
+                
+                // If welcome message is already pre-rendered, update it and skip appending duplicates or scrolling
+                if (data.type === "welcome" && document.getElementById("welcome-message-bubble")) {
+                    const welcomeBubble = document.getElementById("welcome-message-bubble");
+                    const contentDiv = welcomeBubble.querySelector('.msg-content');
+                    if (contentDiv) {
+                        contentDiv.innerHTML = marked.parse(content || "", { breaks: true });
+                        format3SegmentEventCards(contentDiv);
+                    }
+                    return;
+                }
+
                 const botDiv = appendMsg('bot', content);
                 if (data.type === "welcome") {
                     botDiv.id = "welcome-message-bubble";
@@ -962,7 +975,7 @@
         }, {passive: true});
     }
 
-    function appendMsg(role, text) {
+    function appendMsg(role, text, shouldScroll = true) {
         if (!text && role !== 'bot') return;
         const div = document.createElement('div');
         div.className = `msg ${role}`;
@@ -976,11 +989,13 @@
         div.appendChild(contentDiv);
         
         chatWin.appendChild(div);
-        if (role === 'user') {
-            chatWin.scrollTop = chatWin.scrollHeight;
-        } else {
-            // Scroll to the start/top of the bot's reply so the user starts reading from the top
-            chatWin.scrollTop = div.offsetTop - 20;
+        if (shouldScroll) {
+            if (role === 'user') {
+                chatWin.scrollTop = chatWin.scrollHeight;
+            } else {
+                // Scroll to the start/top of the bot's reply so the user starts reading from the top
+                chatWin.scrollTop = div.offsetTop - 20;
+            }
         }
         
         // Update presets bar visibility when a message is appended
@@ -1025,6 +1040,39 @@
 
     document.getElementById('send-btn').onclick = () => send();
     document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter') send(); };
+
+    const initialWelcomeText = `🌟 Welcome to Auroville Explorer! 🌟
+
+I am your AI companion, here to help you explore and experience Auroville. 🌿✨
+
+Auroville is a place to experience yourself and the world differently—to grow, create, and connect.
+
+Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.
+
+<br>
+
+🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  
+🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  
+🎶 Feel the rhythm with music concerts, choir, and dance classes.  
+🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  
+💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  
+🤝 Be part of the community through learning, volunteering, and sharing circles.
+
+<br>
+
+Curious about Auroville or looking for something specific? Just ask.
+
+Let's explore Auroville together. 💫`;
+
+    function preRenderWelcome() {
+        if (chatWin.querySelector('.msg.bot') || document.getElementById('welcome-message-bubble')) {
+            return;
+        }
+        const botDiv = appendMsg('bot', initialWelcomeText, false);
+        botDiv.id = "welcome-message-bubble";
+    }
+
+    preRenderWelcome();
     fetchSavitriQuote();
     connect();
     loadPresets();
