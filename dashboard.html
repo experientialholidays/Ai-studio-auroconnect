@@ -2681,7 +2681,7 @@
         const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
         const daysLower = (ev.days || "").toLowerCase().trim();
         const isDaily = category.includes("daily") || scheduleType === "daily" || daysLower.includes("daily") || daysLower.includes("everyday");
-        const isWeekly = category.includes("weekly") || scheduleType === "weekly" || (!isDaily && (scheduleType === "recurring" || ev.days));
+        const isWeekly = (category.includes("weekly") || scheduleType === "weekly" || (!isDaily && (scheduleType === "recurring" || ev.days))) && !category.includes("date");
 
         if (isWeekly) {
           const daysVal = ev.days || "";
@@ -3375,7 +3375,8 @@
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Type:</strong> ${ev.type || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Category:</strong> ${ev.category || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Schedule Type:</strong> ${ev.scheduleType || "N/A"}</div>
-                      <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Dates / Days:</strong> ${ev.dates || ev.days || "N/A"}</div>
+                      <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Date(s):</strong> ${ev.dates || "N/A"}</div>
+                      <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Day(s):</strong> ${ev.days || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>
@@ -3835,7 +3836,8 @@
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Type:</strong> ${ev.type || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Category:</strong> ${ev.category || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Schedule Type:</strong> ${ev.scheduleType || "N/A"}</div>
-                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Dates / Days:</strong> ${ev.dates || ev.days || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Date(s):</strong> ${ev.dates || "N/A"}</div>
+                    <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Day(s):</strong> ${ev.days || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Timings:</strong> ${ev.times || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>

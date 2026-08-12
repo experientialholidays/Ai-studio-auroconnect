@@ -42,6 +42,7 @@
         --text-secondary: #6E5D4F;
         --border: #E6DDD5;
         --shadow: rgba(61, 35, 20, 0.08);
+        --light-accent-bg: rgba(200, 90, 50, 0.06);
       }
 
       @media (prefers-color-scheme: dark) {
@@ -53,6 +54,7 @@
           --border: #3A342E;
           --accent: #E07A5F;
           --shadow: rgba(0, 0, 0, 0.4);
+          --light-accent-bg: rgba(224, 122, 95, 0.08);
         }
       }
 
@@ -84,61 +86,124 @@
         box-shadow: 0 4px 12px var(--shadow);
         display: flex;
         flex-direction: column;
-        gap: 1.75rem;
+        gap: 2rem;
         box-sizing: border-box;
       }
 
-      h1 {
+      h1, h2, h3 {
+        font-family: Georgia, Cambria, "Times New Roman", Times, serif;
         margin: 0;
-        font-size: 2rem;
-        font-weight: 700;
         color: var(--text);
+      }
+
+      h1 {
+        font-size: 2.25rem;
+        font-weight: 700;
         text-align: center;
+        line-height: 1.2;
       }
 
       .subtitle {
         text-align: center;
         color: var(--text-secondary);
-        font-size: 1.05rem;
-        margin-top: -1rem;
+        font-size: 1.1rem;
+        margin-top: -1.25rem;
+        font-style: italic;
+        font-family: Georgia, serif;
       }
 
       h2 {
-        font-size: 1.3rem;
-        margin-top: 1rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
         color: var(--accent);
         border-bottom: 1px solid var(--border);
-        padding-bottom: 0.4rem;
+        padding-bottom: 0.5rem;
+        margin-top: 1.5rem;
       }
 
       p {
         margin: 0 0 1rem 0;
         color: var(--text-secondary);
+        font-size: 1.05rem;
       }
 
-      ul {
-        margin: 0 0 1rem 1.25rem;
-        padding: 0;
+      /* Pathways and features styling */
+      .pathways-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 1rem 0;
+      }
+
+      @media (max-width: 650px) {
+        .pathways-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .pathway-item {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+      }
+
+      .pathway-icon {
+        font-size: 1.5rem;
+        flex-shrink: 0;
+        line-height: 1.2;
+        padding-top: 0.1rem;
+      }
+
+      .pathway-content h3 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.25rem;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .pathway-content p {
+        font-size: 0.95rem;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      .features-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      .feature-item {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-start;
+      }
+
+      .feature-icon {
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+
+      .feature-text {
+        font-size: 1rem;
         color: var(--text-secondary);
-      }
-
-      li {
-        margin-bottom: 0.5rem;
+        margin: 0;
       }
 
       .highlight-box {
-        background: rgba(11, 87, 208, 0.05);
+        background: var(--light-accent-bg);
         border-left: 4px solid var(--accent);
-        padding: 1rem 1.25rem;
+        padding: 1.25rem 1.5rem;
         border-radius: 0.5rem;
-        margin: 0.5rem 0;
+        margin: 1rem 0;
       }
 
       .highlight-box p {
         margin: 0;
         color: var(--text);
         font-size: 0.95rem;
+        line-height: 1.5;
       }
 
       .cta-buttons {
@@ -146,7 +211,7 @@
         gap: 1rem;
         justify-content: center;
         flex-wrap: wrap;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
       }
 
       .btn {
@@ -157,7 +222,8 @@
         border-radius: 0.5rem;
         font-weight: 600;
         text-decoration: none;
-        transition: background-color 0.2s ease;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        font-size: 0.95rem;
       }
 
       .btn-primary {
@@ -172,16 +238,25 @@
       }
 
       .btn:hover {
-        opacity: 0.9;
+        opacity: 0.95;
+        transform: translateY(-1px);
+      }
+
+      .btn:active {
+        transform: translateY(0);
       }
 
       @media (max-width: 600px) {
         .container {
           padding: 1.5rem;
           margin-top: 1.5rem;
+          gap: 1.5rem;
         }
         h1 {
-          font-size: 1.6rem;
+          font-size: 1.75rem;
+        }
+        h2 {
+          font-size: 1.3rem;
         }
       }
     </style>
@@ -189,33 +264,72 @@
   <body>
     <div class="container">
       <h1>About AuroConnect</h1>
-      <div class="subtitle">Your Independent Discovery Platform for Retreats, Workshops & Events</div>
+      <div class="subtitle">Discover Auroville. Learn. Connect. Explore.</div>
 
       <p>
-        <strong>AuroConnect</strong> is a community-focused discovery and information platform created to help residents, visitors, guests, and seekers easily find retreats, workshops, volunteer opportunities, cultural programs, and community events in and around Auroville.
+        <strong>AuroConnect</strong> is an AI-powered companion created to help you discover and connect with the many dimensions of Auroville.
       </p>
 
-      <h2>Our Purpose</h2>
+      <h2>Auroville: A Living Laboratory</h2>
       <p>
-        Whether you are seeking personal growth through retreats, looking to share skills in workshops, offering volunteer service, or simply connecting with daily activities, AuroConnect makes discovery simple, transparent, and accessible.
+        Founded in 1968 based on the spiritual vision of Sri Aurobindo and The Mother, Auroville is a universal township dedicated to human unity, conscious evolution, and sustainable living. It acts as a pioneering living laboratory—an evolving community where people from all walks of life come together to explore new ways of living, learning, creating, working, and growing in progressive harmony.
       </p>
 
-      <h2>Key Features</h2>
-      <ul>
-        <li><strong>🤖 AI-Assisted Discovery:</strong> Ask questions naturally to find specific workshops, schedules, venues, and facilitators.</li>
-        <li><strong>📅 Comprehensive Event Directory:</strong> Search and filter through updated listings for retreats, classes, cultural events, and gatherings.</li>
-        <li><strong>✍️ Easy Event Submissions:</strong> Facilitators and organizers can easily submit new events via text forms, Excel files, or PDF posters.</li>
-        <li><strong>📊 Host & Facilitator Dashboard:</strong> Manage submissions, edit listings, and keep event records up to date seamlessly.</li>
+      <p>
+        Whether you're looking for practical information, exploring Auroville for the first time, or simply curious to learn more, AuroConnect is here to help.
+      </p>
+
+      <h2>Discover Auroville. Connect with what inspires you.</h2>
+      <p>
+        Auroville has a rich and diverse ecosystem of communities, cultural spaces, ecological initiatives, learning opportunities, creative practices, and inner exploration. With so much happening across different parts of Auroville, finding the right information or knowing where to begin isn't always easy.
+      </p>
+
+      <p>
+        AuroConnect brings this diversity closer to you.
+      </p>
+
+      <p>
+        You can use it to discover what's happening, find activities and experiences, understand places and initiatives, learn about Auroville and its many dimensions, or simply get answers to questions that come to mind.
+      </p>
+
+      <h2>More than information</h2>
+      <p>
+        AuroConnect is not simply a directory or an events guide.
+      </p>
+
+      <p>
+        It is designed to help you understand the context behind Auroville—its vision, initiatives, activities, and the different ways people experience and participate in life here.
+      </p>
+
+      <p>
+        Whether your question is practical, informational, or simply driven by curiosity, AuroConnect helps you take the next step in your exploration.
+      </p>
+
+      <h2>Just ask</h2>
+      <p>
+        Curious about something? Looking for something specific? Want to discover something new? Just ask AuroConnect questions like:
+      </p>
+
+      <ul style="margin: 1rem 0 1.5rem 1.25rem; padding: 0; color: var(--text-secondary); font-size: 1.05rem; list-style-type: disc;">
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">How can I visit the Matrimandir?</li>
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">How do I get to Auroville from Pondicherry?</li>
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">What is the vision of Auroville?</li>
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">What can I explore today?</li>
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">Is there a Savitri reading circle?</li>
+        <li style="margin-bottom: 0.5rem; padding-left: 0.25rem;">What's happening this weekend?</li>
       </ul>
 
-      <div class="highlight-box">
-        <p><strong>Independent Platform Disclaimer:</strong> AuroConnect is an independent discovery platform and is not affiliated with, operated by, or endorsed by the Auroville Foundation or any official Auroville unit.</p>
+      <p>
+        We're here to help you explore Auroville, connect with its people and possibilities, and make your experience richer—wherever you are on your journey.
+      </p>
+
+      <div class="highlight-box" style="text-align: center; border-left: none; border-top: 4px solid var(--accent); margin-top: 1.5rem;">
+        <p style="font-family: Georgia, serif; font-style: italic; font-size: 1.25rem; color: var(--accent); margin-bottom: 0;">AuroConnect — discover more, connect deeper. 🌿✨</p>
       </div>
 
-      <h2>Get in Touch</h2>
-      <p>
-        Have questions, suggestions, or need help listing your event? We would love to hear from you.
-      </p>
+      <div class="highlight-box" style="margin-top: 0.5rem; text-align: center;">
+        <p><strong>Note:</strong> AuroConnect is not affiliated with the Auroville Foundation or any Auroville unit.</p>
+      </div>
 
       <div class="cta-buttons">
         <a href="/" class="btn btn-primary">Discover Events</a>

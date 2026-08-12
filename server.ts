@@ -1544,10 +1544,13 @@ ${searchQuery || lastMessage}`;
         const snapshot = await getDocs(presetsCol);
         let presets: any[] = [];
         snapshot.forEach((docSnap) => {
-            presets.push({ id: docSnap.id, ...docSnap.data() });
+            const data = docSnap.data();
+            if (data && typeof data.text === "string" && data.text.trim() !== "" && typeof data.query === "string" && data.query.trim() !== "") {
+                presets.push({ id: docSnap.id, ...data });
+            }
         });
 
-        // Seed default presets if none exist
+        // Seed default presets if none exist after filtering
         if (presets.length === 0) {
             const defaultPresets = [
                 { text: "What's happening today? 📅", query: "What's happening today?" },
@@ -1847,6 +1850,14 @@ ${searchQuery || lastMessage}`;
     next();
   };
 
+  const resolveStaticPath = (filename: string) => {
+    const prodPath = path.join(process.cwd(), "dist", filename);
+    if (process.env.NODE_ENV === "production" && fs.existsSync(prodPath)) {
+      return prodPath;
+    }
+    return path.join(process.cwd(), filename);
+  };
+
   app.get("/event/:slug", noCache, async (req, res) => {
     try {
         const slug = req.params.slug;
@@ -1858,7 +1869,7 @@ ${searchQuery || lastMessage}`;
         if (!docSnap.exists()) return res.status(404).send("Event not found");
         
         const data = docSnap.data();
-        let html = fs.readFileSync(path.join(process.cwd(), "event_details.html"), "utf8");
+        let html = fs.readFileSync(resolveStaticPath("event_details.html"), "utf8");
         const eventJson = JSON.stringify({ id, ...data }).replace(/</g, '\\u003c');
         html = html.replace("{{EVENT_DATA}}", eventJson);
         res.send(html);
@@ -1869,27 +1880,56 @@ ${searchQuery || lastMessage}`;
   });
 
   app.get("/submit", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "submit.html"));
+    res.sendFile(resolveStaticPath("submit.html"));
   });
 
   app.get("/submit.html", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "submit.html"));
+    res.sendFile(resolveStaticPath("submit.html"));
   });
 
   app.get("/dashboard", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "dashboard.html"));
+    res.sendFile(resolveStaticPath("dashboard.html"));
   });
 
   app.get("/dashboard.html", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "dashboard.html"));
+    res.sendFile(resolveStaticPath("dashboard.html"));
   });
 
   app.get("/contact", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "contact.html"));
+    res.sendFile(resolveStaticPath("contact.html"));
   });
 
   app.get("/contact.html", noCache, (req, res) => {
-    res.sendFile(path.join(process.cwd(), "contact.html"));
+    res.sendFile(resolveStaticPath("contact.html"));
+  });
+
+  app.get("/about", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("about.html"));
+  });
+
+  app.get("/about.html", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("about.html"));
+  });
+
+  app.get("/privacy", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("privacy.html"));
+  });
+
+  app.get("/privacy.html", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("privacy.html"));
+  });
+
+  app.get("/terms", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("terms.html"));
+  });
+
+  app.get("/terms.html", noCache, (req, res) => {
+    res.sendFile(resolveStaticPath("terms.html"));
+  });
+
+  app.get("/common.js", (req, res) => {
+    res.setHeader("Content-Type", "application/javascript");
+    res.sendFile(resolveStaticPath("common.js"));
   });
 
   if (process.env.NODE_ENV !== "production") {
@@ -1900,6 +1940,7 @@ ${searchQuery || lastMessage}`;
     app.use(vite.middlewares);
   } else {
     app.use(express.static(path.join(process.cwd(), "dist")));
+    app.use(express.static(process.cwd()));
     app.get("*", (req, res, next) => {
       if (req.path.startsWith("/api") || req.path.startsWith("/event/") || req.path.includes(".")) {
         return next();

@@ -1354,6 +1354,17 @@
         }
     });
 
+    function isValidPhoneNumber(numStr) {
+        if (!numStr) return false;
+        const clean = String(numStr).trim().replace(/[^0-9]/g, '');
+        if (clean === '' || clean === '91') return false;
+        const withoutIsd = clean.replace(/^91/, '');
+        if (withoutIsd.length < 4) {
+            return false;
+        }
+        return true;
+    }
+
     function formatDateToHuman(dateVal) {
         if (!dateVal) return '';
         const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -1391,7 +1402,7 @@
         return formatSingle(dateVal);
     }
 
-    function formatDaysDisplay(daysVal) {
+    function formatDaysDisplay(daysVal, isDateSpecific = false) {
         if (!daysVal) return '';
         let str = Array.isArray(daysVal) ? daysVal.join(', ') : String(daysVal).trim();
         if (!str) return '';
@@ -1451,7 +1462,7 @@
 
         if (result.length === 0) return '';
         let formatted = result.join(", ");
-        if (!formatted.toLowerCase().startsWith("every") && !formatted.toLowerCase().startsWith("daily")) {
+        if (!isDateSpecific && !formatted.toLowerCase().startsWith("every") && !formatted.toLowerCase().startsWith("daily")) {
             formatted = "Every " + formatted;
         }
         return formatted;
@@ -1464,7 +1475,9 @@
         
         const rawDate = event.dates || event.startDate || event.date || '';
         const formattedDate = rawDate ? formatDateToHuman(rawDate) : '';
-        const formattedDays = event.days ? formatDaysDisplay(event.days) : '';
+        const categoryStr = (event.category || "").toLowerCase().trim();
+        const isDateSpecific = categoryStr.includes("date") || categoryStr.includes("one-time") || categoryStr.includes("specific");
+        const formattedDays = event.days ? formatDaysDisplay(event.days, isDateSpecific) : '';
 
         // Render sticky header into dynamic-header-container in the main header
         if (dynamicHeader) {
@@ -1579,26 +1592,32 @@
 
         // Box 3: Contact Info
         let contactHtml = '';
-        if (event.contactPerson || event.whatsapp || event.contact || event.phone || event.email) {
+        const hasValidWhatsapp = event.whatsapp && isValidPhoneNumber(event.whatsapp);
+        const hasValidContact = (event.contact || event.phone) && isValidPhoneNumber(event.contact || event.phone);
+        const hasValidEmail = event.email && String(event.email).trim() !== "";
+
+        if (event.contactPerson || hasValidWhatsapp || hasValidContact || hasValidEmail) {
             contactHtml = `<div style="display: flex; flex-direction: column; gap: 6px;">`;
             if (event.contactPerson) {
                 contactHtml += `<div style="font-size: 0.9rem; font-weight: 600; color: var(--text);">${event.contactPerson}</div>`;
             }
-            if (event.whatsapp) {
+            if (hasValidWhatsapp) {
                 const cleanWa = String(event.whatsapp).replace(/^https?:\/\/wa\.me\//i, '').replace(/[^0-9+]/g, '');
                 const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
                 const waNumber = cleanWa.replace(/[^0-9]/g, '');
                 const waHref = "https://wa.me/" + waNumber;
                 contactHtml += `<div style="font-size: 0.85rem;"><a href="${waHref}" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">💬 ${waDisplay}</a></div>`;
             }
-            if (event.contact || event.phone) {
+            if (hasValidContact) {
                 const phoneVal = String(event.contact || event.phone).trim();
-                if (phoneVal !== event.whatsapp) {
+                const cleanPhone = phoneVal.replace(/[^0-9]/g, '');
+                const cleanWa = hasValidWhatsapp ? String(event.whatsapp).replace(/[^0-9]/g, '') : '';
+                if (cleanPhone !== cleanWa) {
                     const telVal = phoneVal.replace(/[^0-9+]/g, '');
                     contactHtml += `<div style="font-size: 0.85rem;"><a href="tel:${telVal}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">📞 ${phoneVal}</a></div>`;
                 }
             }
-            if (event.email) {
+            if (hasValidEmail) {
                 contactHtml += `<div style="font-size: 0.85rem; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${event.email.trim()}">✉️ ${event.email.trim()}</a></div>`;
             }
             contactHtml += `</div>`;
@@ -1674,7 +1693,7 @@
         const floatingContainer = document.getElementById("floating-contact-container");
         if (floatingContainer) {
             let floatingHtml = '';
-            if (event.email || event.whatsapp) {
+            if (hasValidEmail || hasValidWhatsapp) {
                 const eventTitle = event.title || 'Event';
                 const dateOrDay = formattedDate || formattedDays || '';
                 const locationStr = event.venue || '';
@@ -1683,7 +1702,7 @@
                 let locationPart = locationStr ? ` at ${locationStr}` : '';
                 const draftMessage = `Hi! I came across the "${eventTitle}" event to be held${datePart}${locationPart} on auroconnect.info. Could I please get more details?`;
                 
-                if (event.whatsapp) {
+                if (hasValidWhatsapp) {
                     let waHref = "";
                     if (event.whatsapp.startsWith("http")) {
                         try {
@@ -1705,7 +1724,7 @@
                     </a>`;
                 }
                 
-                if (event.email) {
+                if (hasValidEmail) {
                     const mailHref = "mailto:" + event.email.trim() + "?subject=" + encodeURIComponent("Inquiry regarding: " + eventTitle) + "&body=" + encodeURIComponent(draftMessage);
                     floatingHtml += `
                     <a href="${mailHref}" target="_blank" class="floating-contact-btn email-btn" aria-label="Email Organizer">

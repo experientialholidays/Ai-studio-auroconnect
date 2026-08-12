@@ -69,7 +69,7 @@ const getEventDaysDisplay = (event: any) => {
   if (!event) return "";
   const category = (event.category || "").toLowerCase().trim();
   const days = (event.days || "").toLowerCase().trim();
-  const isWeeklyOrDaily = category.includes("daily") || category.includes("weekly") || days.includes("daily") || days.includes("every day") || days.includes("everyday");
+  const isWeeklyOrDaily = (category.includes("daily") || category.includes("weekly") || days.includes("daily") || days.includes("every day") || days.includes("everyday")) && !category.includes("date");
   
   if (isWeeklyOrDaily) {
     const daysVal = event.days || "";
@@ -232,7 +232,8 @@ export default function App() {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.presets && data.presets.length > 0) {
-          setPresets(data.presets);
+          const validPresets = data.presets.filter((p: any) => p && typeof p.text === 'string' && p.text.trim() !== '' && typeof p.query === 'string' && p.query.trim() !== '');
+          setPresets(validPresets);
         }
       })
       .catch((err) => {

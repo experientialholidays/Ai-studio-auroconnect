@@ -121,12 +121,22 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       };
       
       let cat = getVal(["Category"]);
-      if (cat.toLowerCase().includes("weekday")) {
+      const datesField = getVal(["Dates", "Date"]);
+      const startDateField = formatExcelDate(getRawVal(["Start Date"]));
+
+      if (cat.toLowerCase().includes("weekday") || cat.toLowerCase().includes("weekly")) {
         cat = "Weekly Events";
-      } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific")) {
+      } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific") || cat.toLowerCase().includes("one-time")) {
         cat = "Date-specific Events";
       } else if (cat.toLowerCase().includes("daily")) {
         cat = "Daily Events";
+      } else {
+        // Resolve based on dates/days presence if category column is empty or doesn't match
+        if ((datesField && datesField !== "" && datesField !== "N/A") || (startDateField && startDateField !== "" && startDateField !== "N/A")) {
+          cat = "Date-specific Events";
+        } else {
+          cat = "Weekly Events";
+        }
       }
 
       const startTime = formatExcelTime(getRawVal(["Start Time", "Time", "Times"]));

@@ -665,6 +665,13 @@
     let ws;
     let currentBotDiv = null;
     const chatWin = document.getElementById('chat-window');
+    let isRenderingHistory = false;
+
+    chatWin.addEventListener('scroll', () => {
+        if (!isRenderingHistory) {
+            safeSetItem("main_chat_scroll_top", chatWin.scrollTop);
+        }
+    });
 
     let presets = [];
     let currentSavitriQuote = null;
@@ -766,7 +773,7 @@
             const res = await fetch("/api/presets");
             const data = await res.json();
             if (data.success && data.presets) {
-                presets = data.presets;
+                presets = data.presets.filter(p => p && typeof p.text === 'string' && p.text.trim() !== '' && typeof p.query === 'string' && p.query.trim() !== '');
                 updatePresetsVisibility();
             }
         } catch (e) {
@@ -802,6 +809,7 @@
 
     function startNewSession() {
         safeRemoveItem("auro_session_id");
+        safeRemoveItem("main_chat_scroll_top");
         window.location.href = window.location.pathname + "?new_session=true&t=" + Date.now();
     }
     window.startNewSession = startNewSession;
@@ -822,13 +830,35 @@
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             if (data.type === "history_load") {
+                isRenderingHistory = true;
                 hideStatus();
                 chatWin.innerHTML = ""; 
                 renderSavitriQuote(); // Always prepend the beautiful Savitri quote card at the very top of the conversation
                 data.content.forEach(msg => appendMsg(msg.role === "user" ? "user" : "bot", msg.content, false));
-                chatWin.scrollTop = chatWin.scrollHeight;
+                
+                const savedScrollTop = safeGetItem("main_chat_scroll_top");
+                if (savedScrollTop && savedScrollTop.trim() !== "") {
+                    const parsedScrollTop = parseInt(savedScrollTop, 10);
+                    if (!isNaN(parsedScrollTop)) {
+                        chatWin.scrollTop = parsedScrollTop;
+                        // Multiple ticks to guarantee scroll layout settles
+                        setTimeout(() => {
+                            chatWin.scrollTop = parsedScrollTop;
+                        }, 0);
+                        setTimeout(() => {
+                            chatWin.scrollTop = parsedScrollTop;
+                        }, 50);
+                    }
+                } else {
+                    chatWin.scrollTop = chatWin.scrollHeight;
+                }
+                
                 updatePresetsVisibility();
+                setTimeout(() => {
+                    isRenderingHistory = false;
+                }, 100);
             } 
+
             else if (data.type === "welcome" || data.type === "static_response") {
                 hideStatus();
                 let content = data.content;
@@ -1028,6 +1058,9 @@
             e.preventDefault();
             const href = a.getAttribute('href');
             if (href.startsWith('#DETAILS::')) {
+                // Explicitly save the current scroll position before page navigation
+                safeSetItem("main_chat_scroll_top", chatWin.scrollTop);
+                
                 const uuid = href.split('::')[1];
                 let eventTitle = a.textContent || "event";
                 let slug = eventTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');

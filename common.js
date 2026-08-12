@@ -267,6 +267,7 @@
   };
 
   let firebaseApp, firebaseAuth, authInstance = null;
+  let savedLightboxScrollPositions = [];
   try {
     firebaseApp = await import("https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js");
     firebaseAuth = await import("https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js");
@@ -442,6 +443,25 @@
   }
 
   function openLogoLightbox() {
+    // 1. Capture scroll positions
+    savedLightboxScrollPositions = [];
+    
+    // Capture window scroll
+    savedLightboxScrollPositions.push({
+      element: window,
+      top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
+      left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0
+    });
+    
+    // Capture scroll of all elements with active scrolling
+    document.querySelectorAll('#chat-window, .presets-bar, body, html, [style*="overflow"], [class*="scroll"]').forEach(el => {
+      savedLightboxScrollPositions.push({
+        element: el,
+        top: el.scrollTop,
+        left: el.scrollLeft
+      });
+    });
+
     let overlay = document.getElementById("logo-lightbox-overlay");
     if (!overlay) {
       overlay = document.createElement("div");
@@ -479,35 +499,6 @@
         cursor: pointer;
       `;
       
-      const title = document.createElement("div");
-      title.textContent = "AuroConnect";
-      title.style.cssText = `
-        color: #FFFFFF;
-        font-family: 'Inter', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-top: 1.5rem;
-        letter-spacing: -0.02em;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
-      `;
-
-      const subtitle = document.createElement("div");
-      subtitle.textContent = "Connecting Auroville Events & Communities";
-      subtitle.style.cssText = `
-        color: rgba(255, 255, 255, 0.7);
-        font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
-        font-weight: 400;
-        margin-top: 0.5rem;
-        text-align: center;
-        padding: 0 1rem;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: opacity 0.3s ease 0.15s, transform 0.3s ease 0.15s;
-      `;
-
       const closeBtn = document.createElement("button");
       closeBtn.innerHTML = "&times;";
       closeBtn.style.cssText = `
@@ -529,28 +520,46 @@
 
       overlay.appendChild(closeBtn);
       overlay.appendChild(img);
-      overlay.appendChild(title);
-      overlay.appendChild(subtitle);
       
       document.body.appendChild(overlay);
+
+      const restoreScrolls = () => {
+        if (savedLightboxScrollPositions && savedLightboxScrollPositions.length > 0) {
+          savedLightboxScrollPositions.forEach(item => {
+            try {
+              if (item.element === window) {
+                window.scrollTo({
+                  top: item.top,
+                  left: item.left,
+                  behavior: 'auto'
+                });
+              } else if (item.element) {
+                item.element.scrollTop = item.top;
+                item.element.scrollLeft = item.left;
+              }
+            } catch (err) {
+              console.warn("Failed to restore scroll position:", err);
+            }
+          });
+        }
+      };
 
       const closeLightbox = (shouldGoBack = true) => {
         overlay.style.opacity = "0";
         overlay.style.pointerEvents = "none";
         img.style.transform = "scale(0.8)";
-        const t = overlay.querySelector("div:nth-of-type(1)");
-        if (t) {
-          t.style.opacity = "0";
-          t.style.transform = "translateY(10px)";
-        }
-        const s = overlay.querySelector("div:nth-of-type(2)");
-        if (s) {
-          s.style.opacity = "0";
-          s.style.transform = "translateY(10px)";
-        }
+        
         if (shouldGoBack && history.state && history.state.lightbox === "logo") {
           history.back();
         }
+
+        // Restore scrolls immediately and across multiple ticks to override async browser popstate scroll jumps
+        restoreScrolls();
+        setTimeout(restoreScrolls, 0);
+        setTimeout(restoreScrolls, 10);
+        setTimeout(restoreScrolls, 30);
+        setTimeout(restoreScrolls, 50);
+        setTimeout(restoreScrolls, 100);
       };
 
       overlay.onclick = () => closeLightbox(true);
@@ -560,6 +569,9 @@
       window.addEventListener("popstate", (e) => {
         if (overlay.style.opacity === "1") {
           closeLightbox(false);
+          restoreScrolls();
+          setTimeout(restoreScrolls, 0);
+          setTimeout(restoreScrolls, 20);
         }
       });
     }
@@ -577,18 +589,6 @@
       overlay.style.opacity = "1";
       const img = document.getElementById("logo-lightbox-img");
       if (img) img.style.transform = "scale(1)";
-      
-      const title = overlay.querySelector("div:nth-of-type(1)");
-      if (title) {
-        title.style.opacity = "1";
-        title.style.transform = "translateY(0)";
-      }
-      
-      const subtitle = overlay.querySelector("div:nth-of-type(2)");
-      if (subtitle) {
-        subtitle.style.opacity = "1";
-        subtitle.style.transform = "translateY(0)";
-      }
     }, 10);
   }
 

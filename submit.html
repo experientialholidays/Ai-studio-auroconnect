@@ -2508,7 +2508,7 @@
         const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
         const daysLower = (ev.days || "").toLowerCase().trim();
         const isDaily = category.includes("daily") || scheduleType === "daily" || daysLower.includes("daily") || daysLower.includes("everyday");
-        const isWeekly = category.includes("weekly") || scheduleType === "weekly" || (!isDaily && (scheduleType === "recurring" || ev.days));
+        const isWeekly = (category.includes("weekly") || scheduleType === "weekly" || (!isDaily && (scheduleType === "recurring" || ev.days))) && !category.includes("date");
 
         if (isWeekly) {
           const daysVal = ev.days || "";
