@@ -4076,7 +4076,7 @@
         return auth.currentUser;
       }
 
-      function updateAuthStateUI(user) {
+      async function updateAuthStateUI(user) {
         const currentUser = getCurrentUser();
         if (currentUser) {
           loginSection.style.display = "none";
@@ -4086,7 +4086,40 @@
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
           const myEventsFilters = document.getElementById("my-events-filters");
-          if (currentUser.email === "info.experientialholidays@gmail.com") {
+          const userEmailLower = (currentUser.email || "").toLowerCase();
+          
+          let hasAdminAccess = false;
+          if (userEmailLower === "info.experientialholidays@gmail.com" || userEmailLower === "info.auroconnect@gmail.com") {
+            hasAdminAccess = true;
+            // Proactively auto-seed the admin document if it does not exist
+            // This ensures the "admins" collection instantly appears in the Firebase Console!
+            try {
+              const adminDocRef = doc(db, "admins", userEmailLower);
+              const adminDocSnap = await getDoc(adminDocRef);
+              if (!adminDocSnap.exists()) {
+                await setDoc(adminDocRef, {
+                  email: userEmailLower,
+                  role: "super_admin",
+                  createdAt: new Date().toISOString()
+                });
+                console.log(`Auto-seeded ${userEmailLower} into the database admins collection.`);
+              }
+            } catch (seedErr) {
+              console.warn("Auto-seeding admin document failed:", seedErr);
+            }
+          } else {
+            // Check dynamically in Firestore admins collection
+            try {
+              const adminDocSnap = await getDoc(doc(db, "admins", userEmailLower));
+              if (adminDocSnap.exists()) {
+                hasAdminAccess = true;
+              }
+            } catch (err) {
+              console.error("Failed to query dynamic admins collection:", err);
+            }
+          }
+
+          if (hasAdminAccess) {
             adminOnlySection.style.display = "flex";
             userStatusDiv.innerHTML = `Admin: ${currentUser.email}`;
             

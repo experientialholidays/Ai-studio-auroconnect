@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getAuth } from "firebase-admin/auth";
 import * as cheerio from "cheerio";
 import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
+import { ai, verifyAuthToken, adminDb, isUserAdmin } from "./firebase-ai.js";
 import { splitIntoChunks } from "./knowledge.js";
 
 const router = Router();
@@ -94,7 +94,9 @@ router.post("/api/add_url_knowledge", async (req, res) => {
     if (!decodedToken) {
       return sendError(401, "Invalid authentication token or failed to verify");
     }
-    if (decodedToken.email !== "info.experientialholidays@gmail.com") {
+    const userEmail = decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const isAdmin = await isUserAdmin(userEmail);
+    if (!isAdmin) {
       return sendError(403, "Forbidden: Admin access required.");
     }
 

@@ -6,7 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
-import { db, firebaseConfig, verifyAuthToken } from "./src/server/firebase-ai.js";
+import { db, firebaseConfig, verifyAuthToken, isUserAdmin, adminDb } from "./src/server/firebase-ai.js";
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
@@ -24,21 +24,7 @@ async function checkIfAdmin(token: string): Promise<boolean> {
     if (!token) return false;
     const verified = await verifyAuthToken(token);
     if (!verified || !verified.email) return false;
-    
-    // Hardcoded master admin
-    if (verified.email === "info.experientialholidays@gmail.com") {
-        return true;
-    }
-    
-    // Check in 'admins' collection using client SDK
-    try {
-        const adminDocRef = doc(db, "admins", verified.email);
-        const adminDoc = await getDoc(adminDocRef);
-        return adminDoc.exists();
-    } catch (e) {
-        console.error("Error verifying admin in Firestore admins collection:", e);
-    }
-    return false;
+    return isUserAdmin(verified.email);
 }
 dotenv.config();
 

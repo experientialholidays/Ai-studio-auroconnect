@@ -4,7 +4,7 @@ import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb } from "./firebase-ai.js";
+import { ai, verifyAuthToken, adminDb, isUserAdmin } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -84,7 +84,9 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
     if (!decodedToken) {
       return sendError(401, "Invalid authentication token or failed to verify");
     }
-    if (decodedToken.email !== "info.experientialholidays@gmail.com") {
+    const userEmail = decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const isAdmin = await isUserAdmin(userEmail);
+    if (!isAdmin) {
       return sendError(403, "Forbidden: Admin access required.");
     }
     if (!req.file) {

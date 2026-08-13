@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { adminDb, verifyAuthToken, ai } from "./firebase-ai.js";
+import { adminDb, verifyAuthToken, ai, isUserAdmin } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -40,7 +40,9 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
     if (!decodedToken) {
       return sendError(401, "Invalid authentication token or failed to verify");
     }
-    if (decodedToken.email !== "info.experientialholidays@gmail.com") {
+    const userEmail = decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const isAdmin = await isUserAdmin(userEmail);
+    if (!isAdmin) {
       return sendError(403, "Forbidden: Admin access required.");
     }
     if (!req.file) {
@@ -172,6 +174,41 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       eventsToUpload.push(processed);
     }
 
+    // Process Google Drive poster URLs if present and convert to binary buffer proxy format
+    sendProgress(36, "Checking and fetching Google Drive posters...", "Scanning events for Drive poster links");
+    const driveEvents = eventsToUpload.filter(event => 
+      event.posterUrl && (event.posterUrl.includes("drive.google.com") || event.posterUrl.includes("docs.google.com"))
+    );
+
+    if (driveEvents.length > 0) {
+      console.log(`Found ${driveEvents.length} events with Google Drive poster URLs. Fetching files...`);
+      const chunkArray = <T>(array: T[], size: number): T[][] => {
+        const chunks = [];
+        for (let idx = 0; idx < array.length; idx += size) {
+          chunks.push(array.slice(idx, idx + size));
+        }
+        return chunks;
+      };
+      
+      const driveBatches = chunkArray(driveEvents, 5);
+      for (let idx = 0; idx < driveBatches.length; idx++) {
+        const batch = driveBatches[idx];
+        const percent = Math.min(39, 36 + Math.round((idx / driveBatches.length) * 3));
+        sendProgress(
+          percent, 
+          `Downloading Drive posters (batch ${idx + 1} of ${driveBatches.length})...`, 
+          `Downloading posters for: ${batch.map(e => `"${e.title}"`).join(", ")}`
+        );
+        
+        await Promise.all(batch.map(async (event) => {
+          const driveResult = await fetchDriveFileAsBase64(event.posterUrl);
+          if (driveResult) {
+            event.base64Poster = driveResult;
+          }
+        }));
+      }
+    }
+
     if (eventsToUpload.length === 0) {
       return sendError(400, "No valid events with a Title or Name found in the sheet.");
     }
@@ -243,6 +280,71 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
   } catch (e: any) {
     console.error("upload_events error:", e);
     return sendError(500, "Failed to process upload: " + (e.message || e));
+  }
+});
+
+export const extractDriveId = (url: string): string | null => {
+  if (!url) return null;
+  const match = url.match(/(?:id=|\/d\/|file\/d\/|open\?id=)([a-zA-Z0-9_-]{25,50})/);
+  return match ? match[1] : null;
+};
+
+export const fetchDriveFileAsBase64 = async (driveUrl: string): Promise<{ data: string; contentType: string } | null> => {
+  const fileId = extractDriveId(driveUrl);
+  if (!fileId) return null;
+  
+  const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+  try {
+    const res = await fetch(downloadUrl);
+    if (!res.ok) {
+      console.warn(`Drive download failed with status ${res.status} for ${driveUrl}`);
+      return null;
+    }
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const arrayBuffer = await res.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Safety check: if Google Drive restricted page or empty file is returned as HTML
+    if (contentType.includes("text/html") || buffer.toString("utf8", 0, 100).trim().startsWith("<!DOCTYPE")) {
+      console.warn(`Drive link returned HTML instead of raw file (restricted access or expired): ${driveUrl}`);
+      return null;
+    }
+
+    return {
+      data: buffer.toString("base64"),
+      contentType: contentType
+    };
+  } catch (err) {
+    console.warn(`Error downloading Drive file ${driveUrl}:`, err);
+    return null;
+  }
+};
+
+router.post("/api/proxy_drive_poster", async (req, res) => {
+  try {
+    const { url, token } = req.body;
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const decodedToken = await verifyAuthToken(token);
+    const userEmail = decodedToken && decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const isAdmin = await isUserAdmin(userEmail);
+    if (!decodedToken || !isAdmin) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    if (!url) {
+      return res.status(400).json({ error: "URL is required" });
+    }
+
+    const result = await fetchDriveFileAsBase64(url);
+    if (!result) {
+      return res.status(404).json({ error: "Failed to fetch file from Google Drive. Ensure the link is public." });
+    }
+
+    return res.json(result);
+  } catch (err: any) {
+    console.error("Proxy error:", err);
+    return res.status(500).json({ error: err.message || err });
   }
 });
 

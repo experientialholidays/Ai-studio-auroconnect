@@ -3,7 +3,7 @@ import path from "path";
 import { initializeApp as initAdminApp, getApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, doc, getDoc } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
@@ -74,4 +74,22 @@ export async function verifyAuthToken(token: string): Promise<{ email: string } 
     }
   }
   return null;
+}
+
+export async function isUserAdmin(email: string): Promise<boolean> {
+  if (!email) return false;
+  const emailLower = email.toLowerCase();
+  
+  // Hardcoded backup master admin accounts
+  if (emailLower === "info.experientialholidays@gmail.com" || emailLower === "info.auroconnect@gmail.com") {
+    return true;
+  }
+  
+  try {
+    const adminDocSnap = await getDoc(doc(db, "admins", emailLower));
+    return adminDocSnap.exists();
+  } catch (e) {
+    console.error("Error checking database-backed admins collection:", e);
+  }
+  return false;
 }

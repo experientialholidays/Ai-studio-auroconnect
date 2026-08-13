@@ -832,39 +832,50 @@
     }
 
     .details-boxes-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px 16px 16px 16px;
         box-sizing: border-box;
     }
     .detail-box {
+        position: relative;
         background: var(--user-msg-bg);
         border-radius: 12px;
         border: 1px solid var(--border);
-        padding: 14px;
-        display: grid;
-        grid-template-columns: 110px 1fr;
-        gap: 14px;
-        align-items: start;
+        padding: 16px 14px 14px 14px;
+        display: block;
+        width: 100%;
         box-sizing: border-box;
     }
     .detail-box-title {
-        text-align: left;
-        font-weight: 700;
-        font-size: 0.82rem;
+        position: absolute;
+        top: -11px;
+        left: 14px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 2px 10px;
+        font-weight: 600;
+        font-size: 0.75rem;
         text-transform: uppercase;
         color: var(--accent);
         letter-spacing: 0.05em;
-        border-right: 1px solid var(--border);
-        padding-right: 10px;
+        line-height: 1.3;
+        display: inline-block;
+        width: max-content;
+        max-width: calc(100% - 28px);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        white-space: nowrap;
         margin: 0;
     }
     .detail-box-content {
         text-align: left;
         font-size: 0.9rem;
-        line-height: 1.4;
+        font-weight: 400;
+        line-height: 1.5;
         color: var(--text);
+        width: 100%;
     }
 
     .floating-contact-container {
@@ -890,6 +901,7 @@
         transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
         text-decoration: none;
         position: relative;
+        border: none;
     }
 
     .floating-contact-btn:hover {
@@ -907,6 +919,10 @@
 
     .floating-contact-btn.email-btn {
         background: #1a73e8;
+    }
+
+    .floating-contact-btn.share-btn {
+        background: var(--accent, #e07a5f);
     }
 
     @media (max-width: 600px) {
@@ -1493,10 +1509,10 @@
                 <!-- Date, Days, Time, Location -->
                 ${(formattedDate || formattedDays || event.times || event.venue) ? `
                 <div class="ec-below-title" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border);">
-                    ${formattedDate ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">📅 Date:</span> <span style="font-weight: 500; color: var(--text-secondary);">${formattedDate}</span></div>` : ''}
-                    ${formattedDays ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">🗓️ Days:</span> <span style="font-weight: 500; color: var(--text-secondary);">${formattedDays}</span></div>` : ''}
-                    ${event.times ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">🕒 Time:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.times}</span></div>` : ''}
-                    ${event.venue ? `<div style="font-size: 0.88rem; line-height: 1.3; text-align: left;"><span style="font-weight: 700;">📍 Location:</span> <span style="font-weight: 500; color: var(--text-secondary);">${event.venue}</span></div>` : ''}
+                    ${formattedDate ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">📅 Date:</span> <span style="font-weight: 700; color: var(--text);">${formattedDate}</span></div>` : ''}
+                    ${formattedDays ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">🗓️ Days:</span> <span style="font-weight: 700; color: var(--text);">${formattedDays}</span></div>` : ''}
+                    ${event.times ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">🕒 Time:</span> <span style="font-weight: 700; color: var(--text);">${event.times}</span></div>` : ''}
+                    ${event.venue ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">📍 Location:</span> <span style="font-weight: 700; color: var(--text);">${event.venue}</span></div>` : ''}
                 </div>` : ''}
             </div>`;
         }
@@ -1522,16 +1538,7 @@
                     ` : `
                         <img id="main-display-image" class="main-display-img" src="${firstUrl}" alt="${event.title || 'Event Image'}" onclick="openLightbox(0)">
                     `}
-                    </div>
-                    <button type="button" onclick="shareEvent()" title="Share Event" aria-label="Share Event" style="position: absolute; top: 12px; right: 12px; z-index: 5; background: rgba(0, 0, 0, 0.55); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.3);">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <circle cx="18" cy="5" r="3"></circle>
-                            <circle cx="6" cy="12" r="3"></circle>
-                            <circle cx="18" cy="19" r="3"></circle>
-                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                        </svg>
-                    </button>`;
+                    </div>`;
 
             if (eventImages.length > 1) {
                 html += `<button type="button" class="media-nav-btn media-nav-prev" onclick="changeImage(-1, event)" aria-label="Previous Image">‹</button>
@@ -1568,8 +1575,11 @@
             html += `</div>`;
         }
 
-        // 3. Below media and above description:
-        // Four beautiful same-color boxes for Contribution, External Links, Contact, Key Info
+        const rawDesc = event.description || 
+                        (event.originalHeaders ? (event.originalHeaders.description || event.originalHeaders.details || event.originalHeaders.about || event.originalHeaders['event description'] || event.originalHeaders['description / details'] || '') : '');
+        const descText = String(rawDesc).trim();
+
+        // 3. Below media: detail boxes for Contribution, Key Info, Contact, External Links, Description
         html += `<div class="details-boxes-grid">`;
 
         // Box 1: Contribution
@@ -1606,7 +1616,7 @@
                 const waDisplay = cleanWa ? (cleanWa.startsWith('+') ? cleanWa : '+' + cleanWa) : event.whatsapp;
                 const waNumber = cleanWa.replace(/[^0-9]/g, '');
                 const waHref = "https://wa.me/" + waNumber;
-                contactHtml += `<div style="font-size: 0.85rem;"><a href="${waHref}" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">💬 ${waDisplay}</a></div>`;
+                contactHtml += `<div style="font-size: 0.88rem;"><a href="${waHref}" target="_blank" style="color: var(--accent); text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; word-break: break-all;">💬 ${waDisplay}</a></div>`;
             }
             if (hasValidContact) {
                 const phoneVal = String(event.contact || event.phone).trim();
@@ -1614,11 +1624,11 @@
                 const cleanWa = hasValidWhatsapp ? String(event.whatsapp).replace(/[^0-9]/g, '') : '';
                 if (cleanPhone !== cleanWa) {
                     const telVal = phoneVal.replace(/[^0-9+]/g, '');
-                    contactHtml += `<div style="font-size: 0.85rem;"><a href="tel:${telVal}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">📞 ${phoneVal}</a></div>`;
+                    contactHtml += `<div style="font-size: 0.88rem;"><a href="tel:${telVal}" style="color: var(--accent); text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; word-break: break-all;">📞 ${phoneVal}</a></div>`;
                 }
             }
             if (hasValidEmail) {
-                contactHtml += `<div style="font-size: 0.85rem; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--accent); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${event.email.trim()}">✉️ ${event.email.trim()}</a></div>`;
+                contactHtml += `<div style="font-size: 0.88rem; word-break: break-all;"><a href="mailto:${event.email.trim()}" style="color: var(--accent); text-decoration: underline; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${event.email.trim()}">✉️ ${event.email.trim()}</a></div>`;
             }
             contactHtml += `</div>`;
         }
@@ -1675,24 +1685,33 @@
             </div>`;
         }
 
-        html += `</div>`; // End of .details-boxes-grid
-
-        // 4. Description at the bottom (wrapped in a clean, elegant card matching the other detail boxes)
-        const rawDesc = event.description || 
-                        (event.originalHeaders ? (event.originalHeaders.description || event.originalHeaders.details || event.originalHeaders.about || event.originalHeaders['event description'] || event.originalHeaders['description / details'] || '') : '');
-        const descText = String(rawDesc).trim();
         if (descText) {
             html += `
-            <div class="description-card" style="margin: 16px; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--user-msg-bg); box-sizing: border-box; text-align: left !important; display: block; width: calc(100% - 32px);">
-                <div style="font-weight: 700; font-size: 0.82rem; text-transform: uppercase; color: var(--accent); letter-spacing: 0.05em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-align: left !important;">Description</div>
-                <div style="white-space: pre-wrap; font-size: 0.95rem; line-height: 1.6; color: var(--text); text-align: left !important; word-break: break-word; overflow-wrap: break-word;">${descText}</div>
+            <div class="detail-box">
+                <div class="detail-box-title">Description</div>
+                <div class="detail-box-content" style="white-space: pre-wrap; word-break: break-word;">${descText}</div>
             </div>`;
         }
 
-        // Floating Action Buttons (email/whatsapp buttons)
+        html += `</div>`; // End of .details-boxes-grid
+
+        // Floating Action Buttons (share / email / whatsapp buttons)
         const floatingContainer = document.getElementById("floating-contact-container");
         if (floatingContainer) {
             let floatingHtml = '';
+            
+            // Share floating button aligned with contact action buttons
+            floatingHtml += `
+            <button type="button" onclick="shareEvent()" class="floating-contact-btn share-btn" aria-label="Share Event" title="Share Event">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                </svg>
+            </button>`;
+
             if (hasValidEmail || hasValidWhatsapp) {
                 const eventTitle = event.title || 'Event';
                 const dateOrDay = formattedDate || formattedDays || '';
@@ -1717,7 +1736,7 @@
                         waHref = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent(draftMessage);
                     }
                     floatingHtml += `
-                    <a href="${waHref}" target="_blank" class="floating-contact-btn whatsapp-btn" aria-label="WhatsApp Organizer">
+                    <a href="${waHref}" target="_blank" class="floating-contact-btn whatsapp-btn" aria-label="WhatsApp Organizer" title="WhatsApp Organizer">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                         </svg>
@@ -1727,7 +1746,7 @@
                 if (hasValidEmail) {
                     const mailHref = "mailto:" + event.email.trim() + "?subject=" + encodeURIComponent("Inquiry regarding: " + eventTitle) + "&body=" + encodeURIComponent(draftMessage);
                     floatingHtml += `
-                    <a href="${mailHref}" target="_blank" class="floating-contact-btn email-btn" aria-label="Email Organizer">
+                    <a href="${mailHref}" target="_blank" class="floating-contact-btn email-btn" aria-label="Email Organizer" title="Email Organizer">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                             <polyline points="22,6 12,13 2,6"></polyline>

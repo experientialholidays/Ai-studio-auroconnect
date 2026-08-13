@@ -13,8 +13,9 @@ service cloud.firestore {
     // Checks if their email matches the core admin email OR exists in the 'admins' collection
     function isAdmin() {
       return isAuthenticated() && (
-        request.auth.token.email == "info.experientialholidays@gmail.com" ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email))
+        request.auth.token.email.lower() == "info.experientialholidays@gmail.com" ||
+        request.auth.token.email.lower() == "info.auroconnect@gmail.com" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
       );
     }
 
@@ -37,12 +38,12 @@ service cloud.firestore {
 
       // Logged-in users can submit an event, but they must sign it with their own email address
       allow create: if isAuthenticated() && 
-                    request.resource.data.submittedBy == request.auth.token.email;
+                    request.resource.data.submittedBy.lower() == request.auth.token.email.lower();
 
       // Only the original submitter or an administrator can delete an event
       allow delete: if isAuthenticated() && (
         isAdmin() || 
-        resource.data.submittedBy == request.auth.token.email
+        resource.data.submittedBy.lower() == request.auth.token.email.lower()
       );
 
       // Creator or Admin can update anything.
@@ -51,7 +52,7 @@ service cloud.firestore {
         (
           isAuthenticated() && (
             isAdmin() || 
-            resource.data.submittedBy == request.auth.token.email
+            resource.data.submittedBy.lower() == request.auth.token.email.lower()
           )
         ) 
         || 
