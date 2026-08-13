@@ -629,6 +629,47 @@
         font-size: 1rem !important;
         cursor: pointer;
       }
+
+      /* Custom scrollable placeholder styles */
+      .input-scroll-wrapper {
+        position: relative;
+        width: 100%;
+        display: block;
+      }
+      
+      .scrollable-placeholder-overlay {
+        position: absolute;
+        left: 0.65rem;
+        right: 0.65rem;
+        top: 2px;
+        bottom: 2px;
+        display: flex;
+        align-items: center;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: transparent;
+        color: var(--text-secondary);
+        opacity: 0.55;
+        font-size: 0.9rem;
+        pointer-events: auto;
+        user-select: none;
+        cursor: text;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      .scrollable-placeholder-overlay::-webkit-scrollbar {
+        display: none !important;
+      }
+      
+      .scrollable-placeholder-overlay {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      
+      .input-scroll-wrapper input:focus + .scrollable-placeholder-overlay,
+      .input-scroll-wrapper input:not(:placeholder-shown) + .scrollable-placeholder-overlay {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -895,22 +936,28 @@
             "
             >Type of Event *</label
           >
-          <input
-            type="text"
-            id="ev-type"
-            required
-            placeholder="e.g. Workshop, Class"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              box-sizing: border-box;
-              height: 38px;
-            "
-          />
+          <div class="input-scroll-wrapper">
+            <input
+              type="text"
+              id="ev-type"
+              required
+              placeholder=" "
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                padding-right: 1.125rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+                height: 38px;
+              "
+            />
+            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-type').focus()">
+              Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc
+            </div>
+          </div>
         </div>
 
         <!-- Timing Details (Full Width Container) -->
@@ -1209,21 +1256,27 @@
             "
             >Key Info</label
           >
-          <textarea
-            id="ev-audience"
-            placeholder="e.g. Adults, Kids, registration required, open to all"
-            rows="1"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              resize: vertical;
-              min-height: 38px;
-            "
-          ></textarea>
+          <div class="input-scroll-wrapper">
+            <input
+              type="text"
+              id="ev-audience"
+              placeholder=" "
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                padding-right: 1.125rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+                height: 38px;
+              "
+            />
+            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-audience').focus()">
+              Open To All, Registration, Drop In, Beginner, Target Audience, Prerequisites etc
+            </div>
+          </div>
         </div>
 
         <!-- Contact Person -->
@@ -4258,11 +4311,11 @@
           }
       };
 
-      // Auto-expand textareas for Title, Cost, Target Audience, Venue, Description
-      const expandableIds = ["ev-title", "ev-cost", "ev-audience", "ev-venue", "ev-desc"];
+      // Auto-expand textareas for Title, Cost, Venue, Description
+      const expandableIds = ["ev-title", "ev-cost", "ev-venue", "ev-desc"];
       expandableIds.forEach(id => {
         const el = document.getElementById(id);
-        if (el) {
+        if (el && el.nodeName === "TEXTAREA") {
           const autoExpand = () => {
             el.style.height = "auto";
             el.style.height = el.scrollHeight + "px";
