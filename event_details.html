@@ -1383,30 +1383,65 @@
 
     function formatDateToHuman(dateVal) {
         if (!dateVal) return '';
-        const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         
         function formatSingle(str) {
             if (!str) return '';
-            const s = String(str).trim();
+            let s = String(str).trim();
+            
+            // ISO YYYY-MM-DD
             let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
             if (m) {
                 const y = parseInt(m[1]);
                 const mo = parseInt(m[2]) - 1;
                 const d = parseInt(m[3]);
-                if (mo >= 0 && mo < 12) return `${d} ${months[mo]} ${y}`;
+                if (mo >= 0 && mo < 12) return `${d} ${months[mo]}'${String(y).slice(-2)}`;
             }
+            
+            // DD-MM-YYYY
             m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
             if (m) {
                 const d = parseInt(m[1]);
                 const mo = parseInt(m[2]) - 1;
                 const y = parseInt(m[3]);
-                if (mo >= 0 && mo < 12) return `${d} ${months[mo]} ${y}`;
+                if (mo >= 0 && mo < 12) return `${d} ${months[mo]}'${String(y).slice(-2)}`;
             }
-            const parsed = new Date(s);
-            if (!isNaN(parsed.getTime()) && s.length >= 8 && /\d/.test(s)) {
-                return `${parsed.getDate()} ${months[parsed.getMonth()]} ${parsed.getFullYear()}`;
+
+            // Find year
+            let year = "";
+            let yearMatch = s.match(/\b(20\d{2})\b/);
+            if (yearMatch) {
+                year = yearMatch[1];
+                s = s.replace(year, "").trim();
             }
-            return s;
+
+            // Find month
+            let monthStr = "";
+            for (let i = 0; i < 12; i++) {
+                const fullReg = new RegExp(`\\b${monthsFull[i]}\\b`, "i");
+                const shortReg = new RegExp(`\\b${months[i]}\\b`, "i");
+                if (fullReg.test(s) || shortReg.test(s)) {
+                    monthStr = months[i];
+                    s = s.replace(fullReg, "").replace(shortReg, "").trim();
+                    break;
+                }
+            }
+
+            // Find day
+            let dayMatch = s.match(/\b(\d{1,2})\b/);
+            let day = dayMatch ? dayMatch[1] : "";
+
+            if (monthStr && day && year) {
+                return `${parseInt(day, 10)} ${monthStr}'${year.slice(-2)}`;
+            }
+
+            // Fallback
+            const parsed = new Date(str);
+            if (!isNaN(parsed.getTime()) && str.length >= 8 && /\d/.test(str)) {
+                return `${parsed.getDate()} ${months[parsed.getMonth()]}'${String(parsed.getFullYear()).slice(-2)}`;
+            }
+            return str;
         }
 
         if (typeof dateVal === 'string' && dateVal.includes(' to ')) {

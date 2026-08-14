@@ -335,6 +335,79 @@ function formatDailyDaysDisplay(daysVal) {
   return activeArr.length > 0 ? activeArr.join(", ") : "Daily";
 }
 
+function formatToShortDate(dateStr) {
+  if (!dateStr) return "";
+  const monthsFull = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const monthsShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  
+  function formatSingleSegment(segment) {
+    let s = segment.trim();
+    
+    // ISO YYYY-MM-DD
+    let mIso = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+    if (mIso) {
+      const year = parseInt(mIso[1], 10);
+      const monthIndex = parseInt(mIso[2], 10) - 1;
+      const day = parseInt(mIso[3], 10);
+      const monthStr = monthsShort[monthIndex] || "";
+      const yearShort = String(year).slice(-2);
+      return `${day} ${monthStr}'${yearShort}`;
+    }
+
+    // DD-MM-YYYY
+    let mIso2 = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    if (mIso2) {
+      const day = parseInt(mIso2[1], 10);
+      const monthIndex = parseInt(mIso2[2], 10) - 1;
+      const year = parseInt(mIso2[3], 10);
+      const monthStr = monthsShort[monthIndex] || "";
+      const yearShort = String(year).slice(-2);
+      return `${day} ${monthStr}'${yearShort}`;
+    }
+
+    // Try finding the year
+    let year = "";
+    let yearMatch = s.match(/\b(20\d{2})\b/);
+    if (yearMatch) {
+      year = yearMatch[1];
+      s = s.replace(year, "").trim();
+    }
+
+    // Find the month name
+    let monthStr = "";
+    for (let i = 0; i < 12; i++) {
+      const fullReg = new RegExp(`\\b${monthsFull[i]}\\b`, "i");
+      const shortReg = new RegExp(`\\b${monthsShort[i]}\\b`, "i");
+      if (fullReg.test(s) || shortReg.test(s)) {
+        monthStr = monthsShort[i];
+        s = s.replace(fullReg, "").replace(shortReg, "").trim();
+        break;
+      }
+    }
+
+    // Find the day (the remaining digits)
+    let dayMatch = s.match(/\b(\d{1,2})\b/);
+    let day = dayMatch ? dayMatch[1] : "";
+
+    if (monthStr && day && year) {
+      return `${parseInt(day, 10)} ${monthStr}'${year.slice(-2)}`;
+    }
+
+    // Fallback to standard JS Date parsing
+    const d = new Date(segment.trim());
+    if (!isNaN(d.getTime()) && segment.length >= 8 && /\d/.test(segment)) {
+      return `${d.getDate()} ${monthsShort[d.getMonth()]}'${String(d.getFullYear()).slice(-2)}`;
+    }
+
+    return segment;
+  }
+
+  if (dateStr.includes(" to ")) {
+    return dateStr.split(" to ").map(formatSingleSegment).join(" to ");
+  }
+  return formatSingleSegment(dateStr);
+}
+
 function formatDatesDisplay(data, categoryType) {
   if (categoryType === "weekly") {
     const daysVal = data.days || (data.originalHeaders && data.originalHeaders.days) || "";
@@ -401,6 +474,8 @@ function formatDatesDisplay(data, categoryType) {
     } else {
       datesDisplay = readableStart;
     }
+  } else if (data.dates) {
+    datesDisplay = formatToShortDate(data.dates);
   } else if (parsedDates.length > 0) {
     const allWeekdays = parsedDates.every((d) => isWeekdayStr(d));
     if (!allWeekdays) {
@@ -410,7 +485,7 @@ function formatDatesDisplay(data, categoryType) {
     }
   }
 
-  return shortenWeekdays(datesDisplay);
+  return formatToShortDate(shortenWeekdays(datesDisplay));
 }
 function isEventEnded(event, currentTime24) {
   const { start, end } = getEventStartAndEndTimes(event);
@@ -589,7 +664,7 @@ function compareStartTime(a, b) {
   const minsB = getMinutesFromTimeString(timeB);
   return minsA - minsB;
 }
-function formatCategorizedEvents(rawEvents, introText) {
+function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
     return "No upcoming events match the requested criteria.";
   }
@@ -629,14 +704,22 @@ function formatCategorizedEvents(rawEvents, introText) {
     });
   }
   if (daily.length > 0) {
-    resultChunks.push("\n---");
-    resultChunks.push("\u{1F4A1} **There are Daily Events Happening, would you like to see?**");
-    resultChunks.push(`
+    if (showDailyPrompt) {
+      resultChunks.push("\n---");
+      resultChunks.push("\u{1F4A1} **There are Daily Events Happening, would you like to see?**");
+      resultChunks.push(`
 <div style="margin-top: 12px; display: flex; gap: 8px;">
   <a href="#SHOWDAILY" style="display: inline-block; padding: 8px 18px; background-color: var(--accent); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.85rem; border: 1px solid var(--accent); cursor: pointer; text-align: center;">Yes, show daily events</a>
   <a href="#NODAILY" style="display: inline-block; padding: 8px 18px; background-color: transparent; color: var(--text-secondary); border-radius: 6px; text-decoration: none; font-weight: 500; font-size: 0.85rem; border: 1px solid var(--border); cursor: pointer; text-align: center;">No, thanks</a>
 </div>
 `);
+    } else {
+      resultChunks.push("\n### Daily Events");
+      daily.forEach((ev) => {
+        resultChunks.push(formatEvent(ev));
+        resultChunks.push("");
+      });
+    }
   }
   if (dateSpecific.length === 0 && weekly.length === 0 && daily.length === 0) {
     return "No upcoming events match the requested criteria.";
@@ -1056,7 +1139,7 @@ Do not include any conversational fluff, Markdown formatting outside JSON, or te
         if (matchedEvents.length === 0) {
           botReply = "No matching events found.";
         } else {
-          botReply = formatCategorizedEvents(matchedEvents, customIntro);
+          botReply = formatCategorizedEvents(matchedEvents, customIntro, false);
         }
       }
 
@@ -1343,7 +1426,7 @@ async function createServer() {
              res.write(`data: ${JSON.stringify({ status: "Extracting top matches" })}\n\n`);
              const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, tz);
              
-             if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+             if (typeof rawEvents !== "string" || !rawEvents.trim() || rawEvents.includes("I couldn't find any upcoming events")) {
                  res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
                  res.write(`data: ${JSON.stringify({ chunk: "No matching events found." })}\n\n`);
              } else {
