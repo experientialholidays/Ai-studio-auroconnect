@@ -178,11 +178,11 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       return sendError(400, "No valid events with a Title or Name found in the sheet.");
     }
 
-    // Process all events in streamed batches of 10
+    // Process all events in streamed batches of 5 with pacing delay
     const totalEvents = eventsToUpload.length;
-    const batchSize = 10;
+    const batchSize = 5;
     
-    console.log(`Starting streamed processing of ${totalEvents} events in batches of ${batchSize}...`);
+    console.log(`Starting paced streamed processing of ${totalEvents} events in batches of ${batchSize}...`);
     
     for (let i = 0; i < totalEvents; i += batchSize) {
       const batch = eventsToUpload.slice(i, i + batchSize);
@@ -196,7 +196,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         `Downloading posters and generating embeddings for batch ${batchNum}`
       );
       
-      // 1. Process Google Drive poster URLs for this batch of 10
+      // 1. Process Google Drive poster URLs for this batch of 5
       const driveEvents = batch.filter(event => 
         event.posterUrl && (event.posterUrl.includes("drive.google.com") || event.posterUrl.includes("docs.google.com"))
       );
@@ -215,7 +215,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }));
       }
       
-      // 2. Generate search embeddings for this batch of 10
+      // 2. Generate search embeddings for this batch of 5
       try {
         const batchPromises = batch.map(event => {
           const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
@@ -256,14 +256,14 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
       }
       
-      // 3. Stream this batch of 10 immediately to the client
+      // 3. Stream this batch of 5 immediately to the client
       res.write(JSON.stringify({ 
         type: "chunks", 
         events: batch 
       }) + "\n");
       
-      // Brief sleep to avoid rapid API rate limit hits
-      await new Promise(r => setTimeout(r, 200));
+      // Sleep for 2 seconds before processing the next batch of 5
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches streamed and saved successfully.");
