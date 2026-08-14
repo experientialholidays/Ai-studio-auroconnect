@@ -174,58 +174,48 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       eventsToUpload.push(processed);
     }
 
-    // Process Google Drive poster URLs if present and convert to binary buffer proxy format
-    sendProgress(36, "Checking and fetching Google Drive posters...", "Scanning events for Drive poster links");
-    const driveEvents = eventsToUpload.filter(event => 
-      event.posterUrl && (event.posterUrl.includes("drive.google.com") || event.posterUrl.includes("docs.google.com"))
-    );
-
-    if (driveEvents.length > 0) {
-      console.log(`Found ${driveEvents.length} events with Google Drive poster URLs. Fetching files...`);
-      const chunkArray = <T>(array: T[], size: number): T[][] => {
-        const chunks = [];
-        for (let idx = 0; idx < array.length; idx += size) {
-          chunks.push(array.slice(idx, idx + size));
-        }
-        return chunks;
-      };
-      
-      const driveBatches = chunkArray(driveEvents, 5);
-      for (let idx = 0; idx < driveBatches.length; idx++) {
-        const batch = driveBatches[idx];
-        const percent = Math.min(39, 36 + Math.round((idx / driveBatches.length) * 3));
-        sendProgress(
-          percent, 
-          `Downloading Drive posters (batch ${idx + 1} of ${driveBatches.length})...`, 
-          `Downloading posters for: ${batch.map(e => `"${e.title}"`).join(", ")}`
-        );
-        
-        await Promise.all(batch.map(async (event) => {
-          const driveResult = await fetchDriveFileAsBase64(event.posterUrl);
-          if (driveResult) {
-            event.base64Poster = driveResult;
-          }
-        }));
-      }
-    }
-
     if (eventsToUpload.length === 0) {
       return sendError(400, "No valid events with a Title or Name found in the sheet.");
     }
 
-    // Generate search embeddings for the events in batches to support semantic vector search
-    sendProgress(40, "Generating search embeddings for events...", `Generating embeddings for ${eventsToUpload.length} events`);
+    // Process all events in streamed batches of 10
+    const totalEvents = eventsToUpload.length;
+    const batchSize = 10;
     
-    const batchSize = 10; // Batch size for embeddings
-    for (let i = 0; i < eventsToUpload.length; i += batchSize) {
+    console.log(`Starting streamed processing of ${totalEvents} events in batches of ${batchSize}...`);
+    
+    for (let i = 0; i < totalEvents; i += batchSize) {
       const batch = eventsToUpload.slice(i, i + batchSize);
-      const embedPercent = Math.min(48, 40 + Math.round((i / eventsToUpload.length) * 8));
+      const batchNum = Math.floor(i / batchSize) + 1;
+      const totalBatches = Math.ceil(totalEvents / batchSize);
+      const percent = Math.min(95, 36 + Math.round((i / totalEvents) * 59));
+      
       sendProgress(
-        embedPercent,
-        `Generating search embeddings (events ${i + 1}-${Math.min(eventsToUpload.length, i + batchSize)} of ${eventsToUpload.length})...`,
-        `Requesting embeddings for batch of ${batch.length} events`
+        percent, 
+        `Processing batch ${batchNum} of ${totalBatches} (${Math.min(totalEvents, i + batchSize)} of ${totalEvents} events)...`, 
+        `Downloading posters and generating embeddings for batch ${batchNum}`
       );
       
+      // 1. Process Google Drive poster URLs for this batch of 10
+      const driveEvents = batch.filter(event => 
+        event.posterUrl && (event.posterUrl.includes("drive.google.com") || event.posterUrl.includes("docs.google.com"))
+      );
+      
+      if (driveEvents.length > 0) {
+        console.log(`[Batch ${batchNum}] Found ${driveEvents.length} events with Google Drive poster URLs. Fetching files...`);
+        await Promise.all(driveEvents.map(async (event) => {
+          try {
+            const driveResult = await fetchDriveFileAsBase64(event.posterUrl);
+            if (driveResult) {
+              event.base64Poster = driveResult;
+            }
+          } catch (driveErr: any) {
+            console.error(`Failed downloading drive poster in batch for ${event.title}:`, driveErr.message || driveErr);
+          }
+        }));
+      }
+      
+      // 2. Generate search embeddings for this batch of 10
       try {
         const batchPromises = batch.map(event => {
           const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
@@ -237,7 +227,6 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         });
         
         const results = await Promise.all(batchPromises);
-        await new Promise(r => setTimeout(r, 500)); // Brief sleep to avoid rapid rate limit hits
         
         for (let j = 0; j < batch.length; j++) {
           const vector = results[j]?.embeddings?.[0]?.values;
@@ -246,12 +235,11 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
           }
         }
       } catch (err: any) {
-        console.warn(`Batch event embedding failed, trying individual fallback for batch starting at index ${i}:`, err);
+        console.warn(`Batch event embedding failed for batch starting at index ${i}, trying individual fallback:`, err.message || err);
         // Fallback: individual embedding
         for (let j = 0; j < batch.length; j++) {
           const event = batch[j];
           try {
-            await new Promise(r => setTimeout(r, 100)); // Sleep 100ms
             const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
             const embedRes = await ai.models.embedContent({
               model: "gemini-embedding-2-preview",
@@ -263,19 +251,22 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
               event.embeddingVector = vector;
             }
           } catch (indivErr: any) {
-            console.error(`Individual event embedding failed for event ${i + j}:`, indivErr);
+            console.error(`Individual event embedding failed for event ${i + j}:`, indivErr.message || indivErr);
           }
         }
       }
+      
+      // 3. Stream this batch of 10 immediately to the client
+      res.write(JSON.stringify({ 
+        type: "chunks", 
+        events: batch 
+      }) + "\n");
+      
+      // Brief sleep to avoid rapid API rate limit hits
+      await new Promise(r => setTimeout(r, 200));
     }
 
-    sendProgress(50, `Ready to save ${eventsToUpload.length} events...`, "Sending events to browser for client-side insertion");
-    
-    res.write(JSON.stringify({ 
-      type: "chunks", 
-      events: eventsToUpload 
-    }) + "\n");
-    res.end();
+    sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches streamed and saved successfully.");
 
   } catch (e: any) {
     console.error("upload_events error:", e);

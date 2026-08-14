@@ -1639,22 +1639,53 @@ ${searchQuery || lastMessage}`;
     }
   });
 
-  // Load Savitri lines directly from Firestore database
+  // Load Savitri lines directly from Firestore database using REST API
   let savitriLines: any[] = [];
   const loadSavitriLinesFromFirestore = async () => {
     try {
-      console.log("Loading Savitri lines dataset directly from Firestore database...");
-      const metaSnap = await getDoc(doc(db, "presets", "savitri_meta"));
+      console.log("Loading Savitri lines dataset directly from Firestore database using REST API...");
+      const metaRes = await fetch("https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_meta");
+      if (!metaRes.ok) {
+        throw new Error(`Failed to fetch Savitri meta: ${metaRes.statusText}`);
+      }
+      const metaData: any = await metaRes.json();
       let totalChunks = 0;
-      if (metaSnap.exists() && metaSnap.data()?.totalChunks) {
-        totalChunks = metaSnap.data().totalChunks;
+      if (metaData?.fields?.totalChunks?.integerValue) {
+        totalChunks = parseInt(metaData.fields.totalChunks.integerValue, 10);
       }
 
       const allLines: any[] = [];
-      for (let i = 0; i < totalChunks; i++) {
-        const chunkSnap = await getDoc(doc(db, "presets", `savitri_chunk_${i}`));
-        if (chunkSnap.exists() && Array.isArray(chunkSnap.data()?.lines)) {
-          allLines.push(...chunkSnap.data().lines);
+      const fetchChunk = async (i: number) => {
+        const chunkRes = await fetch(`https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_chunk_${i}`);
+        if (!chunkRes.ok) {
+          throw new Error(`Failed to fetch Savitri chunk ${i}: ${chunkRes.statusText}`);
+        }
+        const chunkData: any = await chunkRes.json();
+        const rawLines = chunkData?.fields?.lines?.arrayValue?.values || [];
+        const parsedLines = rawLines.map((val: any) => {
+          const fields = val?.mapValue?.fields || {};
+          return {
+            bookTitle: fields.bookTitle?.stringValue || "",
+            text: fields.text?.stringValue || "",
+            book: fields.book?.stringValue || "",
+            canto: fields.canto?.stringValue || "",
+            cantoTitle: fields.cantoTitle?.stringValue || "",
+            lineIndex: fields.lineIndex?.integerValue ? parseInt(fields.lineIndex.integerValue, 10) : 0
+          };
+        });
+        return parsedLines;
+      };
+
+      // Fetch chunks in parallel batches of 10 to speed up and prevent connection exhaustion
+      const batchSize = 10;
+      for (let i = 0; i < totalChunks; i += batchSize) {
+        const batchPromises = [];
+        for (let j = 0; j < batchSize && (i + j) < totalChunks; j++) {
+          batchPromises.push(fetchChunk(i + j));
+        }
+        const results = await Promise.all(batchPromises);
+        for (const res of results) {
+          allLines.push(...res);
         }
       }
 
@@ -1662,8 +1693,8 @@ ${searchQuery || lastMessage}`;
         savitriLines = allLines;
         console.log(`Successfully loaded ${savitriLines.length} Savitri lines directly from Firestore database.`);
       }
-    } catch (e) {
-      console.error("Error loading Savitri lines from Firestore:", e);
+    } catch (e: any) {
+      console.error("Error loading Savitri lines from Firestore (REST API):", e.message || e);
     }
   };
   loadSavitriLinesFromFirestore();

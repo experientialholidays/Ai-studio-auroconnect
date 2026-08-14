@@ -4618,6 +4618,7 @@
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
         let buffer = "";
+        let totalImportedCount = 0;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -4644,7 +4645,6 @@
               } else if (data.type === "chunks") {
                 const events = data.events || [];
                 const batchSize = 100;
-                let count = 0;
                 
                 if (progressLabel) progressLabel.textContent = `Saving ${events.length} events to database...`;
                 if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--text-secondary);">Saving ${events.length} events to database...</span>`;
@@ -4662,27 +4662,20 @@
                     batch.set(newDocRef, ev);
                   }
                   
-                  const pct = Math.min(99, 50 + Math.round((i / events.length) * 45));
-                  if (progressBar) progressBar.style.width = pct + "%";
-                  if (progressPct) progressPct.textContent = pct + "%";
                   if (progressLog) {
                     progressLog.textContent += `[${new Date().toLocaleTimeString()}] Committing batch of ${chunk.length} events to Firestore...\n`;
                     progressLog.scrollTop = progressLog.scrollHeight;
                   }
                   
                   await batch.commit();
-                  count += chunk.length;
+                  totalImportedCount += chunk.length;
                 }
                 
-                if (progressBar) progressBar.style.width = "100%";
-                if (progressPct) progressPct.textContent = "100%";
-                if (progressLabel) progressLabel.textContent = "Completed!";
-                if (statusDiv) statusDiv.innerHTML = `✅ <span style="color:var(--text);">Successfully imported ${count} events!</span>`;
+                if (statusDiv) statusDiv.innerHTML = `⚡ <span style="color:var(--text-secondary);">Saved ${totalImportedCount} events so far...</span>`;
                 if (progressLog) {
-                  progressLog.textContent += `[SUCCESS] Successfully imported ${count} events!\n`;
+                  progressLog.textContent += `[INFO] Successfully processed batch of ${events.length} events (Total: ${totalImportedCount})\n`;
                   progressLog.scrollTop = progressLog.scrollHeight;
                 }
-                if (onSuccess) onSuccess();
                 
               } else if (data.type === "knowledge_chunks") {
                 const chunks = data.chunks || [];
