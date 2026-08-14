@@ -80,11 +80,37 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
     };
 
     const formatExcelDate = (val: any) => {
-      if (typeof val === 'number' && val > 40000) {
-        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+      const num = Number(val);
+      if (!isNaN(num) && num > 40000 && num < 60000) {
+        const d = new Date(Math.round((num - 25569) * 86400 * 1000));
         return d.toISOString().split('T')[0];
       }
       return String(val || "").trim();
+    };
+
+    const formatExcelDatesField = (val: any): string => {
+      if (val === undefined || val === null) return "";
+      
+      const formatSingle = (v: any) => {
+        const num = Number(v);
+        if (!isNaN(num) && num > 40000 && num < 60000) {
+          const d = new Date(Math.round((num - 25569) * 86400 * 1000));
+          return d.toISOString().split('T')[0];
+        }
+        return String(v).trim();
+      };
+
+      const str = String(val).trim();
+      if (str.includes(" to ")) {
+        return str.split(" to ").map(formatSingle).join(" to ");
+      }
+      if (str.includes("-") && !str.includes("/") && str.split("-").length === 2) {
+        const parts = str.split("-");
+        if (parts.every(p => !isNaN(Number(p.trim())) && Number(p.trim()) > 40000)) {
+          return parts.map(formatSingle).join(" to ");
+        }
+      }
+      return formatSingle(val);
     };
 
     for (const rawEv of rawEvents) {
@@ -123,7 +149,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       };
       
       let cat = getVal(["Category"]);
-      const datesField = getVal(["Dates", "Date"]);
+      const datesField = formatExcelDatesField(getRawVal(["Dates", "Date"]));
       const startDateField = formatExcelDate(getRawVal(["Start Date"]));
 
       if (cat.toLowerCase().includes("weekday") || cat.toLowerCase().includes("weekly")) {
@@ -152,7 +178,7 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         title: getVal(["Event Name", "Title", "Name"]),
         type: getVal(["Type of event", "Type"]),
         category: cat || "Weekly Events",
-        dates: getVal(["Dates", "Date"]),
+        dates: formatExcelDatesField(getRawVal(["Dates", "Date"])),
         days: getVal(["Days", "Day"]),
         times: timesStr,
         venue: getVal(["Venue", "Location"]),
