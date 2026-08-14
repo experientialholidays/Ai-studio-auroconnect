@@ -60,6 +60,10 @@
         font-size: 100%;
       }
 
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         font-family: "Segoe UI", Roboto, sans-serif;
@@ -415,6 +419,7 @@
         }
         #one-time-container,
         #standard-time-container {
+          flex-direction: column !important;
           gap: 0.75rem !important;
         }
         #ev-start-date,

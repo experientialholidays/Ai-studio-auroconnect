@@ -45,33 +45,13 @@ export const MODEL = "gemini-3.1-flash-lite";
 
 import { getAuth } from "firebase-admin/auth";
 
-export function decodeFirebaseToken(token: string): any {
-  try {
-    const parts = token.split(".");
-    if (parts.length === 3) {
-      const payload = JSON.parse(Buffer.from(parts[1], "base64").toString("utf8"));
-      return payload;
-    }
-  } catch (e) {
-    console.error("Failed to decode token:", e);
-  }
-  return null;
-}
-
 export async function verifyAuthToken(token: string): Promise<{ email: string } | null> {
   if (!token) return null;
-  if (token.startsWith("DEV_BYPASS_TOKEN_")) {
-    return { email: token.replace("DEV_BYPASS_TOKEN_", "") };
-  }
   try {
     const decodedToken = await getAuth().verifyIdToken(token);
     return { email: decodedToken.email || "" };
   } catch (e: any) {
-    console.warn("Firebase Admin verification failed, trying manual token decode fallback:", e.message);
-    const decoded = decodeFirebaseToken(token);
-    if (decoded && decoded.email) {
-      return { email: decoded.email };
-    }
+    console.error("Firebase ID Token verification failed:", e.message);
   }
   return null;
 }
