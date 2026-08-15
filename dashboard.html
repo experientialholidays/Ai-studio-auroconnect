@@ -755,7 +755,7 @@
         style="width: 100%; margin-top: 1rem;"
       >
         <!-- Title -->
-        <div class="form-col-8">
+        <div class="form-col-6">
           <label
             style="
               font-size: 0.85rem;
@@ -783,7 +783,7 @@
         </div>
 
         <!-- Type -->
-        <div class="form-col-4">
+        <div class="form-col-3">
           <label
             style="
               font-size: 0.85rem;
@@ -809,6 +809,61 @@
               height: 38px;
             "
           />
+        </div>
+
+        <!-- Category -->
+        <div class="form-col-3" id="category-container">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 0.2rem;
+            "
+          >
+            <span>Event Category</span>
+            <button
+              type="button"
+              onclick="toggleCategoryCriteriaModal(event)"
+              style="
+                background: rgba(59, 130, 246, 0.12);
+                color: var(--accent, #3b82f6);
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: justify-center;
+                padding: 0;
+                line-height: 1;
+              "
+              title="Click to view Category Selection Criteria & Rules"
+            >ⓘ</button>
+          </label>
+          <select
+            id="ev-category"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
+              cursor: pointer;
+            "
+          >
+            <option value="Date-specific Events">Date-specific Events</option>
+            <option value="Weekly Events">Weekly Events</option>
+            <option value="Daily Events">Daily Events</option>
+          </select>
         </div>
 
         <!-- Timing Details (Full Width Container) -->
@@ -1307,9 +1362,9 @@
             style="display: flex; flex-direction: column; gap: 0.5rem"
           >
             <input
-              type="url"
+              type="text"
               class="ev-link"
-              placeholder="https://"
+              placeholder="e.g. google.com or https://google.com"
               style="
                 width: 100%;
                 padding: 0.5rem;
@@ -1542,6 +1597,109 @@
         </div>
       </div>
 
+      <!-- Admin One-by-One Event Repair Approval Modal -->
+      <div id="repair-approval-modal" style="
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
+        z-index: 9999999;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      ">
+        <div style="
+          background: var(--card-bg, #ffffff);
+          color: var(--text, #0f172a);
+          border: 1px solid var(--border, #e2e8f0);
+          border-radius: 16px;
+          max-width: 620px;
+          width: 100%;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          padding: 1.5rem;
+          box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.25);
+          position: relative;
+        ">
+          <button id="repair-modal-close-btn" style="
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: var(--text-secondary, #64748b);
+            cursor: pointer;
+          ">✕</button>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; padding-right: 2rem;">
+            <span id="repair-modal-step-counter" style="
+              background: var(--accent, #3b82f6);
+              color: #ffffff;
+              font-size: 0.75rem;
+              font-weight: 700;
+              padding: 0.2rem 0.6rem;
+              border-radius: 12px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+            ">Event 1 of 1</span>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">Admin Approval Required</span>
+          </div>
+
+          <h3 id="repair-modal-event-title" style="margin: 0 0 0.25rem 0; font-size: 1.25rem; color: var(--text);">Event Title</h3>
+          <p id="repair-modal-event-subtitle" style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--text-secondary);">Venue: ... | Category: ...</p>
+
+          <div style="
+            overflow-y: auto;
+            flex: 1;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            padding: 0.75rem;
+            margin-bottom: 1.25rem;
+          ">
+            <p style="font-size: 0.8rem; font-weight: 600; margin: 0 0 0.5rem 0; color: var(--text-secondary);">PROPOSED CHANGES FOR THIS EVENT:</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border); text-align: left; color: var(--text-secondary);">
+                  <th style="padding: 0.4rem; width: 25%;">Field</th>
+                  <th style="padding: 0.4rem; width: 37.5%;">Current DB Value</th>
+                  <th style="padding: 0.4rem; width: 37.5%;">Proposed Fixed Value</th>
+                </tr>
+              </thead>
+              <tbody id="repair-modal-changes-tbody">
+                <!-- Proposed change rows will be rendered here -->
+              </tbody>
+            </table>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 0.5rem; flex: 1;">
+              <button id="repair-modal-approve-btn" class="btn btn-primary" style="padding: 0.55rem 1rem; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                ✅ Approve & Save
+              </button>
+              <button id="repair-modal-skip-btn" class="btn" style="padding: 0.55rem 1rem; font-size: 0.85rem; border: 1px solid var(--border); background: transparent;">
+                ⏭️ Skip
+              </button>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="repair-modal-approve-all-btn" class="btn" style="padding: 0.55rem 0.85rem; font-size: 0.8rem; background: rgba(59, 130, 246, 0.1); color: var(--accent); border: 1px solid var(--accent);">
+                ⚡ Approve All Remaining
+              </button>
+              <button id="repair-modal-stop-btn" class="btn" style="padding: 0.55rem 0.85rem; font-size: 0.8rem; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); background: transparent;">
+                🛑 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <button
         class="btn"
         id="logout-btn"
@@ -1686,7 +1844,8 @@
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-my-events-all" /></th>
                 <th>Title</th>
                 <th>Category</th>
-                <th>Schedule</th>
+                <th>Date</th>
+                <th>Time</th>
                 <th>Venue</th>
                 <th>Submitted At</th>
                 <th class="embedding-header">Embedding</th>
@@ -1815,7 +1974,8 @@
                 <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-all-events-all" /></th>
                 <th>Title</th>
                 <th>Category</th>
-                <th>Schedule</th>
+                <th>Date</th>
+                <th>Time</th>
                 <th>Venue</th>
                 <th>Source</th>
                 <th>Submitted By</th>
@@ -2191,6 +2351,38 @@
             </div>
           </div>
 
+          <!-- Card 4.5: Event Dates & Times Repair Tool -->
+          <div class="admin-tool-card" id="dates-repair-card">
+            <h3>📅 Repair & Standardize Event Dates & Times</h3>
+            <p>
+              Scans all events in the database to convert text date ranges (e.g., "20 August to 23 August 2026"), clean up undefined start/end times, standardizes day arrays, and updates missing categories.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto;">
+              <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; color: var(--text-secondary); user-select: none;">
+                <input type="checkbox" id="repair-one-by-one-toggle" checked style="accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer;" />
+                Require Admin Approval for each event (One-by-One)
+              </label>
+              <button class="btn btn-primary" id="repair-dates-btn" style="max-width: 100%; margin-top: 0.25rem;">
+                Scan and Repair Event Dates & Times
+              </button>
+              <div id="repair-dates-status" style="align-self: flex-start; margin-top: 0.5rem; font-size: 0.9rem;"></div>
+              
+              <div id="repair-dates-progress-container" style="display: none; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                  <span id="repair-dates-progress-label" style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 180px;">Initializing...</span>
+                  <span id="repair-dates-progress-pct" style="font-weight: 600;">0%</span>
+                </div>
+                <div style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div id="repair-dates-progress-bar" style="width: 0%; height: 100%; background: var(--accent); transition: width 0.2s ease;"></div>
+                </div>
+                <details style="margin-top: 0.35rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.5rem; background: rgba(0,0,0,0.02);">
+                  <summary style="cursor: pointer; color: var(--text-secondary); outline: none; font-size: 0.75rem; font-weight: 500;">Console Log Logbook</summary>
+                  <pre id="repair-dates-progress-log" style="margin: 0.5rem 0 0 0; max-height: 120px; overflow-y: auto; background: var(--bg); padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.75rem; color: var(--text-secondary); white-space: pre-wrap; line-height: 1.35; text-align: left;"></pre>
+                </details>
+              </div>
+            </div>
+          </div>
+
           <!-- Card 5: Dynamic Administrators Management -->
           <div class="admin-tool-card" id="admin-management-card" style="display: flex; flex-direction: column;">
             <h3>👥 Manage Administrators</h3>
@@ -2228,6 +2420,7 @@
       </div>
     </div>
 
+    <script src="/dateTimeParserClient.js"></script>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
       import {
@@ -2332,9 +2525,9 @@
         const inputs = linksContainer.querySelectorAll("input");
         if (inputs.length < 5) {
           const newLink = document.createElement("input");
-          newLink.type = "url";
+          newLink.type = "text";
           newLink.className = "ev-link";
-          newLink.placeholder = "https://";
+          newLink.placeholder = "e.g. google.com or https://google.com";
           newLink.style.cssText =
             "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(newLink);
@@ -2753,6 +2946,153 @@
         return activeArr.length > 0 ? activeArr.join(", ") : "Daily";
       }
 
+      function formatSingleDateNice(str) {
+        if (!str) return "";
+        str = String(str).trim();
+        if (!str) return "";
+
+        if (/^\d{1,2}\s+[A-Za-z]{3}'\d{2}$/.test(str)) return str;
+
+        const ymd = formatDateToYYYYMMDD(str);
+        if (ymd && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+          const parts = ymd.split("-");
+          const y = parts[0].slice(-2);
+          const mIdx = parseInt(parts[1], 10) - 1;
+          const d = parseInt(parts[2], 10);
+          const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          if (mIdx >= 0 && mIdx < 12) {
+            return `${d} ${months[mIdx]}'${y}`;
+          }
+        }
+
+        const mMatch = str.match(/(\d{1,2})\s+([A-Za-z]+)(?:\s*,?\s*|\s+)(\d{4})/);
+        if (mMatch) {
+          const day = parseInt(mMatch[1], 10);
+          const monthRaw = mMatch[2].substring(0, 3);
+          const monthFormatted = monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1).toLowerCase();
+          const yr = mMatch[3].slice(-2);
+          return `${day} ${monthFormatted}'${yr}`;
+        }
+
+        return str;
+      }
+
+      function formatEventDateDisplay(ev) {
+        const category = (ev.category || "").toLowerCase().trim();
+        const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
+        const daysLower = (ev.days || "").toLowerCase().trim();
+
+        const isDaily = category.includes("daily") || scheduleType === "daily" || daysLower.includes("daily") || daysLower.includes("everyday");
+        const isWeekly = (category.includes("weekly") || scheduleType === "weekly" || (!isDaily && (scheduleType === "recurring" || ev.days))) && !category.includes("date") && !ev.startDate && !ev.dates;
+
+        if (isWeekly) {
+          const daysVal = ev.days || "";
+          const shortDays = getShortWeekdaysJS(daysVal);
+          return shortDays || "Weekly";
+        }
+
+        if (isDaily) {
+          const daysVal = ev.days || "";
+          return formatDailyDaysDisplayJS(daysVal);
+        }
+
+        if (ev.startDate) {
+          const sFormatted = formatSingleDateNice(ev.startDate);
+          if (ev.endDate && ev.endDate !== ev.startDate) {
+            const eFormatted = formatSingleDateNice(ev.endDate);
+            return `${sFormatted} to ${eFormatted}`;
+          }
+          return sFormatted;
+        }
+
+        if (ev.dates) {
+          let raw = String(ev.dates).trim();
+          if (raw.includes(" to ")) {
+            const parts = raw.split(" to ");
+            const p1 = formatSingleDateNice(parts[0]);
+            const p2 = formatSingleDateNice(parts[1]);
+            if (p1 && p2) return `${p1} to ${p2}`;
+          } else if (raw.includes(" - ")) {
+            const parts = raw.split(" - ");
+            const p1 = formatSingleDateNice(parts[0]);
+            const p2 = formatSingleDateNice(parts[1]);
+            if (p1 && p2) return `${p1} to ${p2}`;
+          }
+          return formatSingleDateNice(raw);
+        }
+
+        if (ev.days) {
+          const shortDays = getShortWeekdaysJS(ev.days);
+          if (shortDays) return shortDays;
+        }
+
+        return "N/A";
+      }
+
+      function formatSingleTimeNice(timeStr) {
+        if (!timeStr) return "";
+        let clean = String(timeStr).trim();
+        if (!clean) return "";
+
+        const lower = clean.toLowerCase();
+        const isPm = lower.includes("pm");
+        const isAm = lower.includes("am");
+
+        const match = clean.match(/^(\d{1,2})(?::(\d{2}))?/);
+        if (!match) return clean;
+
+        let hours = parseInt(match[1], 10);
+        let minutes = match[2] ? match[2] : "00";
+
+        let period = "AM";
+        if (isPm || isAm) {
+          period = isPm ? "PM" : "AM";
+          if (hours > 12) hours -= 12;
+          if (hours === 0) hours = 12;
+        } else {
+          if (hours >= 12) {
+            period = "PM";
+            if (hours > 12) hours -= 12;
+          } else {
+            period = "AM";
+            if (hours === 0) hours = 12;
+          }
+        }
+
+        return `${hours}:${minutes} ${period}`;
+      }
+
+      function formatEventTimeDisplay(ev) {
+        if (ev.startTime) {
+          const s = formatSingleTimeNice(ev.startTime);
+          if (ev.endTime && ev.endTime !== ev.startTime) {
+            const e = formatSingleTimeNice(ev.endTime);
+            return `${s} to ${e}`;
+          }
+          return s || "N/A";
+        }
+
+        if (ev.times) {
+          let t = String(ev.times).trim();
+          if (!t) return "N/A";
+
+          if (t.includes(" to ")) {
+            const parts = t.split(" to ");
+            const s = formatSingleTimeNice(parts[0]);
+            const e = formatSingleTimeNice(parts[1]);
+            if (s && e) return `${s} to ${e}`;
+          } else if (t.includes(" - ")) {
+            const parts = t.split(" - ");
+            const s = formatSingleTimeNice(parts[0]);
+            const e = formatSingleTimeNice(parts[1]);
+            if (s && e) return `${s} to ${e}`;
+          }
+          return t;
+        }
+
+        return "N/A";
+      }
+
       function formatEventSchedule(ev) {
         const category = (ev.category || "").toLowerCase().trim();
         const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
@@ -2851,6 +3191,11 @@
         document.getElementById("ev-cost").value = ev.cost || "";
         document.getElementById("ev-audience").value = ev.audience || "";
         
+        if (document.getElementById("ev-category")) {
+          document.getElementById("ev-category").value = ev.category || "Date-specific Events";
+        }
+        categoryManuallySet = true;
+
         if (document.getElementById("ev-contact-person")) {
           document.getElementById("ev-contact-person").value = ev.contactPerson || "";
         }
@@ -2997,18 +3342,18 @@
         if (websiteLinksArray.length > 0) {
           websiteLinksArray.forEach((link) => {
             const input = document.createElement("input");
-            input.type = "url";
+            input.type = "text";
             input.className = "ev-link";
-            input.placeholder = "https://";
+            input.placeholder = "e.g. google.com or https://google.com";
             input.value = link;
             input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
             linksContainer.appendChild(input);
           });
         } else {
           const input = document.createElement("input");
-          input.type = "url";
+          input.type = "text";
           input.className = "ev-link";
-          input.placeholder = "https://";
+          input.placeholder = "e.g. google.com or https://google.com";
           input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(input);
         }
@@ -3097,6 +3442,11 @@
         editingEventId = null;
         existingMediaUrls = [];
         
+        categoryManuallySet = false;
+        if (typeof updateAutoCategory === "function") {
+          updateAutoCategory(true);
+        }
+
         // Hide the upload form section
         const uploadSection = document.getElementById("upload-section");
         if (uploadSection) {
@@ -3117,7 +3467,7 @@
         document.getElementById("one-time-container").style.display = "flex";
         document.getElementById("recurring-container").style.display = "none";
         document.getElementById("links-container").innerHTML =
-          '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+          '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
       }
@@ -3382,7 +3732,7 @@
 
           myEventsLoading.style.display = "none";
 
-          const colSpan = dashboardIsAdmin ? 7 : 6;
+          const colSpan = dashboardIsAdmin ? 8 : 7;
 
           // Dynamically hide or show embedding header
           const embHeaders = document.querySelectorAll(".embedding-header");
@@ -3401,8 +3751,9 @@
             tr.setAttribute("data-id", ev.id);
             tr.style.cursor = "pointer";
 
-            // Format dates/schedule beautifully using our robust helper
-            let scheduleStr = formatEventSchedule(ev);
+            // Format date & time using dedicated helpers
+            let dateStr = formatEventDateDisplay(ev);
+            let timeStr = formatEventTimeDisplay(ev);
             const submittedAtStr = ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A";
 
             tr.innerHTML = `
@@ -3416,7 +3767,8 @@
                 </div>
               </td>
               <td><span class="badge badge-info">${ev.category || "General"}</span></td>
-              <td>${scheduleStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${dateStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${timeStr || "N/A"}</td>
               <td>${ev.venue || "N/A"}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
               ${dashboardIsAdmin ? `<td style="text-align: center;">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>` : ''}
@@ -3463,6 +3815,20 @@
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>
                       <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Key Info:</strong> ${ev.audience || "All"}</div>
+
+                      ${dashboardIsAdmin ? `
+                      <div style="margin-top: 0.5rem; padding: 0.6rem; border: 1px dashed var(--accent); border-radius: 6px; background: rgba(59, 130, 246, 0.04);">
+                        <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                          🔒 Structured Calculation Fields (Admin Only)
+                        </div>
+                        <div style="font-size: 0.8rem; font-family: monospace; display: flex; flex-direction: column; gap: 0.2rem;">
+                          <div><strong style="color: var(--text-secondary);">startDate:</strong> <span style="color: var(--text); font-weight: 600;">${ev.startDate || "None"}</span></div>
+                          <div><strong style="color: var(--text-secondary);">endDate:</strong> <span style="color: var(--text); font-weight: 600;">${ev.endDate || "None"}</span></div>
+                          <div><strong style="color: var(--text-secondary);">startTime:</strong> <span style="color: var(--text); font-weight: 600;">${ev.startTime || "None"}</span></div>
+                          <div><strong style="color: var(--text-secondary);">endTime:</strong> <span style="color: var(--text); font-weight: 600;">${ev.endTime || "None"}</span></div>
+                        </div>
+                      </div>
+                      ` : ''}
                     </div>
 
                     <!-- Column 2: Contact Info -->
@@ -3849,7 +4215,7 @@
           allEventsLoading.style.display = "none";
 
           if (events.length === 0) {
-            allEventsTbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
+            allEventsTbody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); font-style: italic;">No matching events found.</td></tr>`;
             allEventsTableWrapper.style.display = "block";
             return;
           }
@@ -3859,7 +4225,8 @@
             tr.setAttribute("data-id", ev.id);
             tr.style.cursor = "pointer";
 
-            let scheduleStr = formatEventSchedule(ev);
+            let dateStr = formatEventDateDisplay(ev);
+            let timeStr = formatEventTimeDisplay(ev);
 
             const submitter = ev.submittedBy || "Anonymous";
             const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
@@ -3876,7 +4243,8 @@
                 </div>
               </td>
               <td><span class="badge badge-info">${ev.category || "General"}</span></td>
-              <td>${scheduleStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${dateStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${timeStr || "N/A"}</td>
               <td>${ev.venue || "N/A"}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
@@ -3906,7 +4274,7 @@
               : (ev.posterUrl ? `<a href="${ev.posterUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Poster File</a>` : "None");
 
             detailsTr.innerHTML = `
-              <td colspan="9" style="padding: 1rem 1.5rem;">
+              <td colspan="10" style="padding: 1rem 1.5rem;">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); min-width: 100%; box-sizing: border-box;">
                   
                   <!-- Column 1: General & Schedule -->
@@ -3924,6 +4292,18 @@
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Venue:</strong> ${ev.venue || "N/A"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Cost/Contribution:</strong> ${ev.cost || "Free / None"}</div>
                     <div style="font-size: 0.85rem;"><strong style="color: var(--text-secondary);">Key Info:</strong> ${ev.audience || "All"}</div>
+
+                    <div style="margin-top: 0.5rem; padding: 0.6rem; border: 1px dashed var(--accent); border-radius: 6px; background: rgba(59, 130, 246, 0.04);">
+                      <div style="font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.35rem;">
+                        🔒 Structured Calculation Fields (Admin Only)
+                      </div>
+                      <div style="font-size: 0.8rem; font-family: monospace; display: flex; flex-direction: column; gap: 0.2rem;">
+                        <div><strong style="color: var(--text-secondary);">startDate:</strong> <span style="color: var(--text); font-weight: 600;">${ev.startDate || "None"}</span></div>
+                        <div><strong style="color: var(--text-secondary);">endDate:</strong> <span style="color: var(--text); font-weight: 600;">${ev.endDate || "None"}</span></div>
+                        <div><strong style="color: var(--text-secondary);">startTime:</strong> <span style="color: var(--text); font-weight: 600;">${ev.startTime || "None"}</span></div>
+                        <div><strong style="color: var(--text-secondary);">endTime:</strong> <span style="color: var(--text); font-weight: 600;">${ev.endTime || "None"}</span></div>
+                      </div>
+                    </div>
                   </div>
 
                   <!-- Column 2: Contact Info -->
@@ -5119,6 +5499,11 @@
             if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
 
+          const categorySelect = document.getElementById("ev-category");
+          if (categorySelect) {
+            categorySelect.disabled = !dashboardIsAdmin;
+          }
+
           // Automatically default to my-events view
           switchTab("my-events");
 
@@ -5340,6 +5725,114 @@
           }
         });
       }
+
+      let categoryManuallySet = false;
+
+      function calculateDaysInRange(startDateStr, endDateStr) {
+        if (!startDateStr) return "";
+        
+        const parseLocalDate = (str) => {
+          const parts = str.split("-");
+          if (parts.length !== 3) return null;
+          return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        };
+        
+        const start = parseLocalDate(startDateStr);
+        const end = endDateStr ? parseLocalDate(endDateStr) : start;
+        
+        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+        if (end < start) return "";
+        
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+        
+        if (diffDays >= 7) {
+          return "Mon, Tue, Wed, Thu, Fri, Sat, Sun";
+        }
+        
+        const daysSet = new Set();
+        const current = new Date(start);
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        
+        for (let i = 0; i < diffDays; i++) {
+          daysSet.add(weekdays[current.getDay()]);
+          current.setDate(current.getDate() + 1);
+        }
+        
+        const logicalOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        return logicalOrder.filter(d => daysSet.has(d)).join(", ");
+      }
+
+      function updateAutoCategory(force = false) {
+        if (!dashboardIsAdmin) {
+          categoryManuallySet = false;
+        }
+        if (categoryManuallySet && !force) return;
+        
+        const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
+        const scheduleType = scheduleTypeInput ? scheduleTypeInput.value : "one-time";
+        
+        const startDt = document.getElementById("ev-start-date").value;
+        const endDt = document.getElementById("ev-end-date").value;
+        
+        const checkedWeekdays = Array.from(
+          document.querySelectorAll('input[name="ev-weekdays"]:checked')
+        ).map((cb) => cb.value);
+        
+        let resolvedCategory = "Date-specific Events";
+        
+        if (scheduleType === "one-time") {
+          if (!startDt) {
+            resolvedCategory = "Daily Events";
+          } else {
+            resolvedCategory = "Date-specific Events";
+            if (startDt && endDt) {
+              const sDt = new Date(startDt);
+              const eDt = new Date(endDt);
+              const diffTime = Math.abs(eDt - sDt);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (diffDays > 8) {
+                resolvedCategory = "Daily Events";
+              }
+            }
+          }
+        } else {
+          if (checkedWeekdays.length === 0) {
+            resolvedCategory = "Daily Events";
+          } else if (checkedWeekdays.length > 5) {
+            resolvedCategory = "Daily Events";
+          } else {
+            resolvedCategory = "Weekly Events";
+          }
+        }
+        
+        const categorySelect = document.getElementById("ev-category");
+        if (categorySelect) {
+          categorySelect.value = resolvedCategory;
+        }
+      }
+
+      // Attach automatic category update triggers
+      const evCategoryElem = document.getElementById("ev-category");
+      if (evCategoryElem) {
+        evCategoryElem.addEventListener("change", () => {
+          categoryManuallySet = true;
+        });
+      }
+
+      // Listeners for auto category logic
+      document.querySelectorAll('input[name="ev-schedule-type"]').forEach(radio => {
+        radio.addEventListener("change", () => updateAutoCategory());
+      });
+      if (startDateEl) {
+        startDateEl.addEventListener("change", () => updateAutoCategory());
+      }
+      if (endDateEl) {
+        endDateEl.addEventListener("change", () => updateAutoCategory());
+      }
+      document.querySelectorAll('input[name="ev-weekdays"]').forEach(cb => {
+        cb.addEventListener("change", () => updateAutoCategory());
+      });
 
       // Helper to read and render server-sent streaming progress JSON chunks
       async function readStreamProgress(response, containerId, statusDiv, onSuccess) {
@@ -5863,6 +6356,292 @@
         };
       }
 
+      // Event Dates & Times Database Repair Controller
+      const repairDatesBtn = document.getElementById("repair-dates-btn");
+      if (repairDatesBtn) {
+        repairDatesBtn.onclick = async () => {
+          const statusDiv = document.getElementById("repair-dates-status");
+          const progressContainer = document.getElementById("repair-dates-progress-container");
+          const progressBar = document.getElementById("repair-dates-progress-bar");
+          const progressPct = document.getElementById("repair-dates-progress-pct");
+          const progressLabel = document.getElementById("repair-dates-progress-label");
+          const progressLog = document.getElementById("repair-dates-progress-log");
+          const oneByOneToggle = document.getElementById("repair-one-by-one-toggle");
+          const requireOneByOne = oneByOneToggle ? oneByOneToggle.checked : true;
+
+          statusDiv.innerHTML = "Scanning database events for unparsed dates & times...";
+          progressContainer.style.display = "flex";
+          progressBar.style.width = "0%";
+          progressPct.textContent = "0%";
+          progressLabel.textContent = "Querying events...";
+          progressLog.textContent = `[${new Date().toLocaleTimeString()}] Initiating date/time scan (One-by-One mode: ${requireOneByOne ? "ENABLED" : "DISABLED"})...\n`;
+
+          try {
+            const currentUser = auth.currentUser;
+            if (!currentUser) {
+              statusDiv.innerHTML = `❌ <span style="color:red;">You must be logged in as Admin to run repair.</span>`;
+              return;
+            }
+
+            progressLog.textContent += `[${new Date().toLocaleTimeString()}] Fetching all events from Firestore...\n`;
+            const eventCol = collection(db, "events");
+            const snapshot = await getDocs(eventCol);
+            const totalDocs = snapshot.size;
+
+            progressLog.textContent += `[${new Date().toLocaleTimeString()}] Found ${totalDocs} total events. Evaluating parsing rules...\n`;
+            progressLog.scrollTop = progressLog.scrollHeight;
+
+            const itemsToReview = [];
+            let countSkippedAuto = 0;
+
+            let index = 0;
+            for (const docSnap of snapshot.docs) {
+              index++;
+              const data = docSnap.data();
+              const docId = docSnap.id;
+              const displayTitle = data.title || "Untitled Event";
+
+              const pctVal = Math.round((index / totalDocs) * 50); // Scan is first 50%
+              progressBar.style.width = pctVal + "%";
+              progressPct.textContent = pctVal + "%";
+              progressLabel.textContent = `Evaluating ${index}/${totalDocs}...`;
+
+              // 1. Parse Dates
+              const parsedDates = window.parseEventDatesClient ? window.parseEventDatesClient(data.dates, data.startDate, data.endDate) : { startDate: "", endDate: "", dates: data.dates || "" };
+              // 2. Parse Times
+              const parsedTimes = window.parseEventTimesClient ? window.parseEventTimesClient(data.startTime, data.endTime, data.times) : { startTime: "", endTime: "", times: data.times || "" };
+              // 3. Parse Days
+              const parsedDays = window.parseEventDaysClient ? window.parseEventDaysClient(data.days) : (data.days || "");
+
+              // 4. Determine Category if missing
+              let cat = data.category || "";
+              if (!cat || cat === "N/A") {
+                if (parsedDates.startDate || parsedDates.dates) {
+                  cat = "Date-specific Events";
+                } else if (parsedDays) {
+                  cat = "Weekly Events";
+                } else {
+                  cat = "Daily Events";
+                }
+              }
+
+              const updates = {};
+              if (parsedDates.startDate !== (data.startDate || "")) updates.startDate = parsedDates.startDate;
+              if (parsedDates.endDate !== (data.endDate || "")) updates.endDate = parsedDates.endDate;
+              if (parsedDates.dates !== (data.dates || "") && parsedDates.dates) updates.dates = parsedDates.dates;
+
+              if (parsedTimes.startTime !== (data.startTime || "") && parsedTimes.startTime !== "undefined") updates.startTime = parsedTimes.startTime;
+              if (parsedTimes.endTime !== (data.endTime || "") && parsedTimes.endTime !== "undefined") updates.endTime = parsedTimes.endTime;
+              if (parsedTimes.times !== (data.times || "") && parsedTimes.times && parsedTimes.times !== "undefined") updates.times = parsedTimes.times;
+
+              if (parsedDays !== (data.days || "")) updates.days = parsedDays;
+              if (cat !== (data.category || "")) updates.category = cat;
+
+              if (Object.keys(updates).length > 0) {
+                itemsToReview.push({
+                  docId,
+                  title: displayTitle,
+                  venue: data.venue || "N/A",
+                  category: data.category || "N/A",
+                  currentData: data,
+                  updates
+                });
+                progressLog.textContent += `[QUEUED FOR REVIEW] "${displayTitle}" -> ${Object.keys(updates).join(", ")}\n`;
+              } else {
+                countSkippedAuto++;
+              }
+              progressLog.scrollTop = progressLog.scrollHeight;
+            }
+
+            if (itemsToReview.length === 0) {
+              progressBar.style.width = "100%";
+              progressPct.textContent = "100%";
+              progressLabel.textContent = "Complete!";
+              statusDiv.innerHTML = `✅ <span style="color:var(--text);">Scan complete! All ${totalDocs} events in the database are already clean and standardized.</span>`;
+              progressLog.textContent += `[COMPLETE] No events require repair.\n`;
+              progressLog.scrollTop = progressLog.scrollHeight;
+              return;
+            }
+
+            statusDiv.innerHTML = `⚠️ <span style="color:var(--accent);">Found ${itemsToReview.length} event(s) requiring repair.</span>`;
+            progressLog.textContent += `[INFO] ${itemsToReview.length} events queued for Admin review.\n`;
+            progressLog.scrollTop = progressLog.scrollHeight;
+
+            if (!requireOneByOne) {
+              // Direct Batch Auto-Save Mode
+              let countUpdated = 0;
+              for (let i = 0; i < itemsToReview.length; i++) {
+                const item = itemsToReview[i];
+                const docRef = doc(db, "events", item.docId);
+                await setDoc(docRef, item.updates, { merge: true });
+                countUpdated++;
+                const pctVal = 50 + Math.round(((i + 1) / itemsToReview.length) * 50);
+                progressBar.style.width = pctVal + "%";
+                progressPct.textContent = pctVal + "%";
+                progressLabel.textContent = `Saving ${i + 1}/${itemsToReview.length}...`;
+                progressLog.textContent += `[UPDATED] "${item.title}" saved.\n`;
+                progressLog.scrollTop = progressLog.scrollHeight;
+              }
+
+              progressBar.style.width = "100%";
+              progressPct.textContent = "100%";
+              progressLabel.textContent = "Complete!";
+              statusDiv.innerHTML = `✅ <span style="color:var(--text);">Batch Repair complete! Updated ${countUpdated} events.</span>`;
+              if (window.loadDashboard) window.loadDashboard();
+              return;
+            }
+
+            // Interactive One-by-One Modal Review Mode
+            const modal = document.getElementById("repair-approval-modal");
+            const modalStepCounter = document.getElementById("repair-modal-step-counter");
+            const modalEventTitle = document.getElementById("repair-modal-event-title");
+            const modalEventSubtitle = document.getElementById("repair-modal-event-subtitle");
+            const modalTbody = document.getElementById("repair-modal-changes-tbody");
+
+            const btnApprove = document.getElementById("repair-modal-approve-btn");
+            const btnSkip = document.getElementById("repair-modal-skip-btn");
+            const btnApproveAll = document.getElementById("repair-modal-approve-all-btn");
+            const btnStop = document.getElementById("repair-modal-stop-btn");
+            const btnClose = document.getElementById("repair-modal-close-btn");
+
+            let currentIdx = 0;
+            let approvedCount = 0;
+            let skippedUserCount = 0;
+
+            const renderCurrentItem = () => {
+              if (currentIdx >= itemsToReview.length) {
+                // Done review
+                cleanupModal();
+                modal.style.display = "none";
+                progressBar.style.width = "100%";
+                progressPct.textContent = "100%";
+                progressLabel.textContent = "Complete!";
+                statusDiv.innerHTML = `✅ <span style="color:var(--text);">One-by-One Review Complete! Approved: ${approvedCount}, Skipped: ${skippedUserCount}.</span>`;
+                progressLog.textContent += `[FINISH] Review finished. Approved: ${approvedCount}, Skipped: ${skippedUserCount}\n`;
+                progressLog.scrollTop = progressLog.scrollHeight;
+                if (window.loadDashboard) window.loadDashboard();
+                return;
+              }
+
+              const item = itemsToReview[currentIdx];
+              modalStepCounter.textContent = `Event ${currentIdx + 1} of ${itemsToReview.length}`;
+              modalEventTitle.textContent = item.title;
+              modalEventSubtitle.textContent = `Venue: ${item.venue} | Category: ${item.category}`;
+
+              // Build rows table
+              let html = "";
+              for (const [key, val] of Object.entries(item.updates)) {
+                const oldVal = item.currentData[key] !== undefined ? JSON.stringify(item.currentData[key]) : `""`;
+                const newVal = JSON.stringify(val);
+                html += `
+                  <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 0.5rem 0.4rem; font-weight: 600; color: var(--text);">${key}</td>
+                    <td style="padding: 0.5rem 0.4rem; color: #ef4444; word-break: break-all;">${oldVal}</td>
+                    <td style="padding: 0.5rem 0.4rem; color: #22c55e; font-weight: 600; word-break: break-all;">${newVal}</td>
+                  </tr>
+                `;
+              }
+              modalTbody.innerHTML = html;
+
+              btnApproveAll.textContent = `⚡ Approve All Remaining (${itemsToReview.length - currentIdx})`;
+              const pctVal = 50 + Math.round(((currentIdx + 1) / itemsToReview.length) * 50);
+              progressBar.style.width = pctVal + "%";
+              progressPct.textContent = pctVal + "%";
+              progressLabel.textContent = `Reviewing ${currentIdx + 1}/${itemsToReview.length}...`;
+            };
+
+            const onApproveClick = async () => {
+              const item = itemsToReview[currentIdx];
+              try {
+                btnApprove.disabled = true;
+                const docRef = doc(db, "events", item.docId);
+                await setDoc(docRef, item.updates, { merge: true });
+                approvedCount++;
+                progressLog.textContent += `[APPROVED & SAVED] "${item.title}" -> ${JSON.stringify(item.updates)}\n`;
+                progressLog.scrollTop = progressLog.scrollHeight;
+              } catch (err) {
+                console.error("Failed saving event update:", err);
+                progressLog.textContent += `[ERROR] Failed saving "${item.title}": ${err.message}\n`;
+              } finally {
+                btnApprove.disabled = false;
+                currentIdx++;
+                renderCurrentItem();
+              }
+            };
+
+            const onSkipClick = () => {
+              const item = itemsToReview[currentIdx];
+              skippedUserCount++;
+              progressLog.textContent += `[SKIPPED BY ADMIN] "${item.title}"\n`;
+              progressLog.scrollTop = progressLog.scrollHeight;
+              currentIdx++;
+              renderCurrentItem();
+            };
+
+            const onApproveAllClick = async () => {
+              if (!confirm(`Are you sure you want to approve all remaining ${itemsToReview.length - currentIdx} event updates at once?`)) return;
+
+              btnApproveAll.disabled = true;
+              btnApprove.disabled = true;
+              btnSkip.disabled = true;
+
+              for (let i = currentIdx; i < itemsToReview.length; i++) {
+                const item = itemsToReview[i];
+                try {
+                  const docRef = doc(db, "events", item.docId);
+                  await setDoc(docRef, item.updates, { merge: true });
+                  approvedCount++;
+                  progressLog.textContent += `[BATCH APPROVED] "${item.title}"\n`;
+                } catch (err) {
+                  progressLog.textContent += `[ERROR] "${item.title}": ${err.message}\n`;
+                }
+                progressLog.scrollTop = progressLog.scrollHeight;
+              }
+
+              cleanupModal();
+              modal.style.display = "none";
+              progressBar.style.width = "100%";
+              progressPct.textContent = "100%";
+              progressLabel.textContent = "Complete!";
+              statusDiv.innerHTML = `✅ <span style="color:var(--text);">All remaining updates approved! Total Approved: ${approvedCount}, Skipped: ${skippedUserCount}.</span>`;
+              if (window.loadDashboard) window.loadDashboard();
+            };
+
+            const onStopClick = () => {
+              cleanupModal();
+              modal.style.display = "none";
+              statusDiv.innerHTML = `⏸️ <span style="color:var(--text-secondary);">Review paused by Admin. Approved: ${approvedCount}, Skipped: ${skippedUserCount}.</span>`;
+              progressLog.textContent += `[STOPPED] Review stopped by user.\n`;
+              progressLog.scrollTop = progressLog.scrollHeight;
+              if (window.loadDashboard) window.loadDashboard();
+            };
+
+            const cleanupModal = () => {
+              btnApprove.removeEventListener("click", onApproveClick);
+              btnSkip.removeEventListener("click", onSkipClick);
+              btnApproveAll.removeEventListener("click", onApproveAllClick);
+              btnStop.removeEventListener("click", onStopClick);
+              btnClose.removeEventListener("click", onStopClick);
+            };
+
+            btnApprove.addEventListener("click", onApproveClick);
+            btnSkip.addEventListener("click", onSkipClick);
+            btnApproveAll.addEventListener("click", onApproveAllClick);
+            btnStop.addEventListener("click", onStopClick);
+            btnClose.addEventListener("click", onStopClick);
+
+            modal.style.display = "flex";
+            renderCurrentItem();
+
+          } catch (error) {
+            console.error("Repair error:", error);
+            statusDiv.innerHTML = `❌ <span style="color:red;">Repair failed: ${error.message}</span>`;
+            progressLog.textContent += `[FATAL] Repair failed: ${error.message}\n`;
+            progressLog.scrollTop = progressLog.scrollHeight;
+          }
+        };
+      }
+
       function promptCoffeeSupport() {
         return new Promise((resolve) => {
           const modal = document.getElementById("coffee-support-modal");
@@ -6001,6 +6780,37 @@
           const isCustomTime = (customTimeToggle && customTimeToggle.checked);
           
           let category = "Date-specific Events";
+          if (dashboardIsAdmin && document.getElementById("ev-category")) {
+            category = document.getElementById("ev-category").value;
+          } else {
+            if (scheduleType === "one-time") {
+              const startDt = document.getElementById("ev-start-date").value;
+              const endDt = document.getElementById("ev-end-date").value;
+              if (!startDt) {
+                category = "Daily Events";
+              } else {
+                category = "Date-specific Events";
+                if (startDt && endDt) {
+                  const sDt = new Date(startDt);
+                  const eDt = new Date(endDt);
+                  const diffTime = Math.abs(eDt - sDt);
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  if (diffDays > 8) {
+                    category = "Daily Events";
+                  }
+                }
+              }
+            } else {
+              const checkedWeekdays = Array.from(
+                document.querySelectorAll('input[name="ev-weekdays"]:checked')
+              ).map((cb) => cb.value);
+              if (checkedWeekdays.length === 0 || checkedWeekdays.length > 5) {
+                category = "Daily Events";
+              } else {
+                category = "Weekly Events";
+              }
+            }
+          }
           let dates = "";
           let days = "";
           let startTime = "";
@@ -6019,31 +6829,15 @@
 
             dates = startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
 
-            if (startDt && endDt) {
-              const sDt = new Date(startDt);
-              const eDt = new Date(endDt);
-              const diffTime = Math.abs(eDt - sDt);
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-              if (diffDays > 8) {
-                category = "Daily Events";
-                days = diffDays + " days total";
-              }
+            if (startDt) {
+              days = calculateDaysInRange(startDt, endDt);
             }
           } else {
             // Recurring Event
             const checkedWeekdays = Array.from(
-              document.querySelectorAll('input[name="ev-weekdays"]:checked'),
+              document.querySelectorAll('input[name="ev-weekdays"]:checked')
             ).map((cb) => cb.value);
             days = checkedWeekdays.join(", ");
-
-            if (checkedWeekdays.length > 5) {
-              category = "Daily Events";
-            } else if (checkedWeekdays.length > 0) {
-              category = "Weekly Events";
-            } else {
-              category = "Weekly Events";
-            }
 
             const startDt = document.getElementById("ev-start-date").value;
             const endDt = document.getElementById("ev-end-date").value;
@@ -6157,7 +6951,7 @@
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
               document.getElementById("links-container").innerHTML =
-                '<input type="url" class="ev-link" placeholder="https://" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+                '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
               document.getElementById("media-container").innerHTML =
                 '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
             }
@@ -6169,6 +6963,97 @@
           singleEventStatus.innerHTML = `❌ <span style="color:red;">Network or server error submitting event: ${error.message}</span>`;
         }
       });
+    </script>
+    <!-- Category Criteria Modal -->
+    <div id="category-info-modal" style="
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 9999999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    " onclick="closeCategoryInfoModal(event)">
+      <div style="
+        background: var(--surface, #ffffff);
+        color: var(--text, #0f172a);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 16px;
+        max-width: 520px;
+        width: 100%;
+        padding: 1.5rem;
+        position: relative;
+        box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.25);
+      " onclick="event.stopPropagation()">
+        <button type="button" onclick="closeCategoryInfoModal()" style="
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          color: var(--text-secondary, #64748b);
+          cursor: pointer;
+        ">✕</button>
+
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; color: var(--accent, #3b82f6); display: flex; align-items: center; gap: 0.5rem;">
+          ℹ️ Category Selection Criteria &amp; Rules
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.88rem; line-height: 1.45;">
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">📅 Date-specific Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              One-time or short multi-day events occurring on specific calendar dates (e.g., <em>"15 August 2026"</em> or <em>"20 to 23 August 2026"</em>).
+            </p>
+          </div>
+
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">🗓️ Weekly Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              Recurring events taking place on 1 to 5 specific days of the week every week (e.g., <em>"Every Monday &amp; Thursday"</em>).
+            </p>
+          </div>
+
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">☀️ Daily Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              Ongoing daily activities available every day or covering extended continuous periods.
+            </p>
+          </div>
+
+          <div style="margin-top: 0.25rem; padding: 0.75rem 0.9rem; background: rgba(59, 130, 246, 0.08); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.82rem; color: var(--text); line-height: 1.5;">
+            ⚡ <strong>Automatic Category Rules:</strong>
+            <ul style="margin: 0.3rem 0 0 1.2rem; padding: 0; color: var(--text-secondary);">
+              <li><strong>Date Range &gt; 8 Days:</strong> If a date range spans more than 8 days (or if no start date is set), the event automatically becomes a <strong>Daily Event</strong>.</li>
+              <li><strong>6 or 7 Weekdays Selected:</strong> If 6 or 7 days of the week are selected (or if no specific days are checked), it automatically becomes a <strong>Daily Event</strong>.</li>
+              <li><strong>1 to 5 Weekdays Selected:</strong> Selecting 1 to 5 days classifies the event as a <strong>Weekly Event</strong>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align: right;">
+          <button type="button" onclick="closeCategoryInfoModal()" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem;">
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.toggleCategoryCriteriaModal = function(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById("category-info-modal");
+        if (modal) modal.style.display = "flex";
+      };
+      window.closeCategoryInfoModal = function(e) {
+        if (e && e.target && e.target.id !== "category-info-modal" && !e.target.closest("button")) return;
+        const modal = document.getElementById("category-info-modal");
+        if (modal) modal.style.display = "none";
+      };
     </script>
     <script src="/common.js" type="module"></script>
   </body>

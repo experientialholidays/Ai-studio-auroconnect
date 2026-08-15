@@ -3,6 +3,7 @@ import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
 import { adminDb, verifyAuthToken, ai, isUserAdmin } from "./firebase-ai.js";
+import { parseEventDates, parseEventTimes, parseEventDays } from "./dateTimeParser.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -148,10 +149,25 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         return null;
       };
       
-      let cat = getVal(["Category"]);
-      const datesField = formatExcelDatesField(getRawVal(["Dates", "Date"]));
-      const startDateField = formatExcelDate(getRawVal(["Start Date"]));
+      // Parse Date fields
+      const parsedDateObj = parseEventDates(
+        getRawVal(["Dates", "Date"]),
+        getRawVal(["Start Date"]),
+        getRawVal(["End Date"])
+      );
 
+      // Parse Time fields
+      const parsedTimeObj = parseEventTimes(
+        getRawVal(["Start Time"]),
+        getRawVal(["End Time"]),
+        getRawVal(["Time", "Times", "Start Time"])
+      );
+
+      // Parse Days field
+      const parsedDays = parseEventDays(getRawVal(["Days", "Day"]));
+
+      // Determine category intelligently
+      let cat = getVal(["Category"]);
       if (cat.toLowerCase().includes("weekday") || cat.toLowerCase().includes("weekly")) {
         cat = "Weekly Events";
       } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific") || cat.toLowerCase().includes("one-time")) {
@@ -160,27 +176,24 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         cat = "Daily Events";
       } else {
         // Resolve based on dates/days presence if category column is empty or doesn't match
-        if ((datesField && datesField !== "" && datesField !== "N/A") || (startDateField && startDateField !== "" && startDateField !== "N/A")) {
+        if (parsedDateObj.startDate || parsedDateObj.dates) {
           cat = "Date-specific Events";
-        } else {
+        } else if (parsedDays) {
           cat = "Weekly Events";
+        } else {
+          cat = "Daily Events";
         }
-      }
-
-      const startTime = formatExcelTime(getRawVal(["Start Time", "Time", "Times"]));
-      const endTime = formatExcelTime(getRawVal(["End Time"]));
-      let timesStr = startTime;
-      if (endTime && endTime !== startTime) {
-        timesStr += ` - ${endTime}`;
       }
       
       const processed = {
         title: getVal(["Event Name", "Title", "Name"]),
         type: getVal(["Type of event", "Type"]),
         category: cat || "Weekly Events",
-        dates: formatExcelDatesField(getRawVal(["Dates", "Date"])),
-        days: getVal(["Days", "Day"]),
-        times: timesStr,
+        dates: parsedDateObj.dates,
+        days: parsedDays,
+        times: parsedTimeObj.times,
+        startTime: parsedTimeObj.startTime,
+        endTime: parsedTimeObj.endTime,
         venue: getVal(["Venue", "Location"]),
         cost: getVal(["Cost/Contribution", "Cost", "Price", "Contribution"]),
         audience: getVal(["Target Audience/Prerequisites", "Target Audience", "Audience", "Key Info"]),
@@ -190,8 +203,8 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         website: getVal(["Website/Link", "Website", "Link"]),
         posterUrl: getVal(["poster url", "Poster URL", "Image URL"]),
         description: getVal(["Description", "Details", "About"]),
-        startDate: formatExcelDate(getRawVal(["Start Date"])),
-        endDate: formatExcelDate(getRawVal(["End Date"])),
+        startDate: parsedDateObj.startDate,
+        endDate: parsedDateObj.endDate,
         excelFilename: excelSource,
         originalHeaders: originalRawEv,
         submittedBy,

@@ -584,17 +584,20 @@ function formatEventMarkdown(data) {
   const topBar = `<span class="ec-topbar"><span class="ec-type">*${displayType}*</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
   const header = `${topBar}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
   const row1Parts = [];
+  if (data.type) {
+    row1Parts.push(`🏷️ ${data.type}`);
+  }
   if (timeDisplay) {
-    row1Parts.push(`\u23F0 ${timeDisplay}`);
+    row1Parts.push(`⏰ ${timeDisplay}`);
   }
   if (data.venue) {
-    row1Parts.push(`\u{1F4CD} ${data.venue}`);
+    row1Parts.push(`📍 ${data.venue}`);
   }
-  if (data.audience) {
-    row1Parts.push(`\u{1F4A1} ${data.audience}`);
+  if (data.audience || data.keyInfo) {
+    row1Parts.push(`💡 Key Info: ${data.audience || data.keyInfo}`);
   }
   if (data.cost) {
-    row1Parts.push(`\u{1F4B0} ${data.cost}`);
+    row1Parts.push(`💰 ${data.cost}`);
   }
   const row1 = row1Parts.join(" | ");
   const s = [header];
@@ -775,6 +778,11 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     // 2. Apply date / day filter FIRST before vector slicing
     if (filterDate) {
       const targetDay = getWeekdayFromDateStr(filterDate);
+      const targetDayShortMap: Record<string, string> = {
+        "Monday": "mon", "Tuesday": "tue", "Wednesday": "wed", "Thursday": "thu", "Friday": "fri", "Saturday": "sat", "Sunday": "sun"
+      };
+      const targetDayShort = targetDay ? targetDayShortMap[targetDay] : "";
+
       events = events.filter((data) => {
         const daysStr = Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "");
         const daysLower = daysStr.toLowerCase();
@@ -788,7 +796,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         if (isDaily) {
           isDateMatch = true;
         } else if (isWeekly) {
-          if (targetDay && daysLower.includes(targetDay.toLowerCase())) {
+          if (targetDay && (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort)))) {
             isDateMatch = true;
           }
         } else {
@@ -800,9 +808,12 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
             const effectiveEnd = evEnd || evStart;
             if (filterDate >= evStart && filterDate <= effectiveEnd) {
               if (daysLower && !daysLower.includes("daily") && targetDay) {
-                if (daysLower.includes(targetDay.toLowerCase())) {
+                if (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort))) {
                   isDateMatch = true;
-                } else if (!daysLower.includes("monday") && !daysLower.includes("tuesday") && !daysLower.includes("wednesday") && !daysLower.includes("thursday") && !daysLower.includes("friday") && !daysLower.includes("saturday") && !daysLower.includes("sunday")) {
+                } else if (
+                  !daysLower.includes("monday") && !daysLower.includes("tuesday") && !daysLower.includes("wednesday") && !daysLower.includes("thursday") && !daysLower.includes("friday") && !daysLower.includes("saturday") && !daysLower.includes("sunday") &&
+                  !daysLower.includes("mon") && !daysLower.includes("tue") && !daysLower.includes("wed") && !daysLower.includes("thu") && !daysLower.includes("fri") && !daysLower.includes("sat") && !daysLower.includes("sun")
+                ) {
                   isDateMatch = true;
                 }
               } else {
@@ -891,7 +902,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
             }
           }
           events.sort((a, b) => (b.similarityScore || -1) - (a.similarityScore || -1));
-          events = events.slice(0, 10);
+          events = events.slice(0, 15);
         }
       } catch (err) {
         console.error("Embedding search failed:", err);

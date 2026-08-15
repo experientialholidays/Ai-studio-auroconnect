@@ -919,7 +919,7 @@
         style="width: 100%; margin-top: 1rem;"
       >
         <!-- Title -->
-        <div class="form-col-8">
+        <div class="form-col-6">
           <label
             style="
               font-size: 0.85rem;
@@ -947,7 +947,7 @@
         </div>
 
         <!-- Type -->
-        <div class="form-col-4">
+        <div class="form-col-3">
           <label
             style="
               font-size: 0.85rem;
@@ -979,6 +979,61 @@
               Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc
             </div>
           </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-col-3" id="category-container">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 0.2rem;
+            "
+          >
+            <span>Event Category</span>
+            <button
+              type="button"
+              onclick="toggleCategoryCriteriaModal(event)"
+              style="
+                background: rgba(59, 130, 246, 0.12);
+                color: var(--accent, #3b82f6);
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                line-height: 1;
+              "
+              title="Click to view Category Selection Criteria & Rules"
+            >ⓘ</button>
+          </label>
+          <select
+            id="ev-category"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
+              cursor: pointer;
+            "
+          >
+            <option value="Date-specific Events">Date-specific Events</option>
+            <option value="Weekly Events">Weekly Events</option>
+            <option value="Daily Events">Daily Events</option>
+          </select>
         </div>
 
         <!-- Timing Details (Full Width Container) -->
@@ -2669,6 +2724,11 @@
         document.getElementById("ev-cost").value = ev.cost || "";
         document.getElementById("ev-audience").value = ev.audience || "";
         
+        if (document.getElementById("ev-category")) {
+          document.getElementById("ev-category").value = ev.category || "Date-specific Events";
+        }
+        categoryManuallySet = true;
+
         if (document.getElementById("ev-contact-person")) {
           document.getElementById("ev-contact-person").value = ev.contactPerson || "";
         }
@@ -2915,6 +2975,11 @@
         editingEventId = null;
         existingMediaUrls = [];
         
+        categoryManuallySet = false;
+        if (typeof updateAutoCategory === "function") {
+          updateAutoCategory(true);
+        }
+
         // Reset form
         const singleEventForm = document.getElementById("single-event-form");
         if (singleEventForm) singleEventForm.reset();
@@ -4215,6 +4280,11 @@
             if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
 
+          const categorySelect = document.getElementById("ev-category");
+          if (categorySelect) {
+            categorySelect.disabled = !dashboardIsAdmin;
+          }
+
           // Automatically default to my-events view
           switchTab("my-events");
 
@@ -4603,6 +4673,114 @@
           }
         });
       }
+
+      let categoryManuallySet = false;
+
+      function calculateDaysInRange(startDateStr, endDateStr) {
+        if (!startDateStr) return "";
+        
+        const parseLocalDate = (str) => {
+          const parts = str.split("-");
+          if (parts.length !== 3) return null;
+          return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        };
+        
+        const start = parseLocalDate(startDateStr);
+        const end = endDateStr ? parseLocalDate(endDateStr) : start;
+        
+        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return "";
+        if (end < start) return "";
+        
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // inclusive
+        
+        if (diffDays >= 7) {
+          return "Mon, Tue, Wed, Thu, Fri, Sat, Sun";
+        }
+        
+        const daysSet = new Set();
+        const current = new Date(start);
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        
+        for (let i = 0; i < diffDays; i++) {
+          daysSet.add(weekdays[current.getDay()]);
+          current.setDate(current.getDate() + 1);
+        }
+        
+        const logicalOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+        return logicalOrder.filter(d => daysSet.has(d)).join(", ");
+      }
+
+      function updateAutoCategory(force = false) {
+        if (!dashboardIsAdmin) {
+          categoryManuallySet = false;
+        }
+        if (categoryManuallySet && !force) return;
+        
+        const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
+        const scheduleType = scheduleTypeInput ? scheduleTypeInput.value : "one-time";
+        
+        const startDt = document.getElementById("ev-start-date").value;
+        const endDt = document.getElementById("ev-end-date").value;
+        
+        const checkedWeekdays = Array.from(
+          document.querySelectorAll('input[name="ev-weekdays"]:checked')
+        ).map((cb) => cb.value);
+        
+        let resolvedCategory = "Date-specific Events";
+        
+        if (scheduleType === "one-time") {
+          if (!startDt) {
+            resolvedCategory = "Daily Events";
+          } else {
+            resolvedCategory = "Date-specific Events";
+            if (startDt && endDt) {
+              const sDt = new Date(startDt);
+              const eDt = new Date(endDt);
+              const diffTime = Math.abs(eDt - sDt);
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              if (diffDays > 8) {
+                resolvedCategory = "Daily Events";
+              }
+            }
+          }
+        } else {
+          if (checkedWeekdays.length === 0) {
+            resolvedCategory = "Daily Events";
+          } else if (checkedWeekdays.length > 5) {
+            resolvedCategory = "Daily Events";
+          } else {
+            resolvedCategory = "Weekly Events";
+          }
+        }
+        
+        const categorySelect = document.getElementById("ev-category");
+        if (categorySelect) {
+          categorySelect.value = resolvedCategory;
+        }
+      }
+
+      // Attach automatic category update triggers
+      const evCategoryElem = document.getElementById("ev-category");
+      if (evCategoryElem) {
+        evCategoryElem.addEventListener("change", () => {
+          categoryManuallySet = true;
+        });
+      }
+
+      // Listeners for auto category logic
+      document.querySelectorAll('input[name="ev-schedule-type"]').forEach(radio => {
+        radio.addEventListener("change", () => updateAutoCategory());
+      });
+      if (startDateEl) {
+        startDateEl.addEventListener("change", () => updateAutoCategory());
+      }
+      if (endDateEl) {
+        endDateEl.addEventListener("change", () => updateAutoCategory());
+      }
+      document.querySelectorAll('input[name="ev-weekdays"]').forEach(cb => {
+        cb.addEventListener("change", () => updateAutoCategory());
+      });
 
       // Helper to read and render server-sent streaming progress JSON chunks
       async function readStreamProgress(response, containerId, statusDiv, onSuccess) {
@@ -5128,6 +5306,37 @@
           const isCustomTime = (customTimeToggle && customTimeToggle.checked);
           
           let category = "Date-specific Events";
+          if (dashboardIsAdmin && document.getElementById("ev-category")) {
+            category = document.getElementById("ev-category").value;
+          } else {
+            if (scheduleType === "one-time") {
+              const startDt = document.getElementById("ev-start-date").value;
+              const endDt = document.getElementById("ev-end-date").value;
+              if (!startDt) {
+                category = "Daily Events";
+              } else {
+                category = "Date-specific Events";
+                if (startDt && endDt) {
+                  const sDt = new Date(startDt);
+                  const eDt = new Date(endDt);
+                  const diffTime = Math.abs(eDt - sDt);
+                  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                  if (diffDays > 8) {
+                    category = "Daily Events";
+                  }
+                }
+              }
+            } else {
+              const checkedWeekdays = Array.from(
+                document.querySelectorAll('input[name="ev-weekdays"]:checked')
+              ).map((cb) => cb.value);
+              if (checkedWeekdays.length === 0 || checkedWeekdays.length > 5) {
+                category = "Daily Events";
+              } else {
+                category = "Weekly Events";
+              }
+            }
+          }
           let dates = "";
           let days = "";
           let startTime = "";
@@ -5146,31 +5355,15 @@
 
             dates = startDt + (endDt && startDt !== endDt ? " to " + endDt : "");
 
-            if (startDt && endDt) {
-              const sDt = new Date(startDt);
-              const eDt = new Date(endDt);
-              const diffTime = Math.abs(eDt - sDt);
-              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-              if (diffDays > 8) {
-                category = "Daily Events";
-                days = diffDays + " days total";
-              }
+            if (startDt) {
+              days = calculateDaysInRange(startDt, endDt);
             }
           } else {
             // Recurring Event
             const checkedWeekdays = Array.from(
-              document.querySelectorAll('input[name="ev-weekdays"]:checked'),
+              document.querySelectorAll('input[name="ev-weekdays"]:checked')
             ).map((cb) => cb.value);
             days = checkedWeekdays.join(", ");
-
-            if (checkedWeekdays.length > 5) {
-              category = "Daily Events";
-            } else if (checkedWeekdays.length > 0) {
-              category = "Weekly Events";
-            } else {
-              category = "Weekly Events";
-            }
 
             const startDt = document.getElementById("ev-start-date").value;
             const endDt = document.getElementById("ev-end-date").value;
@@ -5303,6 +5496,97 @@
           singleEventStatus.innerHTML = `❌ <span style="color:red;">Network or server error submitting event: ${error.message}</span>`;
         }
       });
+    </script>
+    <!-- Category Criteria Modal -->
+    <div id="category-info-modal" style="
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 9999999;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    " onclick="closeCategoryInfoModal(event)">
+      <div style="
+        background: var(--surface, #ffffff);
+        color: var(--text, #0f172a);
+        border: 1px solid var(--border, #e2e8f0);
+        border-radius: 16px;
+        max-width: 520px;
+        width: 100%;
+        padding: 1.5rem;
+        position: relative;
+        box-shadow: 0 25px 30px -5px rgba(0, 0, 0, 0.25);
+      " onclick="event.stopPropagation()">
+        <button type="button" onclick="closeCategoryInfoModal()" style="
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          color: var(--text-secondary, #64748b);
+          cursor: pointer;
+        ">✕</button>
+
+        <h3 style="margin: 0 0 1rem 0; font-size: 1.15rem; color: var(--accent, #3b82f6); display: flex; align-items: center; gap: 0.5rem;">
+          ℹ️ Category Selection Criteria &amp; Rules
+        </h3>
+
+        <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.88rem; line-height: 1.45;">
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">📅 Date-specific Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              One-time or short multi-day events occurring on specific calendar dates (e.g., <em>"15 August 2026"</em> or <em>"20 to 23 August 2026"</em>).
+            </p>
+          </div>
+
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">🗓️ Weekly Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              Recurring events taking place on 1 to 5 specific days of the week every week (e.g., <em>"Every Monday &amp; Thursday"</em>).
+            </p>
+          </div>
+
+          <div style="background: var(--user-msg-bg, #f1f5f9); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--border);">
+            <strong style="color: var(--text);">☀️ Daily Events</strong>
+            <p style="margin: 0.2rem 0 0 0; color: var(--text-secondary); font-size: 0.82rem;">
+              Ongoing daily activities available every day or covering extended continuous periods.
+            </p>
+          </div>
+
+          <div style="margin-top: 0.25rem; padding: 0.75rem 0.9rem; background: rgba(59, 130, 246, 0.08); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.2); font-size: 0.82rem; color: var(--text); line-height: 1.5;">
+            ⚡ <strong>Automatic Category Rules:</strong>
+            <ul style="margin: 0.3rem 0 0 1.2rem; padding: 0; color: var(--text-secondary);">
+              <li><strong>Date Range &gt; 8 Days:</strong> If a date range spans more than 8 days (or if no start date is set), the event automatically becomes a <strong>Daily Event</strong>.</li>
+              <li><strong>6 or 7 Weekdays Selected:</strong> If 6 or 7 days of the week are selected (or if no specific days are checked), it automatically becomes a <strong>Daily Event</strong>.</li>
+              <li><strong>1 to 5 Weekdays Selected:</strong> Selecting 1 to 5 days classifies the event as a <strong>Weekly Event</strong>.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.25rem; text-align: right;">
+          <button type="button" onclick="closeCategoryInfoModal()" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem;">
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      window.toggleCategoryCriteriaModal = function(e) {
+        if (e) e.preventDefault();
+        const modal = document.getElementById("category-info-modal");
+        if (modal) modal.style.display = "flex";
+      };
+      window.closeCategoryInfoModal = function(e) {
+        if (e && e.target && e.target.id !== "category-info-modal" && !e.target.closest("button")) return;
+        const modal = document.getElementById("category-info-modal");
+        if (modal) modal.style.display = "none";
+      };
     </script>
     <script src="/common.js" type="module"></script>
   </body>

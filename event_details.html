@@ -1726,6 +1726,21 @@
             </div>`;
         }
 
+        if (window.isDetailAdmin) {
+            html += `
+            <div class="detail-box" style="border: 1px dashed var(--accent); background: rgba(59, 130, 246, 0.04);">
+                <div class="detail-box-title" style="color: var(--accent); font-weight: 700; display: flex; align-items: center; gap: 0.35rem;">
+                    🔒 Structured Calculation Fields (Admin Only)
+                </div>
+                <div class="detail-box-content" style="display: flex; flex-direction: column; gap: 4px; font-family: monospace; font-size: 0.82rem;">
+                    <div><strong style="color: var(--text-secondary);">startDate:</strong> <span style="color: var(--text); font-weight: 600;">${event.startDate || 'None'}</span></div>
+                    <div><strong style="color: var(--text-secondary);">endDate:</strong> <span style="color: var(--text); font-weight: 600;">${event.endDate || 'None'}</span></div>
+                    <div><strong style="color: var(--text-secondary);">startTime:</strong> <span style="color: var(--text); font-weight: 600;">${event.startTime || 'None'}</span></div>
+                    <div><strong style="color: var(--text-secondary);">endTime:</strong> <span style="color: var(--text); font-weight: 600;">${event.endTime || 'None'}</span></div>
+                </div>
+            </div>`;
+        }
+
         html += `</div>`; // End of .details-boxes-grid
 
         // Floating Action Buttons (share / email / whatsapp buttons)
@@ -1911,6 +1926,37 @@
 
     render();
     initSheetDrag();
+</script>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { firebaseConfig } from "/firebase-config.js";
+
+    try {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user && user.email) {
+                const adminList = ["info.experientialholidays@gmail.com", "auroconnect.info@gmail.com"];
+                let isAdmin = adminList.includes(user.email.toLowerCase().trim());
+                if (!isAdmin) {
+                    try {
+                        const adminDoc = await getDoc(doc(db, "admins", user.email.toLowerCase().trim()));
+                        if (adminDoc.exists()) isAdmin = true;
+                    } catch(e) {}
+                }
+                if (isAdmin) {
+                    window.isDetailAdmin = true;
+                    if (typeof render === "function") render();
+                }
+            }
+        });
+    } catch(err) {
+        console.warn("Auth listener setup skipped:", err);
+    }
 </script>
 <script src="/common.js" type="module"></script>
 </body>
