@@ -7,7 +7,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
 import { db, firebaseConfig, verifyAuthToken, isUserAdmin, adminDb } from "./src/server/firebase-ai.js";
-import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, where } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -1635,11 +1635,11 @@ ${searchQuery || lastMessage}`;
         // Seed default presets if none exist after filtering
         if (presets.length === 0) {
             const defaultPresets = [
-                { text: "What's happening today? 📅", query: "What's happening today?" },
-                { text: "Savitri Reading Circle 📖", query: "Savitri reading circle" },
-                { text: "Yoga & Healing 🧘", query: "Water yoga and meditation" },
-                { text: "Bamboo workshop 🎋", query: "bamboo workshop" },
-                { text: "Horse therapy 🐴", query: "Horse assisted therapy" }
+                { text: "What's happening today? 📅", query: "What's happening today?", order: 1 },
+                { text: "Savitri Reading Circle 📖", query: "Savitri reading circle", order: 2 },
+                { text: "Yoga & Healing 🧘", query: "Water yoga and meditation", order: 3 },
+                { text: "Bamboo workshop 🎋", query: "bamboo workshop", order: 4 },
+                { text: "Horse therapy 🐴", query: "Horse assisted therapy", order: 5 }
             ];
             const promises = defaultPresets.map(async (preset) => {
                 const docRef = await addDoc(collection(db, "presets"), preset);
@@ -1647,6 +1647,14 @@ ${searchQuery || lastMessage}`;
             });
             presets = await Promise.all(promises);
         }
+
+        // Sort presets by custom order property
+        presets.sort((a, b) => {
+            const orderA = typeof a.order === "number" ? a.order : 9999;
+            const orderB = typeof b.order === "number" ? b.order : 9999;
+            if (orderA !== orderB) return orderA - orderB;
+            return (a.text || "").localeCompare(b.text || "");
+        });
 
         res.json({ success: true, presets });
     } catch (err: any) {
@@ -1657,7 +1665,7 @@ ${searchQuery || lastMessage}`;
 
   app.post("/api/presets", express.json(), async (req, res) => {
     try {
-        const { text, query, token } = req.body;
+        const { text, query, order, token } = req.body;
         if (!text || !query) {
             return res.status(400).json({ success: false, error: "text and query are required" });
         }
@@ -1667,10 +1675,45 @@ ${searchQuery || lastMessage}`;
             return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
         }
 
-        const docRef = await addDoc(collection(db, "presets"), { text, query });
-        res.json({ success: true, preset: { id: docRef.id, text, query } });
+        let assignedOrder = typeof order === "number" ? order : null;
+        if (assignedOrder === null) {
+            const snapshot = await getDocs(collection(db, "presets"));
+            let maxOrder = 0;
+            snapshot.forEach((docSnap) => {
+                const d = docSnap.data();
+                if (typeof d.order === "number" && d.order > maxOrder) maxOrder = d.order;
+            });
+            assignedOrder = maxOrder + 1;
+        }
+
+        const docRef = await addDoc(collection(db, "presets"), { text, query, order: assignedOrder });
+        res.json({ success: true, preset: { id: docRef.id, text, query, order: assignedOrder } });
     } catch (err: any) {
         console.error("Error adding preset:", err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  app.post("/api/presets/reorder", express.json(), async (req, res) => {
+    try {
+        const { presetIds, token } = req.body;
+        if (!Array.isArray(presetIds)) {
+            return res.status(400).json({ success: false, error: "presetIds array is required" });
+        }
+
+        const isAdmin = await checkIfAdmin(token);
+        if (!isAdmin) {
+            return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+        }
+
+        const updatePromises = presetIds.map((id: string, index: number) => {
+            return updateDoc(doc(db, "presets", id), { order: index + 1 });
+        });
+
+        await Promise.all(updatePromises);
+        res.json({ success: true });
+    } catch (err: any) {
+        console.error("Error reordering presets:", err);
         res.status(500).json({ success: false, error: err.message });
     }
   });

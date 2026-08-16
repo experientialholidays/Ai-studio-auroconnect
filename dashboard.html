@@ -2087,9 +2087,11 @@
           <table>
             <thead>
               <tr>
+                <th style="width: 70px; text-align: center;">Order</th>
+                <th style="width: 100px; text-align: center;">Sequence</th>
                 <th>Button Chip Label</th>
                 <th>Full AI Query Text</th>
-                <th style="width: 120px;">Actions</th>
+                <th style="width: 100px; text-align: center;">Actions</th>
               </tr>
             </thead>
             <tbody id="presets-tbody">
@@ -4917,20 +4919,48 @@
         presetsTbody.innerHTML = "";
 
         if (presets.length === 0) {
-          presetsTbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No preset prompts found in database. The chatbot will fall back to static suggestions.</td></tr>`;
+          presetsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No preset prompts found in database. The chatbot will fall back to static suggestions.</td></tr>`;
           presetsTableWrapper.style.display = "block";
           return;
         }
 
-        presets.forEach((preset) => {
+        presets.forEach((preset, index) => {
+          const isFirst = index === 0;
+          const isLast = index === presets.length - 1;
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
+            <td style="text-align: center;">
+              <span style="font-weight: 700; font-size: 0.85rem; background: rgba(11,87,208,0.08); color: var(--accent); padding: 0.2rem 0.5rem; border-radius: 99px;">
+                #${index + 1}
+              </span>
+            </td>
+            <td style="text-align: center; white-space: nowrap;">
+              <div style="display: inline-flex; gap: 4px;">
+                <button class="btn-preset-up" ${isFirst ? "disabled" : ""} title="Move Up" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); cursor: ${isFirst ? 'not-allowed' : 'pointer'}; opacity: ${isFirst ? '0.35' : '1'};">
+                  ▲
+                </button>
+                <button class="btn-preset-down" ${isLast ? "disabled" : ""} title="Move Down" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 4px; border: 1px solid var(--border); background: var(--surface); cursor: ${isLast ? 'not-allowed' : 'pointer'}; opacity: ${isLast ? '0.35' : '1'};">
+                  ▼
+                </button>
+              </div>
+            </td>
             <td style="font-weight: 600;">${escapeHTML(preset.text || "")}</td>
             <td style="font-family: monospace; font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(preset.query || "")}</td>
-            <td style="white-space: nowrap;">
+            <td style="white-space: nowrap; text-align: center;">
               <button class="btn-danger btn-delete-preset" data-id="${preset.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">Delete</button>
             </td>
           `;
+
+          const upBtn = tr.querySelector(".btn-preset-up");
+          if (upBtn && !isFirst) {
+            upBtn.onclick = () => movePreset(index, index - 1);
+          }
+
+          const downBtn = tr.querySelector(".btn-preset-down");
+          if (downBtn && !isLast) {
+            downBtn.onclick = () => movePreset(index, index + 1);
+          }
 
           const deleteBtn = tr.querySelector(".btn-delete-preset");
           deleteBtn.onclick = () => {
@@ -4963,6 +4993,41 @@
         });
 
         presetsTableWrapper.style.display = "block";
+      }
+
+      async function movePreset(fromIndex, toIndex) {
+        if (!cachedPresets || fromIndex < 0 || toIndex < 0 || fromIndex >= cachedPresets.length || toIndex >= cachedPresets.length) return;
+
+        const updated = [...cachedPresets];
+        const [movedItem] = updated.splice(fromIndex, 1);
+        updated.splice(toIndex, 0, movedItem);
+
+        cachedPresets = updated;
+        renderPresetPrompts(cachedPresets);
+
+        try {
+          const user = getCurrentUser();
+          if (!user) throw new Error("Not logged in");
+          const token = await user.getIdToken();
+
+          const res = await fetch("/api/presets/reorder", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              presetIds: cachedPresets.map(p => p.id),
+              token: token
+            })
+          });
+          const data = await res.json();
+          if (!data.success) throw new Error(data.error || "Failed to update preset sequence");
+
+          showToast("Preset sequence updated successfully!", "success");
+        } catch (err) {
+          showToast("Failed to save sequence: " + err.message, "error");
+          loadPresetPrompts(); // Revert on failure
+        }
       }
 
       // Handle Adding New Preset
