@@ -158,9 +158,9 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
 
       // Parse Time fields
       const parsedTimeObj = parseEventTimes(
-        getRawVal(["Start Time"]),
-        getRawVal(["End Time"]),
-        getRawVal(["Time", "Times", "Start Time"])
+        getRawVal(["Start Time", "StartTime"]),
+        getRawVal(["End Time", "EndTime"]),
+        getRawVal(["Time", "Times", "Timings", "Timing", "Event Time", "Start Time"])
       );
 
       // Parse Days field

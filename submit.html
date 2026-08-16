@@ -5379,13 +5379,148 @@
           }
 
           // 2. Resolve Times
-          if (isCustomTime) {
-            times = document.getElementById("ev-custom-time").value.trim();
-          } else {
-            startTime = document.getElementById("ev-start-time").value;
-            endTime = document.getElementById("ev-end-time").value;
-            times = startTime + (endTime ? " - " + endTime : "");
+          function parseEventTimesClient(rawStartTime, rawEndTime, rawTimes) {
+            let startTime = rawStartTime || "";
+            let endTime = rawEndTime || "";
+            let timesStr = String(rawTimes || "").trim();
+
+            if (!timesStr) {
+              if (startTime && endTime && startTime !== endTime) {
+                timesStr = `${startTime} - ${endTime}`;
+              } else if (startTime) {
+                timesStr = startTime;
+              } else if (endTime) {
+                timesStr = endTime;
+              }
+            }
+
+            if (!timesStr || timesStr === "N/A" || timesStr === "undefined") {
+              return { startTime: "", endTime: "", times: "" };
+            }
+
+            const timeTokenRegex = /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/gi;
+            const matches = Array.from(timesStr.matchAll(timeTokenRegex));
+
+            let stripped = timesStr.replace(timeTokenRegex, "");
+            stripped = stripped.replace(/\s*(?:\-|–|—|to|till|until|&|\/|;|,|:|\.)\s*/gi, " ").trim();
+            const hasExtraWords = /[a-zA-Z]{2,}/.test(stripped.replace(/\b(am|pm)\b/gi, ""));
+
+            function formatToken(m) {
+              let hours = parseInt(m[1], 10);
+              let mins = m[2] ? m[2] : "00";
+              let period = m[3] ? m[3].toLowerCase() : "";
+
+              if (!period) {
+                if (hours >= 12) {
+                  period = "pm";
+                  if (hours > 12) hours -= 12;
+                } else {
+                  period = "am";
+                  if (hours === 0) hours = 12;
+                }
+              } else {
+                if (hours > 12) hours -= 12;
+                if (hours === 0) hours = 12;
+              }
+              return `${hours}:${mins} ${period.toUpperCase()}`;
+            }
+
+            // RULE 3: Extra words present OR > 2 time tokens -> preserve EXACT Excel text
+            if (hasExtraWords || matches.length > 2) {
+              let calcStart = startTime;
+              let calcEnd = endTime;
+
+              if (!calcStart && matches.length > 0) {
+                calcStart = formatToken(matches[0]);
+              }
+              if (!calcEnd && matches.length > 1) {
+                calcEnd = formatToken(matches[matches.length - 1]);
+              }
+
+              return {
+                startTime: calcStart,
+                endTime: calcEnd,
+                times: timesStr // EXACT text as in Excel, no change!
+              };
+            }
+
+            // RULE 1: Exactly 1 time token
+            if (matches.length === 1) {
+              const formatted = formatToken(matches[0]);
+              return {
+                startTime: formatted,
+                endTime: "",
+                times: formatted
+              };
+            }
+
+            // RULE 2: Exactly 2 time tokens with NO extra words
+            if (matches.length === 2) {
+              const t1Match = matches[0];
+              const t2Match = matches[1];
+
+              let t1Hours = parseInt(t1Match[1], 10);
+              let t1Mins = t1Match[2] ? t1Match[2] : "00";
+              let t1Period = t1Match[3] ? t1Match[3].toLowerCase() : "";
+
+              let t2Hours = parseInt(t2Match[1], 10);
+              let t2Mins = t2Match[2] ? t2Match[2] : "00";
+              let t2Period = t2Match[3] ? t2Match[3].toLowerCase() : "";
+
+              if (!t1Period && t2Period) {
+                if (t2Period === "pm") {
+                  if (t1Hours < t2Hours) {
+                    t1Period = "pm";
+                  } else {
+                    t1Period = "am";
+                  }
+                } else {
+                  t1Period = "am";
+                }
+              } else if (!t1Period && !t2Period) {
+                t1Period = t1Hours >= 12 ? "pm" : "am";
+                t2Period = t2Hours >= 12 ? "pm" : "am";
+              }
+
+              if (!t2Period) {
+                t2Period = t2Hours >= 12 || t1Period === "pm" ? "pm" : "am";
+              }
+
+              let displayT1Hours = t1Hours;
+              if (displayT1Hours > 12) displayT1Hours -= 12;
+              if (displayT1Hours === 0) displayT1Hours = 12;
+              const strT1 = `${displayT1Hours}:${t1Mins} ${t1Period.toUpperCase()}`;
+
+              let displayT2Hours = t2Hours;
+              if (displayT2Hours > 12) displayT2Hours -= 12;
+              if (displayT2Hours === 0) displayT2Hours = 12;
+              const strT2 = `${displayT2Hours}:${t2Mins} ${t2Period.toUpperCase()}`;
+
+              return {
+                startTime: strT1,
+                endTime: strT2,
+                times: `${strT1} to ${strT2}`
+              };
+            }
+
+            return { startTime, endTime, times: timesStr };
           }
+
+          let rawT = "";
+          let rawS = "";
+          let rawE = "";
+          if (isCustomTime) {
+            rawT = document.getElementById("ev-custom-time").value.trim();
+          } else {
+            rawS = document.getElementById("ev-start-time").value;
+            rawE = document.getElementById("ev-end-time").value;
+            rawT = rawS + (rawE ? " - " + rawE : "");
+          }
+
+          const parsedTimesObj = parseEventTimesClient(rawS, rawE, rawT);
+          startTime = parsedTimesObj.startTime;
+          endTime = parsedTimesObj.endTime;
+          times = parsedTimesObj.times;
 
           const linkInputs = document.querySelectorAll(".ev-link");
           const links = Array.from(linkInputs)

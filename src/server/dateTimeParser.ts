@@ -221,20 +221,32 @@ export function parseEventDates(rawDates: any, rawStartDate: any, rawEndDate: an
 export function parseSingleTime(val: any): string | null {
   if (val === undefined || val === null) return null;
 
-  // 1. Numeric serial time in Excel (0 <= val < 1)
-  const num = Number(val);
-  if (!isNaN(num) && num >= 0 && num < 1) {
-    const totalMinutes = Math.round(num * 24 * 60);
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    const period = hours >= 12 ? 'pm' : 'am';
-    let h12 = hours % 12;
-    if (h12 === 0) h12 = 12;
-    return `${h12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
-  }
-
   const str = String(val).trim();
-  if (!str || str === "undefined" || str === "N/A") return null;
+  if (!str || str === "undefined" || str === "N/A" || str === "None" || str === "null") return null;
+
+  // 1. Numeric serial time in Excel (0 < val < 1)
+  if (typeof val === 'number') {
+    if (val > 0 && val < 1) {
+      const totalMinutes = Math.round(val * 24 * 60);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const period = hours >= 12 ? 'PM' : 'AM';
+      let h12 = hours % 12;
+      if (h12 === 0) h12 = 12;
+      return `${h12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+  } else if (typeof val === 'string') {
+    const num = Number(str);
+    if (!isNaN(num) && num > 0 && num < 1 && /^\d*(?:\.\d+)?$/.test(str)) {
+      const totalMinutes = Math.round(num * 24 * 60);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const period = hours >= 12 ? 'PM' : 'AM';
+      let h12 = hours % 12;
+      if (h12 === 0) h12 = 12;
+      return `${h12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+  }
 
   if (/[a-zA-Z]{3,}/.test(str) && !/am|pm/i.test(str)) {
     return str;
@@ -244,40 +256,116 @@ export function parseSingleTime(val: any): string | null {
   const ampmMatch = str.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/i);
   if (ampmMatch) {
     let hours = parseInt(ampmMatch[1], 10);
-    let minutes = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
-    let period = ampmMatch[3].toLowerCase();
+    let minutes = ampmMatch[2] ? ampmMatch[2] : "00";
+    let period = ampmMatch[3].toUpperCase();
     if (hours > 12) {
       hours = hours % 12;
     }
     if (hours === 0) hours = 12;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+    return `${hours}:${minutes} ${period}`;
   }
 
   // 3. 24-hour style string e.g. "17:00", "09:30", "10:15"
   const h24Match = str.match(/^(\d{1,2}):(\d{2})$/);
   if (h24Match) {
     let hours = parseInt(h24Match[1], 10);
-    let minutes = parseInt(h24Match[2], 10);
-    let period = 'am';
+    let minutes = h24Match[2];
+    let period = 'AM';
 
     if (hours >= 12) {
-      period = 'pm';
+      period = 'PM';
       if (hours > 12) hours -= 12;
     } else if (hours === 0) {
       hours = 12;
-      period = 'am';
+      period = 'AM';
     } else if (hours < 7) {
-      period = 'pm';
+      period = 'PM';
     }
 
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+    return `${hours}:${minutes} ${period}`;
+  }
+
+  // 4. Bare hour string e.g. "6", "3"
+  const bareMatch = str.match(/^(\d{1,2})$/);
+  if (bareMatch) {
+    let hours = parseInt(bareMatch[1], 10);
+    let period = (hours >= 12 || hours < 7) ? 'PM' : 'AM';
+    if (hours > 12) hours -= 12;
+    if (hours === 0) hours = 12;
+    return `${hours}:00 ${period}`;
   }
 
   return str;
 }
 
+function formatTimeToken(match: RegExpMatchArray): string {
+  let hours = parseInt(match[1], 10);
+  let mins = match[2] ? match[2] : "00";
+  let period = match[3] ? match[3].toLowerCase() : "";
+
+  if (!period) {
+    if (hours >= 12 || hours < 7) {
+      period = "pm";
+      if (hours > 12) hours -= 12;
+    } else {
+      period = "am";
+      if (hours === 0) hours = 12;
+    }
+  } else {
+    if (hours > 12) hours -= 12;
+    if (hours === 0) hours = 12;
+  }
+
+  return `${hours}:${mins} ${period.toUpperCase()}`;
+}
+
+function resolveTwoTimeMatches(m1: RegExpMatchArray, m2: RegExpMatchArray) {
+  let t1Hours = parseInt(m1[1], 10);
+  let t1Mins = m1[2] ? m1[2] : "00";
+  let t1Period = m1[3] ? m1[3].toLowerCase() : "";
+
+  let t2Hours = parseInt(m2[1], 10);
+  let t2Mins = m2[2] ? m2[2] : "00";
+  let t2Period = m2[3] ? m2[3].toLowerCase() : "";
+
+  if (!t1Period && t2Period) {
+    if (t2Period === "pm") {
+      if (t1Hours <= t2Hours || t1Hours === 12) {
+        t1Period = "pm";
+      } else {
+        t1Period = "am";
+      }
+    } else {
+      t1Period = "am";
+    }
+  } else if (!t1Period && !t2Period) {
+    t1Period = (t1Hours >= 12 || t1Hours < 7) ? "pm" : "am";
+    t2Period = (t2Hours >= 12 || t2Hours < 7) ? "pm" : "am";
+  }
+
+  if (!t2Period) {
+    t2Period = (t2Hours >= 12 || t1Period === "pm") ? "pm" : "am";
+  }
+
+  let displayT1Hours = t1Hours;
+  if (displayT1Hours > 12) displayT1Hours -= 12;
+  if (displayT1Hours === 0) displayT1Hours = 12;
+  const strT1 = `${displayT1Hours}:${t1Mins} ${t1Period.toUpperCase()}`;
+
+  let displayT2Hours = t2Hours;
+  if (displayT2Hours > 12) displayT2Hours -= 12;
+  if (displayT2Hours === 0) displayT2Hours = 12;
+  const strT2 = `${displayT2Hours}:${t2Mins} ${t2Period.toUpperCase()}`;
+
+  return { strT1, strT2 };
+}
+
 /**
- * Parse times fields (startTime, endTime, times) into clean individual startTime, endTime, times
+ * Robust Time Parser
+ * Implements strict rules:
+ * Rule 1: 1 time -> format as H:MM AM/PM
+ * Rule 2: 2 times with no extra words -> format both as H:MM AM/PM with smart PM propagation
+ * Rule 3: 2 times with extra words OR >2 times -> preserve EXACT Excel text as-is, extract startTime/endTime for calculations
  */
 export function parseEventTimes(rawStartTime: any, rawEndTime: any, rawTimes: any) {
   let startTime = parseSingleTime(rawStartTime) || "";
@@ -288,40 +376,76 @@ export function parseEventTimes(rawStartTime: any, rawEndTime: any, rawTimes: an
   if (endTime === "undefined") endTime = "";
   if (timesStr === "undefined") timesStr = "";
 
-  // If explicit startTime and endTime are provided
-  if (startTime && endTime && startTime !== endTime) {
-    if (!timesStr) {
+  if (!timesStr) {
+    if (startTime && endTime && startTime !== endTime) {
       timesStr = `${startTime} - ${endTime}`;
+    } else if (startTime) {
+      timesStr = startTime;
+    } else if (endTime) {
+      timesStr = endTime;
     }
-    return { startTime, endTime, times: timesStr };
   }
 
-  if (startTime && !endTime) {
-    if (!timesStr) timesStr = startTime;
-    return { startTime, endTime: "", times: timesStr };
+  if (!timesStr) {
+    return { startTime, endTime, times: "" };
   }
 
-  // If only rawTimes is provided (e.g. "05:00 pm - 06:00 pm" or "5:30PM—7:00PM" or "09:30 - 17:00")
-  if (timesStr) {
-    const rangeSplitter = /\s*(?:\-|–|—|to)\s*/i;
-    const parts = timesStr.split(rangeSplitter).map(p => p.trim()).filter(Boolean);
-    if (parts.length === 2) {
-      const p1 = parseSingleTime(parts[0]);
-      const p2 = parseSingleTime(parts[1]);
-      if (p1 && p2) {
-        startTime = p1;
-        endTime = p2;
-        timesStr = `${startTime} - ${endTime}`;
-      } else if (p1) {
-        startTime = p1;
-      }
-    } else if (parts.length === 1) {
-      const p1 = parseSingleTime(parts[0]);
-      if (p1) {
-        startTime = p1;
-        timesStr = startTime;
+  // Extract all time tokens e.g. "9:15am", "4:30pm", "2", "5:00 pm", "14:30"
+  const timeTokenRegex = /\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/gi;
+  const matches = Array.from(timesStr.matchAll(timeTokenRegex));
+
+  // Check if there are extra non-separator words (words other than am, pm, to, till, until)
+  let stripped = timesStr.replace(timeTokenRegex, "");
+  stripped = stripped.replace(/\s*(?:\-|–|—|to|till|until|&|\/|;|,|:|\.)\s*/gi, " ").trim();
+  const hasExtraWords = /[a-zA-Z]{2,}/.test(stripped.replace(/\b(am|pm)\b/gi, ""));
+
+  // RULE 3: Extra words present OR more than 2 time tokens present OR multiple semicolon sessions
+  const isMultipleSessions = timesStr.includes(";");
+  if (hasExtraWords || matches.length > 2 || isMultipleSessions) {
+    let calcStart = startTime;
+    let calcEnd = endTime;
+
+    if (!calcStart && matches.length > 0) {
+      if (matches.length >= 2 && !isMultipleSessions) {
+        const { strT1, strT2 } = resolveTwoTimeMatches(matches[0], matches[matches.length - 1]);
+        calcStart = strT1;
+        if (!calcEnd) calcEnd = strT2;
+      } else {
+        calcStart = formatTimeToken(matches[0]);
       }
     }
+
+    // Default structured end time for multiple or complex timing sessions to 5:00 PM as per specification
+    if (!calcEnd || isMultipleSessions) {
+      calcEnd = "5:00 PM";
+    }
+
+    return {
+      startTime: calcStart,
+      endTime: calcEnd,
+      times: timesStr // EXACT text as in Excel, no change!
+    };
+  }
+
+  // RULE 1: Exactly 1 time token
+  if (matches.length === 1) {
+    const formatted = formatTimeToken(matches[0]);
+    return {
+      startTime: startTime || formatted,
+      endTime: endTime || "",
+      times: formatted
+    };
+  }
+
+  // RULE 2: Exactly 2 time tokens with NO extra words
+  if (matches.length === 2) {
+    const { strT1, strT2 } = resolveTwoTimeMatches(matches[0], matches[1]);
+
+    return {
+      startTime: strT1,
+      endTime: strT2,
+      times: `${strT1} to ${strT2}`
+    };
   }
 
   return { startTime, endTime, times: timesStr };

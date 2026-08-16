@@ -15,6 +15,7 @@ import * as cheerio from "cheerio";
 import knowledgeRouter from "./src/server/knowledge.js";
 import scraperRouter from "./src/server/scraper.js";
 import excelRouter from "./src/server/excel.js";
+import { parseEventTimes } from "./src/server/dateTimeParser.js";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -141,27 +142,17 @@ function calculateEndTimeIfMissing(startTime) {
   const mStr = mins < 10 ? "0" + mins : mins.toString();
   return `${hStr}:${mStr}${ampm}`;
 }
-function formatDisplayTimes(timesStr) {
+function formatDisplayTimes(timesStr: string): string {
   if (!timesStr) return "";
-  const range = splitTimeRange(timesStr);
-  const start = range.start.trim();
-  const end = range.end.trim();
-  if (end) {
-    if (!end.toLowerCase().includes("am") && !end.toLowerCase().includes("pm")) {
-      return start;
-    }
-    return `${start} - ${end}`;
-  }
-  return start;
+  const parsed = parseEventTimes("", "", timesStr);
+  return parsed.times;
 }
-function splitTimeRange(timesStr) {
+function splitTimeRange(timesStr: string) {
   if (!timesStr) return { start: "", end: "" };
-  const parts = timesStr.split(/\s*(?:-|to|–|—)\s*/i);
-  const start = parts[0] || "";
-  const end = parts[1] || "";
-  return { start: start.trim(), end: end.trim() };
+  const parsed = parseEventTimes("", "", timesStr);
+  return { start: parsed.startTime, end: parsed.endTime };
 }
-function parseMinutesFromTimeStr(timeStr) {
+function parseMinutesFromTimeStr(timeStr: string) {
   if (!timeStr) return 0;
   const lower = timeStr.toLowerCase().trim().replace(/\s+/g, "");
   const normalized = lower.replace(".", ":");
@@ -179,15 +170,13 @@ function parseMinutesFromTimeStr(timeStr) {
   if (isAm && hours === 12) hours = 0;
   return hours * 60 + mins;
 }
-function getEventStartAndEndTimes(event) {
+function getEventStartAndEndTimes(event: any) {
   let start = event.originalHeaders?.startTime || event.startTime || "";
   let end = event.originalHeaders?.endTime || event.endTime || "";
-  if (!start && !end && event.times) {
-    const range = splitTimeRange(event.times);
-    start = range.start;
-    end = range.end;
-  }
-  return { start: start.trim(), end: end.trim() };
+  let times = event.times || "";
+
+  const parsed = parseEventTimes(start, end, times);
+  return { start: parsed.startTime, end: parsed.endTime };
 }
 function getDisplayDate(data) {
   const evStart = data.startDate || data.originalHeaders && data.originalHeaders.startDate || "";
@@ -490,10 +479,12 @@ function formatDatesDisplay(data, categoryType) {
 function isEventEnded(event, currentTime24) {
   const { start, end } = getEventStartAndEndTimes(event);
   if (!start) {
-    return false;
+    const currMins = parseMinutesFromTimeStr(currentTime24);
+    return currMins > (17 * 60); // 5:00 PM default end time for untimed events
   }
   if (!isValidTimeFormat(start)) {
-    return false;
+    const currMins = parseMinutesFromTimeStr(currentTime24);
+    return currMins > (17 * 60);
   }
   let displayTimeMin = 12 * 60;
   if (end && isValidTimeFormat(end)) {
@@ -513,7 +504,8 @@ function isEventEnded(event, currentTime24) {
     if (calculatedEnd && isValidTimeFormat(calculatedEnd)) {
       displayTimeMin = parseMinutesFromTimeStr(calculatedEnd);
     } else {
-      return false;
+      let startMin = parseMinutesFromTimeStr(start);
+      displayTimeMin = startMin + 60; // Start time + 1 hour when no end time is present
     }
   }
   const currMins = parseMinutesFromTimeStr(currentTime24);
@@ -628,27 +620,36 @@ function getEventCategoryType(event) {
   return "date-specific";
 }
 function getEventTimeString(ev) {
-  if (ev.startTime) return ev.startTime.trim().toLowerCase();
-  if (ev.originalHeaders && ev.originalHeaders.startTime) return ev.originalHeaders.startTime.trim().toLowerCase();
-  if (ev.times) return ev.times.trim().toLowerCase();
+  const rawS = ev.startTime || (ev.originalHeaders && ev.originalHeaders.startTime) || "";
+  const rawE = ev.endTime || (ev.originalHeaders && ev.originalHeaders.endTime) || "";
+  const rawT = ev.times || (ev.originalHeaders && ev.originalHeaders.times) || "";
+  const parsed = parseEventTimes(rawS, rawE, rawT);
+  if (parsed.startTime) return parsed.startTime.trim().toLowerCase();
+  if (parsed.times) {
+    const match = parsed.times.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)?\b/i);
+    if (match) return match[0].trim().toLowerCase();
+  }
   return "";
 }
 function getMinutesFromTimeString(t) {
-  if (!t) return 9999;
-  const matchColon = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/);
+  if (!t || t === "n/a" || t === "none" || t === "undefined") return 9999;
+  const matchColon = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
   if (matchColon) {
     let hours = parseInt(matchColon[1], 10);
     let minutes = parseInt(matchColon[2], 10);
-    let ampm = matchColon[3];
+    let ampm = (matchColon[3] || "").toLowerCase();
     if (ampm === "pm" && hours < 12) hours += 12;
     if (ampm === "am" && hours === 12) hours = 0;
+    if (!ampm) {
+      if (hours < 7) hours += 12;
+    }
     return hours * 60 + minutes;
   }
-  const matchNoColon = t.match(/(\d{1,2})\s*(am|pm)/);
+  const matchNoColon = t.match(/(\d{1,2})\s*(am|pm)/i);
   if (matchNoColon) {
     let hours = parseInt(matchNoColon[1], 10);
     let minutes = 0;
-    let ampm = matchNoColon[2];
+    let ampm = matchNoColon[2].toLowerCase();
     if (ampm === "pm" && hours < 12) hours += 12;
     if (ampm === "am" && hours === 12) hours = 0;
     return hours * 60 + minutes;
@@ -656,6 +657,7 @@ function getMinutesFromTimeString(t) {
   const matchNumbers = t.match(/(\d{1,2})/);
   if (matchNumbers) {
     let hours = parseInt(matchNumbers[1], 10);
+    if (hours < 7) hours += 12;
     return hours * 60;
   }
   return 9999;
@@ -665,7 +667,10 @@ function compareStartTime(a, b) {
   const timeB = getEventTimeString(b);
   const minsA = getMinutesFromTimeString(timeA);
   const minsB = getMinutesFromTimeString(timeB);
-  return minsA - minsB;
+  if (minsA !== minsB) {
+    return minsA - minsB;
+  }
+  return (a.title || "").localeCompare(b.title || "");
 }
 function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
@@ -1980,8 +1985,19 @@ ${searchQuery || lastMessage}`;
         if (!docSnap.exists()) return res.status(404).send("Event not found");
         
         const data = docSnap.data();
+        let displayTimes = formatDisplayTimes(data.times || "");
+        if (!displayTimes) {
+          const { start, end } = getEventStartAndEndTimes(data);
+          if (start && end) {
+            displayTimes = formatDisplayTimes(`${start} - ${end}`);
+          } else if (start) {
+            displayTimes = start;
+          } else if (end) {
+            displayTimes = formatDisplayTimes(end);
+          }
+        }
         let html = fs.readFileSync(resolveStaticPath("event_details.html"), "utf8");
-        const eventJson = JSON.stringify({ id, ...data }).replace(/</g, '\\u003c');
+        const eventJson = JSON.stringify({ id, ...data, times: displayTimes || data.times }).replace(/</g, '\\u003c');
         html = html.replace("{{EVENT_DATA}}", eventJson);
         res.send(html);
     } catch (err) {

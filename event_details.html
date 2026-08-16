@@ -1519,6 +1519,55 @@
         return formatted;
     }
 
+    function formatClientDisplayTime(rawT, startTime, endTime) {
+        let t = String(rawT || '').trim();
+        if (t === "N/A" || t === "None" || t === "undefined" || t === "12:00 AM") t = '';
+        if (!t && startTime) {
+            const s = String(startTime).trim();
+            const e = String(endTime || '').trim();
+            if (s && s !== "None" && s !== "N/A") {
+                t = s + (e && e !== "None" && e !== "N/A" ? " - " + e : "");
+            }
+        }
+        if (!t) return '';
+        const matches = Array.from(t.matchAll(/\b(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/gi));
+        if (matches.length === 2 && !t.includes(";")) {
+            let t1H = parseInt(matches[0][1], 10);
+            let t1M = matches[0][2] || "00";
+            let t1P = matches[0][3] ? matches[0][3].toLowerCase() : "";
+
+            let t2H = parseInt(matches[1][1], 10);
+            let t2M = matches[1][2] || "00";
+            let t2P = matches[1][3] ? matches[1][3].toLowerCase() : "";
+
+            if (!t1P && t2P) {
+                if (t2P === "pm") {
+                    t1P = (t1H <= t2H || t1H === 12) ? "pm" : "am";
+                } else {
+                    t1P = "am";
+                }
+            }
+            if (!t2P) t2P = (t2H >= 12 || t1P === "pm") ? "pm" : "am";
+            if (!t1P) t1P = (t1H >= 12 || t1H < 7) ? "pm" : "am";
+
+            let d1H = t1H > 12 ? t1H - 12 : (t1H === 0 ? 12 : t1H);
+            let d2H = t2H > 12 ? t2H - 12 : (t2H === 0 ? 12 : t2H);
+
+            const s1 = `${d1H}:${t1M} ${t1P.toUpperCase()}`;
+            const s2 = `${d2H}:${t2M} ${t2P.toUpperCase()}`;
+            return `${s1} to ${s2}`;
+        }
+        if (matches.length === 1 && !t.includes(";")) {
+            let h = parseInt(matches[0][1], 10);
+            let m = matches[0][2] || "00";
+            let p = matches[0][3] ? matches[0][3].toUpperCase() : "";
+            if (!p) p = (h >= 12 || h < 7) ? "PM" : "AM";
+            let dh = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+            return `${dh}:${m} ${p}`;
+        }
+        return t;
+    }
+
     function render() {
         initMedia();
         const container = document.getElementById("event-content");
@@ -1529,6 +1578,7 @@
         const categoryStr = (event.category || "").toLowerCase().trim();
         const isDateSpecific = categoryStr.includes("date") || categoryStr.includes("one-time") || categoryStr.includes("specific");
         const formattedDays = event.days ? formatDaysDisplay(event.days, isDateSpecific) : '';
+        const formattedTime = formatClientDisplayTime(event.times, event.startTime, event.endTime);
 
         // Render sticky header into dynamic-header-container in the main header
         if (dynamicHeader) {
@@ -1542,11 +1592,11 @@
                 <!-- Main Title -->
                 <h1 style="margin: 4px 0; font-size: 1.25rem; font-weight: 800; line-height: 1.35; color: var(--text); text-align: center;">${event.title || 'Event Details'}</h1>
                 <!-- Date, Days, Time, Location -->
-                ${(formattedDate || formattedDays || event.times || event.venue) ? `
+                ${(formattedDate || formattedDays || formattedTime || event.venue) ? `
                 <div class="ec-below-title" style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px; padding-top: 8px; border-top: 1px solid var(--border);">
                     ${formattedDate ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">📅 Date:</span> <span style="font-weight: 600; color: var(--text);">${formattedDate}</span></div>` : ''}
                     ${formattedDays ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">🗓️ Days:</span> <span style="font-weight: 600; color: var(--text);">${formattedDays}</span></div>` : ''}
-                    ${event.times ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">🕒 Time:</span> <span style="font-weight: 600; color: var(--text);">${event.times}</span></div>` : ''}
+                    ${formattedTime ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">🕒 Time:</span> <span style="font-weight: 600; color: var(--text);">${formattedTime}</span></div>` : ''}
                     ${event.venue ? `<div style="font-size: 0.88rem; line-height: 1.35; text-align: left;"><span style="font-weight: 400; color: var(--text);">📍 Location:</span> <span style="font-weight: 600; color: var(--text);">${event.venue}</span></div>` : ''}
                 </div>` : ''}
             </div>`;
