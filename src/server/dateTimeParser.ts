@@ -307,6 +307,7 @@ function formatTimeToken(match: RegExpMatchArray): string {
     if (hours >= 12 || hours < 7) {
       period = "pm";
       if (hours > 12) hours -= 12;
+      if (hours === 0) hours = 12;
     } else {
       period = "am";
       if (hours === 0) hours = 12;
@@ -317,6 +318,26 @@ function formatTimeToken(match: RegExpMatchArray): string {
   }
 
   return `${hours}:${mins} ${period.toUpperCase()}`;
+}
+
+export function addOneHourToTimeStr(timeStr: string): string {
+  if (!timeStr) return "";
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return "";
+  let hours = parseInt(match[1], 10);
+  let minutes = match[2];
+  let period = match[3].toUpperCase();
+
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+
+  hours = (hours + 1) % 24;
+
+  let newPeriod = hours >= 12 ? 'PM' : 'AM';
+  let newH12 = hours % 12;
+  if (newH12 === 0) newH12 = 12;
+
+  return `${newH12}:${minutes} ${newPeriod}`;
 }
 
 function resolveTwoTimeMatches(m1: RegExpMatchArray, m2: RegExpMatchArray) {
@@ -370,7 +391,10 @@ function resolveTwoTimeMatches(m1: RegExpMatchArray, m2: RegExpMatchArray) {
 export function parseEventTimes(rawStartTime: any, rawEndTime: any, rawTimes: any) {
   let startTime = parseSingleTime(rawStartTime) || "";
   let endTime = parseSingleTime(rawEndTime) || "";
-  let timesStr = String(rawTimes || "").trim();
+  
+  // Convert rawTimes if it is an Excel time decimal (0 < num < 1) or single time string
+  const singleTimeParsed = parseSingleTime(rawTimes);
+  let timesStr = singleTimeParsed || String(rawTimes || "").trim();
 
   if (startTime === "undefined") startTime = "";
   if (endTime === "undefined") endTime = "";
@@ -415,8 +439,9 @@ export function parseEventTimes(rawStartTime: any, rawEndTime: any, rawTimes: an
       }
     }
 
-    // Default structured end time for multiple or complex timing sessions to 5:00 PM as per specification
-    if (!calcEnd || isMultipleSessions) {
+    if (!calcEnd && calcStart) {
+      calcEnd = addOneHourToTimeStr(calcStart) || "5:00 PM";
+    } else if (!calcEnd || isMultipleSessions) {
       calcEnd = "5:00 PM";
     }
 
@@ -430,9 +455,14 @@ export function parseEventTimes(rawStartTime: any, rawEndTime: any, rawTimes: an
   // RULE 1: Exactly 1 time token
   if (matches.length === 1) {
     const formatted = formatTimeToken(matches[0]);
+    const startT = startTime || formatted;
+    let endT = endTime;
+    if (!endT && startT) {
+      endT = addOneHourToTimeStr(startT);
+    }
     return {
-      startTime: startTime || formatted,
-      endTime: endTime || "",
+      startTime: startT,
+      endTime: endT || "",
       times: formatted
     };
   }
