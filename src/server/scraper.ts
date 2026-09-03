@@ -215,7 +215,7 @@ router.post("/api/add_url_knowledge", async (req, res) => {
       try {
         const batchPromises = batch.map(chunk => 
           ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
+            model: "gemini-embedding-2",
             contents: chunk,
             config: { outputDimensionality: 768 }
           })
@@ -237,7 +237,7 @@ router.post("/api/add_url_knowledge", async (req, res) => {
           try {
             await new Promise(r => setTimeout(r, 200)); // Sleep 200ms
             const embedRes = await ai.models.embedContent({
-              model: "gemini-embedding-2-preview",
+              model: "gemini-embedding-2",
               contents: chunk,
               config: { outputDimensionality: 768 }
             });

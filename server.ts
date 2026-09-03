@@ -7,7 +7,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
 import { db, firebaseConfig, verifyAuthToken, isUserAdmin, adminDb } from "./src/server/firebase-ai.js";
-import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, where, limit } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import * as cheerio from "cheerio";
@@ -745,6 +745,44 @@ function formatDailyEventsOnly(rawEvents) {
   });
   return resultChunks.join("\n");
 }
+function getUpcomingDateForWeekday(weekdayName: string, todayDateStr: string): string {
+  try {
+    const parts = todayDateStr.split("-");
+    if (parts.length !== 3) return "";
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const d = new Date(year, month, day);
+
+    const weekdaysMap: Record<string, number> = {
+      "sunday": 0, "sun": 0,
+      "monday": 1, "mon": 1,
+      "tuesday": 2, "tue": 2,
+      "wednesday": 3, "wed": 3,
+      "thursday": 4, "thu": 4,
+      "friday": 5, "fri": 5,
+      "saturday": 6, "sat": 6
+    };
+
+    const targetIdx = weekdaysMap[weekdayName.toLowerCase().trim()];
+    if (targetIdx !== undefined) {
+      const currentIdx = d.getDay();
+      let daysToAdd = targetIdx - currentIdx;
+      if (daysToAdd < 0) {
+        daysToAdd += 7;
+      }
+      d.setDate(d.getDate() + daysToAdd);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const r = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${r}`;
+    }
+  } catch (e) {
+    console.error("Error in getUpcomingDateForWeekday:", e);
+  }
+  return "";
+}
+
 async function searchAurovilleEvents(searchQuery, specificity, filterDay, filterDate, filterTimeAfter, returnRaw, timeZone) {
   const timeInfo = getCurrentTimeInfo(timeZone);
   try {
@@ -778,6 +816,10 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     }
 
     // 2. Apply date / day filter FIRST before vector slicing
+    if (filterDay && !filterDate) {
+      filterDate = getUpcomingDateForWeekday(filterDay, timeInfo.dateStr);
+    }
+
     if (filterDate) {
       const targetDay = getWeekdayFromDateStr(filterDate);
       const targetDayShortMap: Record<string, string> = {
@@ -795,36 +837,59 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         const isWeekly = catStr === "weekly events" || schedStr === "recurring" || categoryType === "weekly";
         
         let isDateMatch = false;
-        if (isDaily) {
-          isDateMatch = true;
-        } else if (isWeekly) {
-          if (targetDay && (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort)))) {
-            isDateMatch = true;
+        const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+        const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+
+        let isWithinDateRange = true;
+        if (evStart) {
+          if (filterDate < evStart) {
+            isWithinDateRange = false;
           }
-        } else {
-          // Date-specific events
-          const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
-          const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
-          
-          if (evStart) {
-            const effectiveEnd = evEnd || evStart;
-            if (filterDate >= evStart && filterDate <= effectiveEnd) {
-              if (daysLower && !daysLower.includes("daily") && targetDay) {
-                if (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort))) {
-                  isDateMatch = true;
-                } else if (
-                  !daysLower.includes("monday") && !daysLower.includes("tuesday") && !daysLower.includes("wednesday") && !daysLower.includes("thursday") && !daysLower.includes("friday") && !daysLower.includes("saturday") && !daysLower.includes("sunday") &&
-                  !daysLower.includes("mon") && !daysLower.includes("tue") && !daysLower.includes("wed") && !daysLower.includes("thu") && !daysLower.includes("fri") && !daysLower.includes("sat") && !daysLower.includes("sun")
-                ) {
-                  isDateMatch = true;
-                }
-              } else {
-                isDateMatch = true;
+          if (evEnd) {
+            if (filterDate > evEnd) {
+              isWithinDateRange = false;
+            }
+          } else {
+            // No endDate
+            if (!isDaily && !isWeekly) {
+              // For one-time (date-specific) events, if no endDate, must match exactly
+              if (filterDate !== evStart) {
+                isWithinDateRange = false;
               }
             }
           }
+        }
 
-          if (!isDateMatch) {
+        if (isWithinDateRange) {
+          if (isDaily) {
+            isDateMatch = true;
+          } else if (isWeekly || (daysLower && daysLower.trim() !== "")) {
+            if (targetDay && (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort)))) {
+              isDateMatch = true;
+            } else if (
+              !daysLower.includes("monday") && !daysLower.includes("tuesday") && !daysLower.includes("wednesday") && !daysLower.includes("thursday") && !daysLower.includes("friday") && !daysLower.includes("saturday") && !daysLower.includes("sunday") &&
+              !daysLower.includes("mon") && !daysLower.includes("tue") && !daysLower.includes("wed") && !daysLower.includes("thu") && !daysLower.includes("fri") && !daysLower.includes("sat") && !daysLower.includes("sun")
+            ) {
+              isDateMatch = true;
+            }
+          } else {
+            isDateMatch = true;
+          }
+        } else {
+          // If a structured date was present but filterDate is out of bounds, we do not fall back to other text matching
+          return false;
+        }
+
+        // Only do fallback matching if evStart is empty and isDateMatch hasn't been set
+        if (!evStart && !isDateMatch) {
+          if (isDaily) {
+            isDateMatch = true;
+          } else if (isWeekly) {
+            if (targetDay && (daysLower.includes(targetDay.toLowerCase()) || (targetDayShort && daysLower.includes(targetDayShort)))) {
+              isDateMatch = true;
+            }
+          } else {
+            // Date-specific events
             const datesField = Array.isArray(data.dates) ? data.dates.join(" ") : String(data.dates || "");
             const startDateMeta = Array.isArray(data.start_date_meta) ? data.start_date_meta.join(" ") : String(data.start_date_meta || "");
             const combinedDatesText = `${datesField} ${startDateMeta}`.toLowerCase();
@@ -870,6 +935,10 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
       });
     } else if (filterDay) {
       events = events.filter((data) => {
+        const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+        if (evEnd && timeInfo.dateStr > evEnd) {
+          return false;
+        }
         const daysLower = (data.days || "").toLowerCase();
         const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || data.category === "Daily Events";
         let isMatch = isDaily || daysLower.includes(filterDay.toLowerCase());
@@ -886,7 +955,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     if (searchQuery && specificity === "specific") {
       try {
         const embedRes = await ai.models.embedContent({
-          model: "gemini-embedding-2-preview",
+          model: "gemini-embedding-2",
           contents: searchQuery,
           config: { outputDimensionality: 768 }
         });
@@ -1169,7 +1238,7 @@ Do not include any conversational fluff, Markdown formatting outside JSON, or te
         let queryEmbedding = null;
         try {
           const embedRes = await ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
+            model: "gemini-embedding-2",
             contents: searchQuery || message,
             config: { outputDimensionality: 768 }
           });
@@ -1304,7 +1373,7 @@ async function createServer() {
         if (!text) return res.status(400).json({ error: "Missing text" });
         
         const embeddingRes = await ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
+            model: "gemini-embedding-2",
             contents: text,
             config: { outputDimensionality: 768 }
         });
@@ -1489,7 +1558,7 @@ async function createServer() {
                 let queryEmbedding: number[] | null = null;
                 try {
                     const embedRes = await ai.models.embedContent({
-                        model: "gemini-embedding-2-preview",
+                        model: "gemini-embedding-2",
                         contents: searchQuery || lastMessage,
                         config: { outputDimensionality: 768 }
                     });
@@ -1775,6 +1844,121 @@ ${searchQuery || lastMessage}`;
     } catch (err: any) {
         console.error("Error fetching chat sessions:", err);
         res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Track active WebSocket connections by sessionId
+  const activeWsClients = new Map<string, Set<WebSocket>>();
+
+  app.post("/api/admin/push-support-notification", async (req, res) => {
+    try {
+      const { token, sessionId, customMessage, broadcast } = req.body;
+
+      const isAdmin = await checkIfAdmin(token);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      }
+
+      const supportText = customMessage || 
+        "☕ **Support AuroConnect**\n\n" +
+        "Enjoying AuroConnect? If this platform helps you explore events, activities, and happenings in Auroville, consider supporting us with a coffee! Every contribution keeps AuroConnect free and community-focused.\n\n" +
+        "[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)";
+
+      let deliveredCount = 0;
+      let sessionsUpdated = 0;
+
+      if (broadcast || sessionId === "ALL") {
+        // Send real-time notification to all connected WebSockets
+        for (const [sessId, sockets] of activeWsClients.entries()) {
+          for (const socket of sockets) {
+            if (socket.readyState === 1) { // OPEN
+              socket.send(JSON.stringify({
+                type: "support_notification",
+                content: supportText,
+                link: "https://rzp.io/rzp/AuroConnect"
+              }));
+              deliveredCount++;
+            }
+          }
+        }
+
+        // Persist to recent active chat sessions in Firestore
+        const chatSessionsCol = collection(db, "chat_sessions");
+        const q = query(chatSessionsCol, orderBy("updatedAt", "desc"), limit(50));
+        const snapshot = await getDocs(q);
+
+        const updatePromises: Promise<void>[] = [];
+        snapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          const msgs = Array.isArray(data.messages) ? [...data.messages] : [];
+          msgs.push({
+            role: "model",
+            text: supportText,
+            timestamp: Date.now(),
+            isSupportPrompt: true
+          });
+          updatePromises.push(
+            setDoc(docSnap.ref, { messages: msgs, updatedAt: new Date().toISOString() }, { merge: true })
+          );
+        });
+
+        await Promise.all(updatePromises);
+        sessionsUpdated = updatePromises.length;
+
+      } else if (sessionId) {
+        // Send real-time WS notification if client is online
+        const sockets = activeWsClients.get(sessionId);
+        if (sockets) {
+          for (const socket of sockets) {
+            if (socket.readyState === 1) { // OPEN
+              socket.send(JSON.stringify({
+                type: "support_notification",
+                content: supportText,
+                link: "https://rzp.io/rzp/AuroConnect"
+              }));
+              deliveredCount++;
+            }
+          }
+        }
+
+        // Persist message to Firestore chat_sessions document
+        const sessionDocRef = doc(db, "chat_sessions", sessionId);
+        const docSnap = await getDoc(sessionDocRef);
+        let msgs: any[] = [];
+        const existingDocData = docSnap.exists() ? docSnap.data() : {};
+        if (docSnap.exists() && Array.isArray(existingDocData?.messages)) {
+          msgs = [...existingDocData.messages];
+        }
+        const pushTimeIso = new Date().toISOString();
+        msgs.push({
+          role: "model",
+          text: supportText,
+          timestamp: Date.now(),
+          isSupportPrompt: true
+        });
+
+        const existingHistory = Array.isArray(existingDocData?.supportPushedHistory) ? [...existingDocData.supportPushedHistory] : [];
+        existingHistory.push(pushTimeIso);
+
+        await setDoc(sessionDocRef, {
+          messages: msgs,
+          lastSupportPushedAt: pushTimeIso,
+          supportPushedHistory: existingHistory,
+          updatedAt: pushTimeIso
+        }, { merge: true });
+        sessionsUpdated = 1;
+      } else {
+        return res.status(400).json({ success: false, error: "Missing sessionId or broadcast flag" });
+      }
+
+      res.json({
+        success: true,
+        deliveredOnlineCount: deliveredCount,
+        sessionsUpdatedCount: sessionsUpdated
+      });
+    } catch (err: any) {
+      console.error("Error pushing support notification:", err);
+      res.status(500).json({ success: false, error: err.message });
     }
   });
 
@@ -2116,16 +2300,20 @@ ${searchQuery || lastMessage}`;
     });
   }
 
-  async function saveChatSession(sessionId: string, history: any[]) {
+  async function saveChatSession(sessionId: string, history: any[], userId?: string) {
     try {
       const sessionDocRef = doc(db, "chat_sessions", sessionId);
       const now = new Date();
       const expireDate = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000); // 45 days in the future
-      await setDoc(sessionDocRef, {
+      const updateData: any = {
         messages: history,
         updatedAt: now.toISOString(),
         expireAt: expireDate.toISOString()
-      }, { merge: true });
+      };
+      if (userId) {
+        updateData.userId = userId;
+      }
+      await setDoc(sessionDocRef, updateData, { merge: true });
     } catch (err) {
       console.error("Error saving chat session history to Firestore:", err);
     }
@@ -2134,9 +2322,41 @@ ${searchQuery || lastMessage}`;
   const wss = new WebSocketServer({ server });
 
   wss.on("connection", (ws, req) => {
-    // Parse /ws/chat/:sessionId
-    const sessionMatch = req.url?.match(/\/ws\/chat\/(.+)/);
-    const sessionId = sessionMatch ? sessionMatch[1] : `sess_${Math.random()}`;
+    // Parse /ws/chat/:sessionId?userId=...
+    let sessionId = `sess_${Math.random()}`;
+    let sessionUserId: string | undefined = undefined;
+
+    try {
+      const reqUrl = req.url || "";
+      const urlObj = new URL(reqUrl, "http://localhost");
+      const sessionMatch = urlObj.pathname.match(/\/ws\/chat\/(.+)/);
+      if (sessionMatch) {
+        sessionId = sessionMatch[1];
+      }
+      const qpUserId = urlObj.searchParams.get("userId");
+      if (qpUserId) {
+        sessionUserId = qpUserId;
+      }
+    } catch (urlParseErr) {
+      const sessionMatch = req.url?.match(/\/ws\/chat\/(.+)/);
+      if (sessionMatch) {
+        sessionId = sessionMatch[1].split("?")[0];
+      }
+    }
+
+    // Store active WebSocket client by sessionId
+    if (!activeWsClients.has(sessionId)) {
+      activeWsClients.set(sessionId, new Set());
+    }
+    activeWsClients.get(sessionId)!.add(ws);
+
+    ws.on("close", () => {
+      const set = activeWsClients.get(sessionId);
+      if (set) {
+        set.delete(ws);
+        if (set.size === 0) activeWsClients.delete(sessionId);
+      }
+    });
 
     // Initialize per-session chat history
     let chatHistory: any[] = [];
@@ -2272,6 +2492,9 @@ ${searchQuery || lastMessage}`;
             const data = JSON.parse(msg.toString());
             const text = data.message;
             const timeZone = data.timeZone || "Asia/Kolkata";
+            if (data.userId && !sessionUserId) {
+                sessionUserId = data.userId;
+            }
             if (!text) return;
 
             if (text.startsWith("#DETAILS_COMMAND::")) {
@@ -2303,7 +2526,7 @@ ${searchQuery || lastMessage}`;
                 }
                 chatHistory.push({ role: "user", text: text, timestamp: Date.now() });
                 chatHistory.push({ role: "model", text: botReply, timestamp: Date.now() });
-                await saveChatSession(sessionId, chatHistory);
+                await saveChatSession(sessionId, chatHistory, sessionUserId);
                 return;
             }
 
@@ -2312,12 +2535,12 @@ ${searchQuery || lastMessage}`;
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "No problem! Let me know if you need help finding any other events." }));
                 chatHistory.push({ role: "user", text: text, timestamp: Date.now() });
                 chatHistory.push({ role: "model", text: "No problem! Let me know if you need help finding any other events.", timestamp: Date.now() });
-                await saveChatSession(sessionId, chatHistory);
+                await saveChatSession(sessionId, chatHistory, sessionUserId);
                 return;
             }
 
             await handleStreamingChat(text, ws, chatHistory, timeZone);
-            await saveChatSession(sessionId, chatHistory);
+            await saveChatSession(sessionId, chatHistory, sessionUserId);
         } catch (e) {
             console.error("WS Parse Error:", e);
         }

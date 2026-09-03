@@ -32,7 +32,27 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Submit Events | AuroConnect</title>
+    <title>Submit an Event | AuroConnect | Discover, Explore & Navigate Auroville</title>
+    <meta name="description" content="Share your workshop, exhibition, performance, or event with the Auroville community. Submit event details and media easily through AuroConnect.">
+    <meta name="keywords" content="Auroville, Auroville events, AuroConnect, submit event Auroville, add workshop Auroville, Auroville listings">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://auroconnect.info/submit.html">
+
+    <!-- Google Search Favicon Specifications & High-Res App Icons -->
+    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
+    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
+    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
+    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
+    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:title" content="Submit an Event | AuroConnect">
+    <meta property="og:description" content="Share your workshop, exhibition, performance, or event with the Auroville community on AuroConnect.">
+    <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://auroconnect.info/submit.html">
     <style>
       :root {
         --accent: #C85A32;
@@ -406,21 +426,36 @@
 
       /* Professional Responsive Media Queries for Mobile, Tablet & Laptop */
       @media (max-width: 768px) {
-        .dashboard-container {
-          padding: 1.25rem;
-          width: 95%;
-          margin-top: 1rem;
-          margin-bottom: 2rem;
+        html, body {
+          width: 100% !important;
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
         }
-        .container {
-          padding: 1rem;
-          width: 95%;
-          margin-top: 1.5rem;
+        .header {
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          padding: 0.75rem 1rem !important;
+        }
+        .dashboard-container,
+        .container,
+        .upload-card,
+        #single-event-form,
+        .form-grid {
+          padding: 1rem !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          box-sizing: border-box !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
+          margin-top: 1rem !important;
         }
         #one-time-container,
         #standard-time-container {
           flex-direction: column !important;
           gap: 0.75rem !important;
+          width: 100% !important;
+          box-sizing: border-box !important;
         }
         #ev-start-date,
         #ev-end-date,
@@ -587,13 +622,12 @@
         cursor: pointer !important;
       }
 
-      /* Uniform input/select/textarea styling inside forms for perfect height and width alignment */
+      /* Uniform input/select styling inside forms for perfect height and width alignment */
       .form-grid input[type="text"],
       .form-grid input[type="tel"],
       .form-grid input[type="email"],
       .form-grid input[type="url"],
       .form-grid input[type="date"],
-      .form-grid textarea,
       .form-grid select {
         width: 100% !important;
         max-width: none !important;
@@ -624,11 +658,29 @@
         box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.15) !important;
       }
 
-      /* Allow multi-line textareas (like Description) but enforce other styles */
-      .form-grid textarea {
-        height: auto !important;
-        min-height: 50px !important;
-        resize: vertical !important;
+      /* Allow multi-line textareas (like Title, Description and all expandable text fields) to grow naturally */
+      .form-grid textarea,
+      textarea.auto-expand,
+      textarea {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box !important;
+        padding: 0.75rem 1.125rem !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        background: var(--bg) !important;
+        color: var(--text) !important;
+        font-family: inherit !important;
+        font-size: 1rem !important;
+        line-height: 1.4 !important;
+        margin: 0 !important;
+        min-height: 48px !important;
+        resize: none !important;
+        overflow-y: hidden !important;
+        white-space: pre-wrap !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        transition: border-color 0.2s, box-shadow 0.2s;
       }
 
       .form-grid textarea#ev-desc {
@@ -957,28 +1009,22 @@
             "
             >Type of Event *</label
           >
-          <div class="input-scroll-wrapper">
-            <input
-              type="text"
-              id="ev-type"
-              required
-              placeholder=" "
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                padding-right: 1.125rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                box-sizing: border-box;
-                height: 38px;
-              "
-            />
-            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-type').focus()">
-              Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc
-            </div>
-          </div>
+          <textarea
+            id="ev-type"
+            required
+            rows="1"
+            placeholder="Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc"
+            class="auto-expand"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+            "
+          ></textarea>
         </div>
 
         <!-- Category -->
@@ -1247,10 +1293,11 @@
 
               <div id="custom-time-container" style="display: none; flex-direction: column; gap: 0.2rem;">
                 <label style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Custom Time(s) Text</label>
-                <input
-                  type="text"
+                <textarea
                   id="ev-custom-time"
+                  rows="1"
                   placeholder="e.g. 10:00am - 02:00pm OR Flexible"
+                  class="auto-expand"
                   style="
                     width: 100%;
                     padding: 0.5rem;
@@ -1259,7 +1306,7 @@
                     background: var(--bg);
                     color: var(--text);
                   "
-                />
+                ></textarea>
               </div>
             </div>
           </div>
@@ -1293,8 +1340,8 @@
           ></textarea>
         </div>
 
-        <!-- Contribution -->
-        <div class="form-col-3">
+        <!-- Description -->
+        <div class="form-col-12">
           <label
             style="
               font-size: 0.85rem;
@@ -1302,12 +1349,12 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Contribution</label
+            >Description *</label
           >
           <textarea
-            id="ev-cost"
-            placeholder="e.g. ₹500, Donation or Free"
-            rows="1"
+            id="ev-desc"
+            required
+            rows="4"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1315,44 +1362,8 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
-              resize: vertical;
-              min-height: 38px;
             "
           ></textarea>
-        </div>
-
-        <!-- Key Info -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Key Info</label
-          >
-          <div class="input-scroll-wrapper">
-            <input
-              type="text"
-              id="ev-audience"
-              placeholder=" "
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                padding-right: 1.125rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                box-sizing: border-box;
-                height: 38px;
-              "
-            />
-            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-audience').focus()">
-              Open To All, Registration, Drop In, Beginner, Target Audience, Prerequisites etc
-            </div>
-          </div>
         </div>
 
         <!-- Contact Person -->
@@ -1366,9 +1377,11 @@
             "
             >Contact Person / Unit</label
           >
-          <input
-            type="text"
+          <textarea
             id="ev-contact-person"
+            rows="1"
+            placeholder="Person / Unit name..."
+            class="auto-expand"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1376,60 +1389,9 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
-              height: 38px;
               box-sizing: border-box;
             "
-          />
-        </div>
-
-        <!-- Contact Phone -->
-        <div class="form-col-6">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Contact Phone</label
-          >
-          <div style="display: flex; gap: 0.5rem">
-            <input
-              id="ev-contact-code"
-              type="text"
-              list="submit-country-codes-list"
-              value="+91"
-              placeholder="+91"
-              style="
-                width: 4rem !important;
-                flex: none !important;
-                padding: 0.5rem 0.25rem !important;
-                text-align: center;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                font-size: 0.85rem;
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-            <input
-              type="tel"
-              id="ev-contact"
-              style="
-                flex: 1 !important;
-                min-width: 0 !important;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-          </div>
+          ></textarea>
         </div>
 
         <!-- WhatsApp -->
@@ -1480,6 +1442,56 @@
             <input
               type="tel"
               id="ev-whatsapp"
+              style="
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+          </div>
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contact Phone</label
+          >
+          <div style="display: flex; gap: 0.5rem">
+            <input
+              id="ev-contact-code"
+              type="text"
+              list="submit-country-codes-list"
+              value="+91"
+              placeholder="+91"
+              style="
+                width: 4rem !important;
+                flex: none !important;
+                padding: 0.5rem 0.25rem !important;
+                text-align: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 0.85rem;
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+            <input
+              type="tel"
+              id="ev-contact"
               style="
                 flex: 1 !important;
                 min-width: 0 !important;
@@ -1569,6 +1581,62 @@
           </button>
         </div>
 
+        <!-- Contribution -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contribution</label
+          >
+          <textarea
+            id="ev-cost"
+            placeholder="e.g. ₹500, Donation or Free"
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Key Info -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Key Info</label
+          >
+          <textarea
+            id="ev-audience"
+            rows="1"
+            placeholder="Open To All, Registration, Drop In, Beginner, Target Audience, Prerequisites etc"
+            class="auto-expand"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+            "
+          ></textarea>
+        </div>
+
         <!-- Media -->
         <div class="form-col-6">
           <label
@@ -1623,32 +1691,6 @@
 
         <!-- Hidden Source Filename for seamless backwards compatibility -->
         <input type="hidden" id="ev-excel-filename" value="Single Form Submission" />
-
-        <!-- Description -->
-        <div class="form-col-12">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Description *</label
-          >
-          <textarea
-            id="ev-desc"
-            required
-            rows="4"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-            "
-          ></textarea>
-        </div>
 
         <!-- Actions -->
         <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem;">
@@ -2229,15 +2271,14 @@
 
       const linksContainer = document.getElementById("links-container");
       document.getElementById("add-link-btn").addEventListener("click", () => {
-        const inputs = linksContainer.querySelectorAll("input");
+        const inputs = linksContainer.querySelectorAll("input, textarea");
         if (inputs.length < 5) {
-          const newLink = document.createElement("input");
-          newLink.type = "text";
-          newLink.className = "ev-link";
+          const newLink = document.createElement("textarea");
+          newLink.rows = 1;
+          newLink.className = "ev-link auto-expand";
           newLink.placeholder = "e.g. google.com or https://google.com";
-          newLink.style.cssText =
-            "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(newLink);
+          if (typeof initAutoExpandFields === "function") initAutoExpandFields();
         } else {
           alert("Maximum 5 links allowed.");
         }
@@ -2697,6 +2738,41 @@
         return `${hStr}:${mStr}`;
       }
 
+      function autoExpandTextarea(el) {
+        if (!el) return;
+        el.style.setProperty('white-space', 'pre-wrap', 'important');
+        el.style.setProperty('overflow-wrap', 'break-word', 'important');
+        el.style.setProperty('word-break', 'break-word', 'important');
+        el.style.setProperty('overflow-y', 'hidden', 'important');
+        el.style.setProperty('resize', 'none', 'important');
+
+        // Reset inline height to 'auto' to allow scrollHeight to measure natural text dimensions
+        el.style.setProperty('height', 'auto', 'important');
+        const minH = el.id === 'ev-desc' ? 120 : 48;
+        const newHeight = Math.max(minH, el.scrollHeight);
+        el.style.setProperty('height', newHeight + 'px', 'important');
+      }
+
+      function initAutoExpandFields() {
+        const selector = 'textarea, textarea.auto-expand, .auto-expand, .form-grid textarea, #ev-title, #ev-type, #ev-venue, #ev-cost, #ev-audience, #ev-contact-person, #ev-custom-time, #ev-desc, .ev-link';
+        const elements = document.querySelectorAll(selector);
+        elements.forEach(el => {
+          autoExpandTextarea(el);
+          if (!el.dataset.autoExpandBound) {
+            el.dataset.autoExpandBound = 'true';
+            ['input', 'change', 'keyup', 'focus', 'paste', 'blur'].forEach(evtName => {
+              el.addEventListener(evtName, () => {
+                autoExpandTextarea(el);
+              });
+            });
+          }
+        });
+      }
+      window.initAutoExpandFields = initAutoExpandFields;
+      document.addEventListener('DOMContentLoaded', () => {
+        initAutoExpandFields();
+      });
+
       function toggleCustomTime(checked) {
         const stdTime = document.getElementById("standard-time-container");
         const customTimeSelection = document.getElementById("custom-time-container");
@@ -2707,6 +2783,7 @@
           if (stdTime) stdTime.style.display = "flex";
           if (customTimeSelection) customTimeSelection.style.display = "none";
         }
+        initAutoExpandFields();
       }
       window.toggleCustomTime = toggleCustomTime;
 
@@ -2874,20 +2951,18 @@
 
         if (websiteLinksArray.length > 0) {
           websiteLinksArray.forEach((link) => {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.className = "ev-link";
+            const input = document.createElement("textarea");
+            input.rows = 1;
+            input.className = "ev-link auto-expand";
             input.placeholder = "e.g. google.com or https://google.com";
             input.value = link;
-            input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
             linksContainer.appendChild(input);
           });
         } else {
-          const input = document.createElement("input");
-          input.type = "text";
-          input.className = "ev-link";
+          const input = document.createElement("textarea");
+          input.rows = 1;
+          input.className = "ev-link auto-expand";
           input.placeholder = "e.g. google.com or https://google.com";
-          input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(input);
         }
         
@@ -2930,6 +3005,11 @@
 
         if (document.getElementById("ev-custom-time")) {
           document.getElementById("ev-custom-time").value = ev.times || "";
+        }
+
+        if (typeof initAutoExpandFields === "function") {
+          initAutoExpandFields();
+          setTimeout(initAutoExpandFields, 100);
         }
         
         // Scroll to form section
@@ -2994,9 +3074,14 @@
         document.getElementById("one-time-container").style.display = "flex";
         document.getElementById("recurring-container").style.display = "none";
         document.getElementById("links-container").innerHTML =
-          '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+          '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
+        if (typeof initAutoExpandFields === "function") initAutoExpandFields();
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+          
+        if (window.clearFormAutosave) {
+          window.clearFormAutosave();
+        }
       }
 
       // Bind Cancel Edit Button
@@ -4274,8 +4359,9 @@
             
             // Setup User Dashboard
             dashboardIsAdmin = false;
-            dashboardRoleBadge.innerHTML = "User Mode";
-            dashboardRoleBadge.className = "badge badge-user";
+            dashboardRoleBadge.innerHTML = "";
+            dashboardRoleBadge.className = "";
+            dashboardRoleBadge.style.display = "none";
             dashboardTabsRow.style.display = "none";
             if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
@@ -4449,6 +4535,58 @@
             endSelect.appendChild(optEnd);
           }
         }
+
+        let startTemp = false;
+        let endTemp = false;
+
+        // Set scroll focusing on mousedown/focus for start time
+        startSelect.addEventListener("mousedown", () => {
+          if (!startSelect.value) {
+            startSelect.value = "07:00";
+            startTemp = true;
+          }
+        });
+        startSelect.addEventListener("change", () => {
+          startTemp = false;
+        });
+        startSelect.addEventListener("blur", () => {
+          if (startTemp) {
+            startSelect.value = "";
+            startTemp = false;
+          }
+        });
+        startSelect.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && startTemp) {
+            startSelect.value = "";
+            startTemp = false;
+            startSelect.blur();
+          }
+        });
+
+        // Set scroll focusing on mousedown/focus for end time
+        endSelect.addEventListener("mousedown", () => {
+          if (!endSelect.value) {
+            const startVal = startSelect.value;
+            endSelect.value = startVal || "08:00";
+            endTemp = true;
+          }
+        });
+        endSelect.addEventListener("change", () => {
+          endTemp = false;
+        });
+        endSelect.addEventListener("blur", () => {
+          if (endTemp) {
+            endSelect.value = "";
+            endTemp = false;
+          }
+        });
+        endSelect.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && endTemp) {
+            endSelect.value = "";
+            endTemp = false;
+            endSelect.blur();
+          }
+        });
       }
 
       function formatToAMPM(hhmm) {
@@ -4528,9 +4666,6 @@
 
       window.saveFormAutosave = function() {
         try {
-          // Do not save if we are in editing mode (to avoid overwriting raw unsaved work with a different event's edit info)
-          if (typeof editingEventId !== "undefined" && editingEventId) return;
-
           const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
           const checkedWeekdays = Array.from(
             document.querySelectorAll('input[name="ev-weekdays"]:checked')
@@ -4540,6 +4675,8 @@
           const links = Array.from(linkInputs).map((inp) => inp.value);
 
           const data = {
+            editingEventId: (typeof editingEventId !== "undefined") ? editingEventId : null,
+            existingMediaUrls: (typeof existingMediaUrls !== "undefined") ? existingMediaUrls : [],
             title: document.getElementById("ev-title")?.value || "",
             type: document.getElementById("ev-type")?.value || "",
             scheduleType: scheduleTypeInput ? scheduleTypeInput.value : "one-time",
@@ -4572,6 +4709,27 @@
           const saved = safeGetItem(AUTOSAVE_KEY);
           if (!saved) return;
           const data = JSON.parse(saved);
+
+          // Restore editing state variables if present
+          if (data.editingEventId) {
+            editingEventId = data.editingEventId;
+            existingMediaUrls = data.existingMediaUrls || [];
+            
+            // Re-render UI elements for Edit Mode
+            const submitBtn = document.getElementById("submit-event-btn");
+            if (submitBtn) submitBtn.textContent = "Update Event";
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) cancelBtn.style.display = "block";
+            
+            // Render existing media list if there are media URLs
+            if (existingMediaUrls.length > 0) {
+              const extMediaContainer = document.getElementById("editing-existing-media");
+              if (extMediaContainer) extMediaContainer.style.display = "flex";
+              if (typeof renderExistingMediaList === "function") {
+                renderExistingMediaList();
+              }
+            }
+          }
 
           if (data.title && document.getElementById("ev-title")) document.getElementById("ev-title").value = data.title;
           if (data.type && document.getElementById("ev-type")) document.getElementById("ev-type").value = data.type;
@@ -4630,6 +4788,10 @@
                 linksContainer.appendChild(input);
               });
             }
+          }
+          
+          if (typeof initAutoExpandFields === "function") {
+            initAutoExpandFields();
           }
         } catch (e) {
           console.error("Autosave load error:", e);
@@ -5619,7 +5781,8 @@
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
               document.getElementById("links-container").innerHTML =
-                '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+                '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
+              if (typeof initAutoExpandFields === "function") initAutoExpandFields();
               document.getElementById("media-container").innerHTML =
                 '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
             }

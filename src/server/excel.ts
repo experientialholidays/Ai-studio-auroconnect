@@ -168,11 +168,12 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
 
       // Determine category intelligently
       let cat = getVal(["Category"]);
-      if (cat.toLowerCase().includes("weekday") || cat.toLowerCase().includes("weekly")) {
-        cat = "Weekly Events";
-      } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific") || cat.toLowerCase().includes("one-time")) {
+      const catLower = cat.toLowerCase().trim();
+      if (catLower.includes("date-specific") || catLower.includes("date specific") || catLower.includes("one-time")) {
         cat = "Date-specific Events";
-      } else if (cat.toLowerCase().includes("daily")) {
+      } else if (catLower.includes("weekday-based") || catLower.includes("weekday based") || catLower.includes("weekday") || catLower.includes("weekly")) {
+        cat = "Weekly Events";
+      } else if (catLower.includes("daily")) {
         cat = "Daily Events";
       } else {
         // Resolve based on dates/days presence if category column is empty or doesn't match
@@ -185,15 +186,15 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
       }
       
-      const processed = {
+      const processed: Record<string, any> = {
         title: getVal(["Event Name", "Title", "Name"]),
         type: getVal(["Type of event", "Type"]),
         category: cat || "Weekly Events",
-        dates: parsedDateObj.dates,
-        days: parsedDays,
-        times: parsedTimeObj.times,
-        startTime: parsedTimeObj.startTime,
-        endTime: parsedTimeObj.endTime,
+        dates: parsedDateObj.dates || "",
+        days: parsedDays || "",
+        times: parsedTimeObj.times || "",
+        startTime: parsedTimeObj.startTime || "",
+        endTime: parsedTimeObj.endTime || "",
         venue: getVal(["Venue", "Location"]),
         cost: getVal(["Cost/Contribution", "Cost", "Price", "Contribution"]),
         audience: getVal(["Target Audience/Prerequisites", "Target Audience", "Audience", "Key Info"]),
@@ -203,14 +204,28 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         website: getVal(["Website/Link", "Website", "Link"]),
         posterUrl: getVal(["poster url", "Poster URL", "Image URL"]),
         description: getVal(["Description", "Details", "About"]),
-        startDate: parsedDateObj.startDate,
-        endDate: parsedDateObj.endDate,
+        startDate: parsedDateObj.startDate || "",
+        endDate: parsedDateObj.endDate || "",
         excelFilename: excelSource,
         originalHeaders: originalRawEv,
-        submittedBy,
-        submittedAt
+        submittedBy: submittedBy || "",
+        submittedAt: submittedAt || new Date().toISOString()
       };
-      eventsToUpload.push(processed);
+
+      // Clean undefined keys recursively
+      const cleanUndefined = (obj: any): any => {
+        if (obj === null || typeof obj !== "object") return obj;
+        if (Array.isArray(obj)) return obj.map(cleanUndefined);
+        const cleanObj: Record<string, any> = {};
+        for (const [k, v] of Object.entries(obj)) {
+          if (v !== undefined) {
+            cleanObj[k] = (typeof v === "object" && v !== null) ? cleanUndefined(v) : v;
+          }
+        }
+        return cleanObj;
+      };
+
+      eventsToUpload.push(cleanUndefined(processed));
     }
 
     if (eventsToUpload.length === 0) {
@@ -254,45 +269,44 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }));
       }
       
-      // 2. Generate search embeddings for this batch of 5
-      try {
-        const batchPromises = batch.map(event => {
-          const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
-          return ai.models.embedContent({
-            model: "gemini-embedding-2-preview",
-            contents: textToEmbed || "event",
-            config: { outputDimensionality: 768 }
-          });
-        });
-        
-        const results = await Promise.all(batchPromises);
-        
-        for (let j = 0; j < batch.length; j++) {
-          const vector = results[j]?.embeddings?.[0]?.values;
-          if (vector && Array.isArray(vector)) {
-            batch[j].embeddingVector = vector;
-          }
-        }
-      } catch (err: any) {
-        console.warn(`Batch event embedding failed for batch starting at index ${i}, trying individual fallback:`, err.message || err);
-        // Fallback: individual embedding
-        for (let j = 0; j < batch.length; j++) {
-          const event = batch[j];
+      // 2. Generate search embeddings for this batch of 5 with pacing and up to 2 retries
+      const embedWithRetry = async (text: string, eventIndex: number, maxRetries = 2): Promise<number[] | null> => {
+        let attempts = 0;
+        while (attempts <= maxRetries) {
           try {
-            const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
             const embedRes = await ai.models.embedContent({
-              model: "gemini-embedding-2-preview",
-              contents: textToEmbed || "event",
+              model: "gemini-embedding-2",
+              contents: text || "event",
               config: { outputDimensionality: 768 }
             });
             const vector = embedRes.embeddings?.[0]?.values;
             if (vector && Array.isArray(vector)) {
-              event.embeddingVector = vector;
+              return vector;
             }
-          } catch (indivErr: any) {
-            console.error(`Individual event embedding failed for event ${i + j}:`, indivErr.message || indivErr);
+            return null;
+          } catch (err: any) {
+            attempts++;
+            if (attempts <= maxRetries) {
+              console.warn(`Embedding failed for event ${eventIndex} (attempt ${attempts}/${maxRetries + 1}). Retrying in 1.5s... Error: ${err.message || err}`);
+              await new Promise(r => setTimeout(r, 1500));
+            } else {
+              console.error(`Embedding permanently failed for event ${eventIndex} after ${maxRetries} retries:`, err.message || err);
+            }
           }
         }
+        return null;
+      };
+
+      for (let j = 0; j < batch.length; j++) {
+        const event = batch[j];
+        const textToEmbed = `${event.title || ''} ${event.description || ''} ${event.category || ''} ${event.type || ''} ${event.venue || ''} ${event.days || ''} ${event.cost || ''} ${event.audience || ''} ${event.contactPerson || ''} ${event.whatsapp || ''} ${event.email || ''}`.replace(/\s+/g, " ").trim();
+        
+        const vector = await embedWithRetry(textToEmbed, i + j, 2);
+        if (vector) {
+          event.embeddingVector = vector;
+        }
+        // Small 200ms delay between individual items to prevent burst limits
+        await new Promise(r => setTimeout(r, 200));
       }
       
       // 3. Stream this batch of 5 immediately to the client
