@@ -5,7 +5,7 @@ import { read, utils } from "xlsx";
 import { collection, doc, writeBatch, vector } from "firebase/firestore";
 import { getStorage } from "firebase-admin/storage";
 import crypto from "crypto";
-import { db, verifyAuthToken, ai, isUserAdmin, isUserBlocked } from "./firebase-ai.js";
+import { db, adminDb, verifyAuthToken, ai, isUserAdmin, isUserBlocked } from "./firebase-ai.js";
 import { parseEventDates, parseEventTimes, parseEventDays } from "./dateTimeParser.js";
 
 const router = Router();
@@ -356,9 +356,8 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
       }
       
-      // 3. Save this batch directly to Firestore and upload drive posters to Storage on the server
-      const firestoreBatch = writeBatch(db);
-      const eventCol = collection(db, "events");
+      // 3. Save this batch directly to Firestore and upload drive posters to Storage on the server using Admin SDK
+      const firestoreBatch = adminDb.batch();
       
       for (const ev of batch) {
         if (ev.base64Poster && ev.base64Poster.data) {
@@ -379,11 +378,9 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
         delete ev.base64Poster; // Ensure we never store massive base64 in Firestore!
         
-        if (ev.embeddingVector && Array.isArray(ev.embeddingVector)) {
-          ev.embeddingVector = vector(ev.embeddingVector);
-        }
+        // Save as plain array of numbers for fast in-memory cosine similarity checks
         
-        const newDocRef = doc(eventCol);
+        const newDocRef = adminDb.collection("events").doc();
         firestoreBatch.set(newDocRef, ev);
       }
       
