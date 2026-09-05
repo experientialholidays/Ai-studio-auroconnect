@@ -306,6 +306,7 @@
       <a href="/about.html" style="${isAbout ? "font-weight: bold;" : ""}">About</a>
       <a href="/submit.html" style="${isSubmit ? "font-weight: bold;" : ""}">Submit</a>
       <a href="/dashboard.html" style="${isDashboard ? "font-weight: bold;" : ""}">Dashboard</a>
+      <a href="https://rzp.io/rzp/AuroConnect" target="_blank">Contribute</a>
       <a href="/contact.html" style="${isContact ? "font-weight: bold;" : ""}">Contact</a>
     `;
     
@@ -323,10 +324,6 @@
           </a>
       </div>
       <div style="display: flex; align-items: center; gap: 0.75rem;">
-          <a href="https://rzp.io/rzp/AuroConnect" target="_blank" class="coffee-btn">
-              <span class="coffee-icon">☕</span>
-              <span class="coffee-text">Buy me a coffee</span>
-          </a>
           <div class="dropdown">
               <button id="common-three-dots" class="three-dots">⋮</button>
               <div id="common-dropdown-content" class="dropdown-content">

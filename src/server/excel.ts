@@ -2,11 +2,42 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { adminDb, verifyAuthToken, ai, isUserAdmin } from "./firebase-ai.js";
+import { getStorage } from "firebase-admin/storage";
+import crypto from "crypto";
+import { db, adminDb, verifyAuthToken, ai, isUserAdmin, isUserBlocked } from "./firebase-ai.js";
 import { parseEventDates, parseEventTimes, parseEventDays } from "./dateTimeParser.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+async function uploadPosterToStorage(base64Data: string, contentType: string, title: string, userEmail: string): Promise<string | null> {
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const randomId = Math.random().toString(36).substring(2, 10);
+    const cleanTitle = (title || "poster").toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 30);
+    const fileName = `${Date.now()}_${cleanTitle}_${randomId}.jpg`;
+    
+    const bucket = getStorage().bucket("auro-connect.firebasestorage.app");
+    const fileRef = bucket.file(`event-media/${fileName}`);
+    const token = crypto.randomUUID();
+
+    await fileRef.save(buffer, {
+      metadata: {
+        contentType: contentType || "image/jpeg",
+        metadata: {
+          uploadedBy: userEmail,
+          firebaseStorageDownloadTokens: token
+        }
+      }
+    });
+
+    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileRef.name)}?alt=media&token=${token}`;
+    return downloadUrl;
+  } catch (err: any) {
+    console.error(`Failed server-side poster upload for "${title}":`, err.message || err);
+    return null;
+  }
+}
 
 router.post("/api/upload_events", upload.single("file"), async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -42,6 +73,10 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       return sendError(401, "Invalid authentication token or failed to verify");
     }
     const userEmail = decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const userIsBlocked = await isUserBlocked(userEmail);
+    if (userIsBlocked) {
+      return sendError(403, "Forbidden: Your account has been blocked from submitting events.");
+    }
     const isAdmin = await isUserAdmin(userEmail);
     if (!isAdmin) {
       return sendError(403, "Forbidden: Admin access required.");
@@ -168,11 +203,12 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
 
       // Determine category intelligently
       let cat = getVal(["Category"]);
-      if (cat.toLowerCase().includes("weekday") || cat.toLowerCase().includes("weekly")) {
-        cat = "Weekly Events";
-      } else if (cat.toLowerCase().includes("date-specific") || cat.toLowerCase().includes("date specific") || cat.toLowerCase().includes("one-time")) {
+      const catLower = cat.toLowerCase().trim();
+      if (catLower.includes("date-specific") || catLower.includes("date specific") || catLower.includes("one-time")) {
         cat = "Date-specific Events";
-      } else if (cat.toLowerCase().includes("daily")) {
+      } else if (catLower.includes("weekday-based") || catLower.includes("weekday based") || catLower.includes("weekday") || catLower.includes("weekly")) {
+        cat = "Weekly Events";
+      } else if (catLower.includes("daily")) {
         cat = "Daily Events";
       } else {
         // Resolve based on dates/days presence if category column is empty or doesn't match
@@ -185,10 +221,21 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
       }
       
+      let sType = "one-time";
+      const catLowerChecked = (cat || "").toLowerCase();
+      if (catLowerChecked.includes("date-specific") || catLowerChecked.includes("date specific") || catLowerChecked.includes("one-time")) {
+        sType = "one-time";
+      } else if (catLowerChecked.includes("daily") || catLowerChecked.includes("weekly") || catLowerChecked.includes("weekday")) {
+        sType = "recurring";
+      } else {
+        sType = "one-time";
+      }
+
       const processed: Record<string, any> = {
         title: getVal(["Event Name", "Title", "Name"]),
         type: getVal(["Type of event", "Type"]),
         category: cat || "Weekly Events",
+        scheduleType: sType,
         dates: parsedDateObj.dates || "",
         days: parsedDays || "",
         times: parsedTimeObj.times || "",
@@ -308,17 +355,23 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
       }
       
-      // 3. Stream this batch of 5 immediately to the client
-      res.write(JSON.stringify({ 
-        type: "chunks", 
-        events: batch 
-      }) + "\n");
+      // 3. Instead of saving to Firestore on the server (which fails with permission errors in Cloud Run),
+      // we stream the parsed events back to the client as "chunks", allowing the fully authenticated 
+      // browser client to upload posters and save the events to Firestore securely!
+      res.write(JSON.stringify({ type: "chunks", events: batch }) + "\n");
       
-      // Sleep for 2 seconds before processing the next batch of 5
-      await new Promise(r => setTimeout(r, 2000));
+      // Send progress to client to update the UI progress bar and log console
+      sendProgress(
+        percent,
+        `Processed and embedded batch ${batchNum} of ${totalBatches}. Ready to save.`,
+        `Processed and embedded ${Math.min(totalEvents, i + batchSize)} of ${totalEvents} events.`
+      );
+      
+      // Sleep for 1 second before processing the next batch of 5
+      await new Promise(r => setTimeout(r, 1000));
     }
 
-    sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches streamed and saved successfully.");
+    sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches sent to browser for saving.");
 
   } catch (e: any) {
     console.error("upload_events error:", e);

@@ -1,6 +1,6 @@
 {
   "name": "AuroConnect",
-  "description": "AI-powered assistant for discovering events, workshops, and happenings in Auroville.",
+  "description": "Explore, discover, and navigate Auroville with AuroConnect—your interactive AI companion for events, workshops, communities, places, and the everyday information that helps you experience Auroville.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
