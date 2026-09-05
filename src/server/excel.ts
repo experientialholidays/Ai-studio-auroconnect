@@ -2,7 +2,6 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { collection, doc, writeBatch, vector } from "firebase/firestore";
 import { getStorage } from "firebase-admin/storage";
 import crypto from "crypto";
 import { db, adminDb, verifyAuthToken, ai, isUserAdmin, isUserBlocked } from "./firebase-ai.js";

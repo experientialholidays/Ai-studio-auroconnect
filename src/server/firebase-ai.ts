@@ -30,6 +30,7 @@ const adminApp = getApps().length === 0
   : getApp();
 
 export const adminDb = getAdminFirestore(adminApp);
+adminDb.settings({ ignoreUndefinedProperties: true });
 
 // Client SDK initialization
 export const appFirebase = initializeApp(firebaseConfig);
