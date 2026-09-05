@@ -32,27 +32,7 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Submit an Event | AuroConnect | Discover, Explore & Navigate Auroville</title>
-    <meta name="description" content="Share your workshop, exhibition, performance, or event with the Auroville community. Submit event details and media easily through AuroConnect.">
-    <meta name="keywords" content="Auroville, Auroville events, AuroConnect, submit event Auroville, add workshop Auroville, Auroville listings">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://auroconnect.info/submit.html">
-
-    <!-- Google Search Favicon Specifications & High-Res App Icons -->
-    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
-
-    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
-    <meta property="og:title" content="Submit an Event | AuroConnect">
-    <meta property="og:description" content="Share your workshop, exhibition, performance, or event with the Auroville community on AuroConnect.">
-    <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
-    <meta property="og:image:width" content="512">
-    <meta property="og:image:height" content="512">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://auroconnect.info/submit.html">
+    <title>Submit Events | AuroConnect</title>
     <style>
       :root {
         --accent: #C85A32;
@@ -145,8 +125,6 @@
         font-weight: 500;
         width: 100%;
         max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
         transition: all 0.2s;
         display: flex;
         align-items: center;
@@ -428,73 +406,33 @@
 
       /* Professional Responsive Media Queries for Mobile, Tablet & Laptop */
       @media (max-width: 768px) {
-        html, body {
-          width: 100% !important;
-          max-width: 100vw !important;
-          overflow-x: hidden !important;
-          margin: 0 !important;
-          padding: 0 !important;
-          display: flex !important;
-          flex-direction: column !important;
-          align-items: center !important;
+        .dashboard-container {
+          padding: 1.25rem;
+          width: 95%;
+          margin-top: 1rem;
+          margin-bottom: 2rem;
         }
-        .header {
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          padding: 0.75rem 1rem !important;
-        }
-        .dashboard-container,
-        .container,
-        .upload-card,
-        #single-event-form,
-        #login-section,
-        #upload-section {
-          padding: 1rem 0.75rem !important;
-          width: 99% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          margin-left: auto !important;
-          margin-right: auto !important;
-          margin-top: 0.5rem !important;
-          margin-bottom: 1rem !important;
-          border-radius: 12px !important;
-        }
-        .form-grid {
-          display: flex !important;
-          flex-direction: column !important;
-          gap: 1rem !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        .form-col-12, .form-col-8, .form-col-6, .form-col-4, .form-col-3 {
-          grid-column: span 12 !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
+        .container {
+          padding: 1rem;
+          width: 95%;
+          margin-top: 1.5rem;
         }
         #one-time-container,
         #standard-time-container {
           flex-direction: column !important;
           gap: 0.75rem !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
         }
         #ev-start-date,
         #ev-end-date,
         #ev-start-time,
         #ev-end-time {
-          height: 48px !important;
-          padding: 0.5rem 0.75rem !important;
+          height: 38px !important;
+          padding: 0.35rem 0.5rem !important;
           box-sizing: border-box !important;
-          font-size: 0.95rem !important;
-          width: 100% !important;
+          font-size: 0.85rem !important;
         }
         div[class="form-col-12"][style*="border: 1px solid var(--border)"] {
           padding: 0.75rem !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
         }
         .dashboard-header {
           flex-direction: column;
@@ -512,27 +450,15 @@
           flex: 1 1 auto;
           text-align: center;
         }
-        /* Make form flex rows stack vertically on mobile */
-        div[style*="display: flex; gap: 2rem"],
-        div[style*="display: flex; gap: 1.75rem"],
-        div[style*="display: flex; gap: 1.5rem"],
+        /* Make form flex rows stack nicely on mobile */
         div[style*="display: flex; gap: 1rem; flex-wrap: wrap"],
         div[style*="display: flex; gap: 1rem"] {
           flex-direction: column !important;
           gap: 0.75rem !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
         }
-        /* Override inline min-width properties that cause horizontal overflow */
-        div[style*="min-width"] {
-          min-width: 0 !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
-        }
-        /* Except specific tight inline elements like country code or checkboxes */
+        /* Except specific inline elements such as country code + input or side-by-side small buttons */
         div[style*="display: flex; gap: 0.5rem"],
-        div[style*="display: flex; gap: 0.4rem"],
-        div[style*="display: flex; gap: 0.35rem"] {
+        div[style*="display: flex; gap: 0.75rem; width: 100%"] {
           flex-direction: row !important;
           gap: 0.5rem !important;
         }
@@ -546,24 +472,28 @@
           border-radius: 8px;
         }
         table {
-          min-width: 600px;
+          min-width: 650px;
         }
         /* Expand submit button and other interactive items fully */
-        #submit-event-btn, #cancel-edit-btn, button[onclick="confirmAndClearAllFormData()"] {
+        #submit-event-btn, #cancel-edit-btn {
           width: 100% !important;
-          min-width: 0 !important;
-          flex: none !important;
         }
       }
 
+      /* Premium Aesthetic & Spacious Grid layouts for Admin & Forms */
       .upload-card {
-        max-width: 1300px;
-        width: 98%;
-        text-align: left;
-        align-items: stretch;
-        padding: 2rem 2.5rem;
+        max-width: 1000px !important;
+        text-align: left !important;
+        align-items: stretch !important;
+        padding: 3rem !important;
         margin-left: auto;
         margin-right: auto;
+      }
+      @media (max-width: 768px) {
+        .upload-card {
+          padding: 1.5rem !important;
+          width: 95% !important;
+        }
       }
 
       .admin-panel-grid {
@@ -622,7 +552,6 @@
 
       @media (max-width: 1024px) {
         .form-col-8 { grid-column: span 12; }
-        .form-col-6 { grid-column: span 12; }
         .form-col-4 { grid-column: span 6; }
         .form-col-3 { grid-column: span 6; }
       }
@@ -658,12 +587,13 @@
         cursor: pointer !important;
       }
 
-      /* Uniform input/select styling inside forms for perfect height and width alignment */
+      /* Uniform input/select/textarea styling inside forms for perfect height and width alignment */
       .form-grid input[type="text"],
       .form-grid input[type="tel"],
       .form-grid input[type="email"],
       .form-grid input[type="url"],
       .form-grid input[type="date"],
+      .form-grid textarea,
       .form-grid select {
         width: 100% !important;
         max-width: none !important;
@@ -694,29 +624,11 @@
         box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.15) !important;
       }
 
-      /* Allow multi-line textareas (like Title, Description and all expandable text fields) to grow naturally */
-      .form-grid textarea,
-      textarea.auto-expand,
-      textarea {
-        width: 100% !important;
-        max-width: none !important;
-        box-sizing: border-box !important;
-        padding: 0.75rem 1.125rem !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
-        background: var(--bg) !important;
-        color: var(--text) !important;
-        font-family: inherit !important;
-        font-size: 1rem !important;
-        line-height: 1.4 !important;
-        margin: 0 !important;
-        min-height: 48px !important;
-        resize: none !important;
-        overflow-y: hidden !important;
-        white-space: pre-wrap !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-        transition: border-color 0.2s, box-shadow 0.2s;
+      /* Allow multi-line textareas (like Description) but enforce other styles */
+      .form-grid textarea {
+        height: auto !important;
+        min-height: 50px !important;
+        resize: vertical !important;
       }
 
       .form-grid textarea#ev-desc {
@@ -1006,289 +918,272 @@
         class="form-grid"
         style="width: 100%; margin-top: 1rem;"
       >
-        <!-- Top Options Row: Location Region Selector -->
-        <div class="form-col-12" style="margin-bottom: 0.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1.15rem; flex-wrap: wrap; gap: 1rem; box-shadow: 0 1px 3px var(--shadow);">
-            <div>
-              <label style="font-weight: 600; font-size: 0.88rem; color: var(--text); display: block; margin-bottom: 0.35rem;">
-                Select Event Location Region <span style="color: var(--accent);">*</span>
-              </label>
-              <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
-                  <input type="radio" name="ev-region" value="auroville" checked onchange="handleRegionChange('auroville')" />
-                  Auroville & Nearby Area
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
-                  <input type="radio" name="ev-region" value="pondicherry" onchange="handleRegionChange('pondicherry')" />
-                  Pondicherry
-                </label>
-              </div>
-            </div>
-          </div>
+        <!-- Title -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Title *</label
+          >
+          <textarea
+            id="ev-title"
+            required
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
         </div>
 
-        <!-- Banner when Pondicherry selected -->
-        <div class="form-col-12" id="region-pondicherry-banner" style="display: none; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
-          <span style="font-size: 0.9rem; font-weight: 600;">
-            ⛔ Currently we are accepting events only for Auroville and nearby areas.
-          </span>
-          <button type="button" onclick="const r = document.querySelector('input[name=\'ev-region\'][value=\'auroville\']'); if(r){r.checked=true; handleRegionChange('auroville');}" class="btn btn-sm" style="background: #856404; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
-            Switch to Auroville
-          </button>
-        </div>
-
-        <!-- Main Form Body Wrapper -->
-        <div id="single-event-form-body" class="form-grid form-col-12" style="width: 100%; transition: opacity 0.3s ease;">
-          <!-- Title -->
-          <div class="form-col-6">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Title *</label
-            >
-            <textarea
-              id="ev-title"
-              required
-              rows="1"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                resize: vertical;
-                min-height: 38px;
-              "
-            ></textarea>
-          </div>
-
-          <!-- Type -->
-          <div class="form-col-3">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Type of Event *</label
-            >
-            <textarea
+        <!-- Type -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Type of Event *</label
+          >
+          <div class="input-scroll-wrapper">
+            <input
+              type="text"
               id="ev-type"
               required
-              rows="1"
-              placeholder="Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc"
-              class="auto-expand"
+              placeholder=" "
               style="
                 width: 100%;
                 padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                box-sizing: border-box;
-              "
-            ></textarea>
-          </div>
-
-          <!-- Category -->
-          <div class="form-col-3" id="category-container">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 0.2rem;
-              "
-            >
-              <span>Event Category</span>
-              <button
-                type="button"
-                onclick="toggleCategoryCriteriaModal(event)"
-                style="
-                  background: rgba(59, 130, 246, 0.12);
-                  color: var(--accent, #3b82f6);
-                  border: 1px solid var(--border);
-                  border-radius: 50%;
-                  width: 22px;
-                  height: 22px;
-                  font-size: 0.75rem;
-                  font-weight: 700;
-                  cursor: pointer;
-                  display: inline-flex;
-                  align-items: center;
-                  justify-content: center;
-                  padding: 0;
-                  line-height: 1;
-                "
-                title="Click to view Category Selection Criteria & Rules"
-              >ⓘ</button>
-            </label>
-            <select
-              id="ev-category"
-              style="
-                width: 100%;
-                padding: 0.5rem;
+                padding-right: 1.125rem;
                 border: 1px solid var(--border);
                 border-radius: 6px;
                 background: var(--bg);
                 color: var(--text);
                 box-sizing: border-box;
                 height: 38px;
-                cursor: pointer;
               "
-            >
-              <option value="Date-specific Events">Date-specific Events</option>
-              <option value="Weekly Events">Weekly Events</option>
-              <option value="Daily Events">Daily Events</option>
-            </select>
+            />
+            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-type').focus()">
+              Workshop, Dance Performance, Sound Healing, Meditation, Healing Sessions, Yoga etc
+            </div>
           </div>
+        </div>
 
-          <!-- Timing Details (Full Width Container) -->
-          <div
-            class="form-col-12"
+        <!-- Category -->
+        <div class="form-col-3" id="category-container">
+          <label
             style="
-              border: 1px solid var(--border);
-              padding: 1.25rem;
-              border-radius: 8px;
-              background: rgba(0, 0, 0, 0.02);
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 0.2rem;
             "
           >
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+            <span>Event Category</span>
+            <button
+              type="button"
+              onclick="toggleCategoryCriteriaModal(event)"
+              style="
+                background: rgba(59, 130, 246, 0.12);
+                color: var(--accent, #3b82f6);
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0;
+                line-height: 1;
+              "
+              title="Click to view Category Selection Criteria & Rules"
+            >ⓘ</button>
+          </label>
+          <select
+            id="ev-category"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
+              cursor: pointer;
+            "
+          >
+            <option value="Date-specific Events">Date-specific Events</option>
+            <option value="Weekly Events">Weekly Events</option>
+            <option value="Daily Events">Daily Events</option>
+          </select>
+        </div>
+
+        <!-- Timing Details (Full Width Container) -->
+        <div
+          class="form-col-12"
+          style="
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.02);
+          "
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+          </div>
+
+          <div>
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+              "
+              >Event Schedule Type</label
+            >
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+              <label
+                ><input
+                  type="radio"
+                  name="ev-schedule-type"
+                  value="one-time"
+                  checked
+                />
+                Date Specific (One Time)</label
+              >
+              <label
+                ><input type="radio" name="ev-schedule-type" value="recurring" />
+                Recurring</label
+              >
             </div>
 
-            <div>
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  display: block;
-                  margin-bottom: 0.5rem;
-                "
-                >Event Schedule Type</label
-              >
-              <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+            <div
+              id="recurring-container"
+              style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
+            >
+              <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
+
+              <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
                 <label
-                  ><input
-                    type="radio"
-                    name="ev-schedule-type"
-                    value="one-time"
-                    checked
-                  />
-                  Date Specific (One Time)</label
+                  ><input type="checkbox" name="ev-weekdays" value="Mon" />
+                  Mon</label
                 >
                 <label
-                  ><input type="radio" name="ev-schedule-type" value="recurring" />
-                  Recurring</label
+                  ><input type="checkbox" name="ev-weekdays" value="Tue" />
+                  Tue</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Wed" />
+                  Wed</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Thu" />
+                  Thu</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Fri" />
+                  Fri</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sat" />
+                  Sat</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sun" />
+                  Sun</label
                 >
               </div>
 
-              <div
-                id="recurring-container"
-                style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
-              >
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
-
-                <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Mon" />
-                    Mon</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Tue" />
-                    Tue</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Wed" />
-                    Wed</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Thu" />
-                    Thu</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Fri" />
-                    Fri</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Sat" />
-                    Sat</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Sun" />
-                    Sun</label
-                  >
-                </div>
-
-                <div style="margin-top: 0.5rem;">
-                  <button
-                    type="button"
-                    id="toggle-recurring-date-btn"
-                    style="
-                      font-size: 0.8rem;
-                      padding: 0.35rem 0.75rem;
-                      border: 1px dashed var(--border);
-                      border-radius: 6px;
-                      background: var(--card-bg, #fff);
-                      color: var(--primary, #3b82f6);
-                      cursor: pointer;
-                      display: inline-flex;
-                      align-items: center;
-                      gap: 0.4rem;
-                      font-weight: 500;
-                    "
-                  >
-                    📅 + Add Date Range / Specific Dates (Optional)
-                  </button>
-                </div>
+              <div style="margin-top: 0.5rem;">
+                <button
+                  type="button"
+                  id="toggle-recurring-date-btn"
+                  style="
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.75rem;
+                    border: 1px dashed var(--border);
+                    border-radius: 6px;
+                    background: var(--card-bg, #fff);
+                    color: var(--primary, #3b82f6);
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-weight: 500;
+                  "
+                >
+                  📅 + Add Date Range / Specific Dates (Optional)
+                </button>
               </div>
+            </div>
 
-              <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-                    <label style="font-size: 0.85rem; font-weight: 500;">Start Date</label>
-                    <button type="button" onclick="clearDateField('ev-start-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
-                  </div>
-                  <input
-                    type="date"
-                    id="ev-start-date"
-                    style="
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid var(--border);
-                      border-radius: 6px;
-                      background: var(--bg);
-                      color: var(--text);
-                    "
-                  />
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-                    <label style="font-size: 0.85rem; font-weight: 500;">End Date</label>
-                    <button type="button" onclick="clearDateField('ev-end-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
-                  </div>
-                  <input
-                    type="date"
-                    id="ev-end-date"
-                    style="
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid var(--border);
-                      border-radius: 6px;
-                      background: var(--bg);
-                      color: var(--text);
-                    "
-                  />
-                </div>
+            <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem;">
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >Start Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-start-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
               </div>
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >End Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-end-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
+            </div>
 
             <div style="margin-top: 1.5rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -1352,11 +1247,10 @@
 
               <div id="custom-time-container" style="display: none; flex-direction: column; gap: 0.2rem;">
                 <label style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Custom Time(s) Text</label>
-                <textarea
+                <input
+                  type="text"
                   id="ev-custom-time"
-                  rows="1"
                   placeholder="e.g. 10:00am - 02:00pm OR Flexible"
-                  class="auto-expand"
                   style="
                     width: 100%;
                     padding: 0.5rem;
@@ -1365,7 +1259,7 @@
                     background: var(--bg);
                     color: var(--text);
                   "
-                ></textarea>
+                />
               </div>
             </div>
           </div>
@@ -1399,8 +1293,8 @@
           ></textarea>
         </div>
 
-        <!-- Description -->
-        <div class="form-col-12">
+        <!-- Contribution -->
+        <div class="form-col-3">
           <label
             style="
               font-size: 0.85rem;
@@ -1408,12 +1302,12 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Description *</label
+            >Contribution</label
           >
           <textarea
-            id="ev-desc"
-            required
-            rows="4"
+            id="ev-cost"
+            placeholder="e.g. ₹500, Donation or Free"
+            rows="1"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1421,8 +1315,44 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
+              resize: vertical;
+              min-height: 38px;
             "
           ></textarea>
+        </div>
+
+        <!-- Key Info -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Key Info</label
+          >
+          <div class="input-scroll-wrapper">
+            <input
+              type="text"
+              id="ev-audience"
+              placeholder=" "
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                padding-right: 1.125rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+                height: 38px;
+              "
+            />
+            <div class="scrollable-placeholder-overlay" onclick="document.getElementById('ev-audience').focus()">
+              Open To All, Registration, Drop In, Beginner, Target Audience, Prerequisites etc
+            </div>
+          </div>
         </div>
 
         <!-- Contact Person -->
@@ -1436,11 +1366,9 @@
             "
             >Contact Person / Unit</label
           >
-          <textarea
+          <input
+            type="text"
             id="ev-contact-person"
-            rows="1"
-            placeholder="Person / Unit name..."
-            class="auto-expand"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1448,9 +1376,60 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
+              height: 38px;
               box-sizing: border-box;
             "
-          ></textarea>
+          />
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contact Phone</label
+          >
+          <div style="display: flex; gap: 0.5rem">
+            <input
+              id="ev-contact-code"
+              type="text"
+              list="submit-country-codes-list"
+              value="+91"
+              placeholder="+91"
+              style="
+                width: 4rem !important;
+                flex: none !important;
+                padding: 0.5rem 0.25rem !important;
+                text-align: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 0.85rem;
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+            <input
+              type="tel"
+              id="ev-contact"
+              style="
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+          </div>
         </div>
 
         <!-- WhatsApp -->
@@ -1501,56 +1480,6 @@
             <input
               type="tel"
               id="ev-whatsapp"
-              style="
-                flex: 1 !important;
-                min-width: 0 !important;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-          </div>
-        </div>
-
-        <!-- Contact Phone -->
-        <div class="form-col-6">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Contact Phone</label
-          >
-          <div style="display: flex; gap: 0.5rem">
-            <input
-              id="ev-contact-code"
-              type="text"
-              list="submit-country-codes-list"
-              value="+91"
-              placeholder="+91"
-              style="
-                width: 4rem !important;
-                flex: none !important;
-                padding: 0.5rem 0.25rem !important;
-                text-align: center;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                font-size: 0.85rem;
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-            <input
-              type="tel"
-              id="ev-contact"
               style="
                 flex: 1 !important;
                 min-width: 0 !important;
@@ -1640,62 +1569,6 @@
           </button>
         </div>
 
-        <!-- Contribution -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Contribution</label
-          >
-          <textarea
-            id="ev-cost"
-            placeholder="e.g. ₹500, Donation or Free"
-            rows="1"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              resize: vertical;
-              min-height: 38px;
-            "
-          ></textarea>
-        </div>
-
-        <!-- Key Info -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Key Info</label
-          >
-          <textarea
-            id="ev-audience"
-            rows="1"
-            placeholder="Open To All, Registration, Drop In, Beginner, Target Audience, Prerequisites etc"
-            class="auto-expand"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              box-sizing: border-box;
-            "
-          ></textarea>
-        </div>
-
         <!-- Media -->
         <div class="form-col-6">
           <label
@@ -1751,18 +1624,39 @@
         <!-- Hidden Source Filename for seamless backwards compatibility -->
         <input type="hidden" id="ev-excel-filename" value="Single Form Submission" />
 
-        </div><!-- End of single-event-form-body -->
+        <!-- Description -->
+        <div class="form-col-12">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Description *</label
+          >
+          <textarea
+            id="ev-desc"
+            required
+            rows="4"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+            "
+          ></textarea>
+        </div>
 
         <!-- Actions -->
-        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem; flex-wrap: wrap;">
-          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 2; min-width: 160px; max-width: none;">
+        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; max-width: none;">
             Submit Event
           </button>
-          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; min-width: 120px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
             Cancel Edit
-          </button>
-          <button type="button" onclick="confirmAndClearAllFormData()" class="btn" style="flex: 1; min-width: 130px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);" title="Clear all fields and reset form draft">
-            🗑️ Clear Form Data
           </button>
         </div>
         <div id="single-event-status" class="form-col-12"></div>
@@ -1902,7 +1796,6 @@
         <button class="tab-btn" id="btn-tab-all-events">All DB Events (Admin)</button>
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
         <button class="tab-btn" id="btn-tab-preset-prompts">Preset Prompts (Admin)</button>
-        <button class="tab-btn" id="btn-tab-blocked-users">Blocked Users (Admin)</button>
       </div>
 
       <!-- Tab 1: My Submitted Events -->
@@ -2233,58 +2126,9 @@
           </table>
         </div>
       </div>
-
-      <!-- Tab 5: Blocked Users (Admin Only) -->
-      <div class="tab-content" id="tab-blocked-users">
-        <h3>🚫 Blocked Users Management</h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
-          Prevent specific user email addresses from submitting events or uploading spreadsheets.
-        </p>
-
-        <!-- Form to Block User -->
-        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
-          <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text);">Block a User</h4>
-          <form id="block-user-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; width: 100%;">
-              <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
-                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">User Email Address *</label>
-                <input type="email" id="input-block-email" required placeholder="user@example.com" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-              </div>
-              <div style="flex: 2; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
-                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Reason for Blocking (Optional)</label>
-                <input type="text" id="input-block-reason" placeholder="e.g., Submitting invalid / spam events" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-              </div>
-            </div>
-            <button class="btn btn-danger" id="btn-block-user" style="align-self: flex-start; padding: 0.5rem 1.25rem; font-size: 0.85rem; margin-top: 0.5rem; background: #d32f2f; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
-              🚫 Block User
-            </button>
-          </form>
-        </div>
-
-        <!-- Blocked Users Table -->
-        <div id="blocked-users-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
-        <div class="table-wrapper" id="blocked-users-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Email Address</th>
-                <th>Blocked Date</th>
-                <th>Blocked By</th>
-                <th>Reason</th>
-                <th style="width: 120px;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="blocked-users-tbody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <script type="module">
-      var categoryManuallySet = false;
-      window.categoryManuallySet = categoryManuallySet;
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
       import {
         getAuth,
@@ -2385,14 +2229,15 @@
 
       const linksContainer = document.getElementById("links-container");
       document.getElementById("add-link-btn").addEventListener("click", () => {
-        const inputs = linksContainer.querySelectorAll("input, textarea");
+        const inputs = linksContainer.querySelectorAll("input");
         if (inputs.length < 5) {
-          const newLink = document.createElement("textarea");
-          newLink.rows = 1;
-          newLink.className = "ev-link auto-expand";
+          const newLink = document.createElement("input");
+          newLink.type = "text";
+          newLink.className = "ev-link";
           newLink.placeholder = "e.g. google.com or https://google.com";
+          newLink.style.cssText =
+            "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(newLink);
-          if (typeof initAutoExpandFields === "function") initAutoExpandFields();
         } else {
           alert("Maximum 5 links allowed.");
         }
@@ -2430,21 +2275,11 @@
       const btnTabAllEvents = document.getElementById("btn-tab-all-events");
       const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
       const btnTabPresetPrompts = document.getElementById("btn-tab-preset-prompts");
-      const btnTabBlockedUsers = document.getElementById("btn-tab-blocked-users");
 
       const tabMyEvents = document.getElementById("tab-my-events");
       const tabAllEvents = document.getElementById("tab-all-events");
       const tabAllKnowledge = document.getElementById("tab-all-knowledge");
       const tabPresetPrompts = document.getElementById("tab-preset-prompts");
-      const tabBlockedUsers = document.getElementById("tab-blocked-users");
-
-      const blockedUsersLoading = document.getElementById("blocked-users-loading");
-      const blockedUsersTableWrapper = document.getElementById("blocked-users-table-wrapper");
-      const blockedUsersTbody = document.getElementById("blocked-users-tbody");
-      const formBlockUser = document.getElementById("block-user-form");
-      const inputBlockEmail = document.getElementById("input-block-email");
-      const inputBlockReason = document.getElementById("input-block-reason");
-      const btnBlockUser = document.getElementById("btn-block-user");
 
       const myEventsLoading = document.getElementById("my-events-loading");
       const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
@@ -2862,41 +2697,6 @@
         return `${hStr}:${mStr}`;
       }
 
-      function autoExpandTextarea(el) {
-        if (!el) return;
-        el.style.setProperty('white-space', 'pre-wrap', 'important');
-        el.style.setProperty('overflow-wrap', 'break-word', 'important');
-        el.style.setProperty('word-break', 'break-word', 'important');
-        el.style.setProperty('overflow-y', 'hidden', 'important');
-        el.style.setProperty('resize', 'none', 'important');
-
-        // Reset inline height to 'auto' to allow scrollHeight to measure natural text dimensions
-        el.style.setProperty('height', 'auto', 'important');
-        const minH = el.id === 'ev-desc' ? 120 : 48;
-        const newHeight = Math.max(minH, el.scrollHeight);
-        el.style.setProperty('height', newHeight + 'px', 'important');
-      }
-
-      function initAutoExpandFields() {
-        const selector = 'textarea, textarea.auto-expand, .auto-expand, .form-grid textarea, #ev-title, #ev-type, #ev-venue, #ev-cost, #ev-audience, #ev-contact-person, #ev-custom-time, #ev-desc, .ev-link';
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => {
-          autoExpandTextarea(el);
-          if (!el.dataset.autoExpandBound) {
-            el.dataset.autoExpandBound = 'true';
-            ['input', 'change', 'keyup', 'focus', 'paste', 'blur'].forEach(evtName => {
-              el.addEventListener(evtName, () => {
-                autoExpandTextarea(el);
-              });
-            });
-          }
-        });
-      }
-      window.initAutoExpandFields = initAutoExpandFields;
-      document.addEventListener('DOMContentLoaded', () => {
-        initAutoExpandFields();
-      });
-
       function toggleCustomTime(checked) {
         const stdTime = document.getElementById("standard-time-container");
         const customTimeSelection = document.getElementById("custom-time-container");
@@ -2907,7 +2707,6 @@
           if (stdTime) stdTime.style.display = "flex";
           if (customTimeSelection) customTimeSelection.style.display = "none";
         }
-        initAutoExpandFields();
       }
       window.toggleCustomTime = toggleCustomTime;
 
@@ -3075,18 +2874,20 @@
 
         if (websiteLinksArray.length > 0) {
           websiteLinksArray.forEach((link) => {
-            const input = document.createElement("textarea");
-            input.rows = 1;
-            input.className = "ev-link auto-expand";
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "ev-link";
             input.placeholder = "e.g. google.com or https://google.com";
             input.value = link;
+            input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
             linksContainer.appendChild(input);
           });
         } else {
-          const input = document.createElement("textarea");
-          input.rows = 1;
-          input.className = "ev-link auto-expand";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "ev-link";
           input.placeholder = "e.g. google.com or https://google.com";
+          input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(input);
         }
         
@@ -3130,33 +2931,7 @@
         if (document.getElementById("ev-custom-time")) {
           document.getElementById("ev-custom-time").value = ev.times || "";
         }
-
-        if (typeof initAutoExpandFields === "function") {
-          initAutoExpandFields();
-          setTimeout(initAutoExpandFields, 100);
-        }
-
-        // Region handling for edit mode
-        let eventRegion = ev.region || "auroville";
-        if (!ev.region && ev.venue) {
-          const venueLower = ev.venue.toLowerCase();
-          if (venueLower.includes("pondicherry") || venueLower.includes("pondy") || venueLower.includes("puducherry")) {
-            eventRegion = "pondicherry";
-          }
-        }
-        const regionRadio = document.querySelector(`input[name="ev-region"][value="${eventRegion}"]`);
-        if (regionRadio) {
-          regionRadio.checked = true;
-          if (typeof handleRegionChange === "function") {
-            handleRegionChange(eventRegion);
-          }
-        }
         
-        // Save form draft immediately so edit state persists on refresh
-        if (typeof saveFormAutosave === "function") {
-          saveFormAutosave();
-        }
-
         // Scroll to form section
         const submissionSection = document.getElementById("single-event-form");
         if (submissionSection) {
@@ -3219,28 +2994,9 @@
         document.getElementById("one-time-container").style.display = "flex";
         document.getElementById("recurring-container").style.display = "none";
         document.getElementById("links-container").innerHTML =
-          '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-        if (typeof initAutoExpandFields === "function") initAutoExpandFields();
+          '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
-          
-        // Reset region selector to Auroville
-        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-        if (aurovilleRadio) {
-          aurovilleRadio.checked = true;
-          if (typeof handleRegionChange === "function") handleRegionChange('auroville');
-        }
-
-        // Reset custom time
-        const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-        if (customTimeToggle) {
-          customTimeToggle.checked = false;
-          if (typeof toggleCustomTime === "function") toggleCustomTime(false);
-        }
-
-        if (window.clearFormAutosave) {
-          window.clearFormAutosave();
-        }
       }
 
       // Bind Cancel Edit Button
@@ -3301,14 +3057,12 @@
         btnTabAllEvents.classList.toggle("active", activeTabId === "all-events");
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         btnTabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
-        if (btnTabBlockedUsers) btnTabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
 
         // Tab contents
         tabMyEvents.classList.toggle("active", activeTabId === "my-events");
         tabAllEvents.classList.toggle("active", activeTabId === "all-events");
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         tabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
-        if (tabBlockedUsers) tabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
 
         if (activeTabId === "all-events") {
           loadAllDatabaseEvents();
@@ -3316,8 +3070,6 @@
           loadAllKnowledgeDocs();
         } else if (activeTabId === "preset-prompts") {
           loadPresetPrompts();
-        } else if (activeTabId === "blocked-users") {
-          loadBlockedUsers();
         } else {
           loadMyEvents();
         }
@@ -3327,7 +3079,6 @@
       btnTabAllEvents.onclick = () => switchTab("all-events");
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
       btnTabPresetPrompts.onclick = () => switchTab("preset-prompts");
-      if (btnTabBlockedUsers) btnTabBlockedUsers.onclick = () => switchTab("blocked-users");
 
       // Load My Submitted Events
       async function loadMyEvents() {
@@ -4418,153 +4169,6 @@
         };
       }
 
-      // Blocked Users Management Logic
-      async function loadBlockedUsers() {
-        const currentUser = getCurrentUser();
-        if (!currentUser || !blockedUsersLoading) return;
-        blockedUsersLoading.style.display = "block";
-        blockedUsersTableWrapper.style.display = "none";
-        blockedUsersTbody.innerHTML = "";
-
-        try {
-          const token = await currentUser.getIdToken();
-          const res = await fetch(`/api/admin/blocked_users?token=${encodeURIComponent(token)}`);
-          const data = await res.json();
-
-          blockedUsersLoading.style.display = "none";
-          blockedUsersTableWrapper.style.display = "block";
-
-          if (!data.success || !data.blockedUsers || data.blockedUsers.length === 0) {
-            blockedUsersTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: var(--text-secondary);">No blocked users found.</td></tr>`;
-            return;
-          }
-
-          data.blockedUsers.forEach((bu) => {
-            const tr = document.createElement("tr");
-            const blockedAtStr = bu.blockedAt ? new Date(bu.blockedAt).toLocaleString() : "N/A";
-            tr.innerHTML = `
-              <td style="font-weight: 600; color: var(--text);">${bu.email || bu.id}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${blockedAtStr}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.blockedBy || "Admin"}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.reason || "N/A"}</td>
-              <td>
-                <button class="btn btn-secondary btn-unblock-user" data-email="${bu.email || bu.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
-              </td>
-            `;
-            blockedUsersTbody.appendChild(tr);
-          });
-
-          document.querySelectorAll(".btn-unblock-user").forEach((btn) => {
-            btn.onclick = async (e) => {
-              const email = e.target.getAttribute("data-email");
-              if (confirm(`Are you sure you want to unblock "${email}"? They will be able to submit events again.`)) {
-                const token = await currentUser.getIdToken();
-                const unblockRes = await fetch(`/api/admin/blocked_users/${encodeURIComponent(email)}?token=${encodeURIComponent(token)}`, {
-                  method: "DELETE"
-                });
-                const unblockData = await unblockRes.json();
-                if (unblockData.success) {
-                  alert(`Successfully unblocked ${email}.`);
-                  loadBlockedUsers();
-                  checkCurrentUserBlockedStatus();
-                } else {
-                  alert(`Error: ${unblockData.error || "Failed to unblock"}`);
-                }
-              }
-            };
-          });
-        } catch (err) {
-          console.error("Failed to load blocked users:", err);
-          if (blockedUsersLoading) blockedUsersLoading.innerHTML = `<span style="color:var(--danger);">Error loading blocked users.</span>`;
-        }
-      }
-      window.loadBlockedUsers = loadBlockedUsers;
-
-      if (formBlockUser) {
-        formBlockUser.onsubmit = async (e) => {
-          e.preventDefault();
-          const currentUser = getCurrentUser();
-          if (!currentUser) return;
-          const emailToBlock = inputBlockEmail.value.trim();
-          const reason = inputBlockReason.value.trim();
-          if (!emailToBlock) return;
-
-          btnBlockUser.disabled = true;
-          btnBlockUser.innerText = "Blocking...";
-
-          try {
-            const token = await currentUser.getIdToken();
-            const res = await fetch("/api/admin/blocked_users", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token, emailToBlock, reason })
-            });
-            const data = await res.json();
-            if (data.success) {
-              alert(`Successfully blocked ${emailToBlock}`);
-              inputBlockEmail.value = "";
-              inputBlockReason.value = "";
-              loadBlockedUsers();
-              checkCurrentUserBlockedStatus();
-            } else {
-              alert(`Error: ${data.error || "Failed to block user"}`);
-            }
-          } catch (err) {
-            alert(`Error: ${err.message}`);
-          } finally {
-            btnBlockUser.disabled = false;
-            btnBlockUser.innerText = "🚫 Block User";
-          }
-        };
-      }
-
-      async function checkCurrentUserBlockedStatus() {
-        const currentUser = getCurrentUser();
-        const banner = document.getElementById("user-blocked-banner");
-        const singleSubmitBtn = document.getElementById("btn-single-submit");
-
-        if (!currentUser) {
-          if (banner) banner.style.display = "none";
-          return false;
-        }
-
-        try {
-          const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(currentUser.email)}`);
-          const data = await res.json();
-          if (data.isBlocked) {
-            if (!banner) {
-              const formContainer = document.querySelector(".form-container") || document.getElementById("single-event-section");
-              if (formContainer) {
-                const div = document.createElement("div");
-                div.id = "user-blocked-banner";
-                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
-                div.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${currentUser.email}) has been blocked by an administrator from submitting events or uploading spreadsheets.</span>`;
-                formContainer.insertBefore(div, formContainer.firstChild);
-              }
-            } else {
-              banner.style.display = "flex";
-            }
-
-            if (singleSubmitBtn) {
-              singleSubmitBtn.disabled = true;
-              singleSubmitBtn.innerText = "🚫 Submissions Disabled (Account Blocked)";
-            }
-            return true;
-          } else {
-            if (banner) banner.style.display = "none";
-            if (singleSubmitBtn) {
-              singleSubmitBtn.disabled = false;
-              singleSubmitBtn.innerText = "Submit Event";
-            }
-            return false;
-          }
-        } catch (err) {
-          console.error("Check blocked status error:", err);
-          return false;
-        }
-      }
-      window.checkCurrentUserBlockedStatus = checkCurrentUserBlockedStatus;
-
       // Main reload trigger for everything
       window.loadDashboard = function() {
         if (!getCurrentUser()) return;
@@ -4670,9 +4274,8 @@
             
             // Setup User Dashboard
             dashboardIsAdmin = false;
-            dashboardRoleBadge.innerHTML = "";
-            dashboardRoleBadge.className = "";
-            dashboardRoleBadge.style.display = "none";
+            dashboardRoleBadge.innerHTML = "User Mode";
+            dashboardRoleBadge.className = "badge badge-user";
             dashboardTabsRow.style.display = "none";
             if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
@@ -4681,9 +4284,6 @@
           if (categorySelect) {
             categorySelect.disabled = !dashboardIsAdmin;
           }
-
-          // Check if current user is blocked
-          checkCurrentUserBlockedStatus();
 
           // Automatically default to my-events view
           switchTab("my-events");
@@ -4849,58 +4449,6 @@
             endSelect.appendChild(optEnd);
           }
         }
-
-        let startTemp = false;
-        let endTemp = false;
-
-        // Set scroll focusing on mousedown/focus for start time
-        startSelect.addEventListener("mousedown", () => {
-          if (!startSelect.value) {
-            startSelect.value = "07:00";
-            startTemp = true;
-          }
-        });
-        startSelect.addEventListener("change", () => {
-          startTemp = false;
-        });
-        startSelect.addEventListener("blur", () => {
-          if (startTemp) {
-            startSelect.value = "";
-            startTemp = false;
-          }
-        });
-        startSelect.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && startTemp) {
-            startSelect.value = "";
-            startTemp = false;
-            startSelect.blur();
-          }
-        });
-
-        // Set scroll focusing on mousedown/focus for end time
-        endSelect.addEventListener("mousedown", () => {
-          if (!endSelect.value) {
-            const startVal = startSelect.value;
-            endSelect.value = startVal || "08:00";
-            endTemp = true;
-          }
-        });
-        endSelect.addEventListener("change", () => {
-          endTemp = false;
-        });
-        endSelect.addEventListener("blur", () => {
-          if (endTemp) {
-            endSelect.value = "";
-            endTemp = false;
-          }
-        });
-        endSelect.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && endTemp) {
-            endSelect.value = "";
-            endTemp = false;
-            endSelect.blur();
-          }
-        });
       }
 
       function formatToAMPM(hhmm) {
@@ -4975,164 +4523,14 @@
         } catch (e) {}
       }
 
-      // Date field clearing helper
-      window.clearDateField = function(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) {
-          el.value = "";
-          el.removeAttribute("min");
-          el.dispatchEvent(new Event("change", { bubbles: true }));
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-        if (elementId === "ev-start-date") {
-          const endEl = document.getElementById("ev-end-date");
-          if (endEl) endEl.removeAttribute("min");
-        }
-        if (typeof saveFormAutosave === "function") saveFormAutosave();
-      };
-
-      // Location Region selection handling & Pondicherry modal alert
-      window.handleRegionChange = function(region) {
-        const banner = document.getElementById("region-pondicherry-banner");
-        const formBody = document.getElementById("single-event-form-body");
-        const submitBtn = document.getElementById("submit-event-btn");
-
-        if (region === "pondicherry") {
-          if (banner) banner.style.display = "flex";
-          if (formBody) {
-            formBody.style.opacity = "0.35";
-            formBody.style.pointerEvents = "none";
-          }
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = "0.5";
-            submitBtn.style.cursor = "not-allowed";
-          }
-          showPondicherryModal();
-        } else {
-          if (banner) banner.style.display = "none";
-          if (formBody) {
-            formBody.style.opacity = "1";
-            formBody.style.pointerEvents = "auto";
-          }
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
-            submitBtn.style.cursor = "pointer";
-          }
-        }
-        if (typeof saveFormAutosave === "function") saveFormAutosave();
-      };
-
-      window.showPondicherryModal = function() {
-        let modal = document.getElementById("pondicherry-alert-modal");
-        if (!modal) {
-          modal = document.createElement("div");
-          modal.id = "pondicherry-alert-modal";
-          modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 9999999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            box-sizing: border-box;
-          `;
-          modal.innerHTML = `
-            <div style="background: var(--surface, #fff); color: var(--text, #111); border: 1px solid var(--border, #ccc); border-radius: 12px; padding: 1.75rem; max-width: 440px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🏡</div>
-              <h3 style="margin: 0 0 0.75rem 0; font-size: 1.2rem; font-weight: 700; color: var(--text);">Auroville & Nearby Events Only</h3>
-              <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary, #555); margin-bottom: 1.5rem;">
-                Currently we are accepting events <strong>only for Auroville and nearby areas</strong>.
-              </p>
-              <button type="button" onclick="closePondicherryModalAndReset()" class="btn btn-primary" style="width: 100%; max-width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 0.65rem 1rem; font-size: 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                Got it, Switch to Auroville
-              </button>
-            </div>
-          `;
-          document.body.appendChild(modal);
-        } else {
-          modal.style.display = "flex";
-        }
-      };
-
-      window.closePondicherryModalAndReset = function() {
-        const modal = document.getElementById("pondicherry-alert-modal");
-        if (modal) modal.style.display = "none";
-        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-        if (aurovilleRadio) {
-          aurovilleRadio.checked = true;
-          handleRegionChange('auroville');
-        }
-      };
-
-      // Confirm and Clear All Form Data
-      window.confirmAndClearAllFormData = function() {
-        if (confirm("Are you sure you want to clear all entered form data and reset the draft?")) {
-          // Exit edit mode if in edit mode
-          if (typeof exitEditMode === "function") {
-            exitEditMode();
-          } else {
-            const singleEventForm = document.getElementById("single-event-form");
-            if (singleEventForm) singleEventForm.reset();
-            
-            const submitBtn = document.getElementById("submit-event-btn");
-            if (submitBtn) submitBtn.textContent = "Submit Event";
-            
-            const cancelBtn = document.getElementById("cancel-edit-btn");
-            if (cancelBtn) cancelBtn.style.display = "none";
-            
-            const linksContainer = document.getElementById("links-container");
-            if (linksContainer) {
-              linksContainer.innerHTML = '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-            }
-            const mediaContainer = document.getElementById("media-container");
-            if (mediaContainer) {
-              mediaContainer.innerHTML = '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
-            }
-            editingEventId = null;
-            existingMediaUrls = [];
-          }
-          
-          // Reset region selector to Auroville
-          const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-          if (aurovilleRadio) {
-            aurovilleRadio.checked = true;
-            handleRegionChange('auroville');
-          }
-
-          // Reset custom time toggle
-          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-          if (customTimeToggle) {
-            customTimeToggle.checked = false;
-            if (typeof toggleCustomTime === "function") toggleCustomTime(false);
-          }
-          
-          // Clear autosave storage
-          clearFormAutosave();
-
-          // Show quick status toast/alert
-          const statusEl = document.getElementById("single-event-status");
-          if (statusEl) {
-            statusEl.innerHTML = `<span style="color: var(--accent); font-weight: 500; font-size: 0.85rem;">✨ Form data cleared.</span>`;
-            setTimeout(() => { statusEl.innerHTML = ""; }, 3000);
-          }
-        }
-      };
-
       // Autosave/Persistence logic for form in submit.html
       const AUTOSAVE_KEY = "auroconnect_submit_form_autosave";
 
       window.saveFormAutosave = function() {
         try {
-          const regionInput = document.querySelector('input[name="ev-region"]:checked');
+          // Do not save if we are in editing mode (to avoid overwriting raw unsaved work with a different event's edit info)
+          if (typeof editingEventId !== "undefined" && editingEventId) return;
+
           const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
           const checkedWeekdays = Array.from(
             document.querySelectorAll('input[name="ev-weekdays"]:checked')
@@ -5141,22 +4539,13 @@
           const linkInputs = document.querySelectorAll(".ev-link");
           const links = Array.from(linkInputs).map((inp) => inp.value);
 
-          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-
           const data = {
-            editingEventId: (typeof editingEventId !== "undefined") ? editingEventId : null,
-            existingMediaUrls: (typeof existingMediaUrls !== "undefined") ? existingMediaUrls : [],
-            region: regionInput ? regionInput.value : "auroville",
             title: document.getElementById("ev-title")?.value || "",
             type: document.getElementById("ev-type")?.value || "",
-            category: document.getElementById("ev-category")?.value || "",
-            categoryManuallySet: (typeof categoryManuallySet !== "undefined") ? categoryManuallySet : false,
             scheduleType: scheduleTypeInput ? scheduleTypeInput.value : "one-time",
             startDate: document.getElementById("ev-start-date")?.value || "",
             endDate: document.getElementById("ev-end-date")?.value || "",
             weekdays: checkedWeekdays,
-            isCustomTime: customTimeToggle ? customTimeToggle.checked : false,
-            customTimeStr: document.getElementById("ev-custom-time")?.value || "",
             startTime: document.getElementById("ev-start-time")?.value || "",
             endTime: document.getElementById("ev-end-time")?.value || "",
             venue: document.getElementById("ev-venue")?.value || "",
@@ -5169,9 +4558,7 @@
             whatsapp: document.getElementById("ev-whatsapp")?.value || "",
             email: document.getElementById("ev-email")?.value || "",
             desc: document.getElementById("ev-desc")?.value || "",
-            excelFilename: document.getElementById("ev-excel-filename")?.value || "",
-            links: links,
-            timestamp: Date.now()
+            links: links
           };
 
           safeSetItem(AUTOSAVE_KEY, JSON.stringify(data));
@@ -5186,42 +4573,9 @@
           if (!saved) return;
           const data = JSON.parse(saved);
 
-          // Restore region
-          if (data.region) {
-            const regionRadio = document.querySelector(`input[name="ev-region"][value="${data.region}"]`);
-            if (regionRadio) {
-              regionRadio.checked = true;
-              handleRegionChange(data.region);
-            }
-          }
-
-          // Restore editing state variables if present
-          if (data.editingEventId) {
-            editingEventId = data.editingEventId;
-            existingMediaUrls = data.existingMediaUrls || [];
-            
-            // Re-render UI elements for Edit Mode
-            const submitBtn = document.getElementById("submit-event-btn");
-            if (submitBtn) submitBtn.textContent = "Update Event";
-            const cancelBtn = document.getElementById("cancel-edit-btn");
-            if (cancelBtn) cancelBtn.style.display = "block";
-            
-            // Render existing media list if there are media URLs
-            if (existingMediaUrls.length > 0) {
-              const extMediaContainer = document.getElementById("editing-existing-media");
-              if (extMediaContainer) extMediaContainer.style.display = "flex";
-              if (typeof renderExistingMediaList === "function") {
-                renderExistingMediaList();
-              }
-            }
-          }
-
           if (data.title && document.getElementById("ev-title")) document.getElementById("ev-title").value = data.title;
           if (data.type && document.getElementById("ev-type")) document.getElementById("ev-type").value = data.type;
-          if (data.category && document.getElementById("ev-category")) document.getElementById("ev-category").value = data.category;
-          if (typeof data.categoryManuallySet !== "undefined") categoryManuallySet = data.categoryManuallySet;
-          if (data.excelFilename && document.getElementById("ev-excel-filename")) document.getElementById("ev-excel-filename").value = data.excelFilename;
-
+          
           if (data.scheduleType) {
             const radio = document.querySelector(`input[name="ev-schedule-type"][value="${data.scheduleType}"]`);
             if (radio) {
@@ -5249,16 +4603,6 @@
             });
           }
 
-          // Custom time toggle
-          if (typeof data.isCustomTime !== "undefined") {
-            const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-            if (customTimeToggle) {
-              customTimeToggle.checked = data.isCustomTime;
-              if (typeof toggleCustomTime === "function") toggleCustomTime(data.isCustomTime);
-            }
-          }
-          if (data.customTimeStr && document.getElementById("ev-custom-time")) document.getElementById("ev-custom-time").value = data.customTimeStr;
-
           if (data.startTime && document.getElementById("ev-start-time")) document.getElementById("ev-start-time").value = data.startTime;
           if (data.endTime && document.getElementById("ev-end-time")) document.getElementById("ev-end-time").value = data.endTime;
           if (data.venue && document.getElementById("ev-venue")) document.getElementById("ev-venue").value = data.venue;
@@ -5277,18 +4621,15 @@
             if (linksContainer) {
               linksContainer.innerHTML = "";
               data.links.forEach((linkVal) => {
-                const input = document.createElement("textarea");
-                input.rows = 1;
-                input.className = "ev-link auto-expand";
+                const input = document.createElement("input");
+                input.type = "text";
+                input.className = "ev-link";
                 input.placeholder = "e.g. google.com or https://google.com";
                 input.value = linkVal;
+                input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); height: 38px; box-sizing: border-box;";
                 linksContainer.appendChild(input);
               });
             }
-          }
-          
-          if (typeof initAutoExpandFields === "function") {
-            initAutoExpandFields();
           }
         } catch (e) {
           console.error("Autosave load error:", e);
@@ -5302,15 +4643,6 @@
           console.error("Autosave clear error:", e);
         }
       };
-
-      // Unload & Disconnect listeners to guarantee autosave on page close / refresh
-      window.addEventListener("beforeunload", saveFormAutosave);
-      window.addEventListener("pagehide", saveFormAutosave);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") {
-          saveFormAutosave();
-        }
-      });
 
       // Initialize dropdowns
       populateTimeDropdowns();
@@ -5341,6 +4673,8 @@
           }
         });
       }
+
+      let categoryManuallySet = false;
 
       function calculateDaysInRange(startDateStr, endDateStr) {
         if (!startDateStr) return "";
@@ -5896,15 +5230,6 @@
             return;
           }
 
-          // Check if user is blocked before accepting submission
-          if (typeof window.checkCurrentUserBlockedStatus === "function") {
-            const isBlocked = await window.checkCurrentUserBlockedStatus();
-            if (isBlocked) {
-              singleEventStatus.innerHTML = `❌ <span style="color:red; font-weight:600;">Submission blocked: Your account (${currentUser.email}) has been blocked by an administrator from submitting events.</span>`;
-              return;
-            }
-          }
-
           // Validate Dates first
           const startDtVal = document.getElementById("ev-start-date").value;
           const endDtVal = document.getElementById("ev-end-date").value;
@@ -6294,8 +5619,7 @@
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
               document.getElementById("links-container").innerHTML =
-                '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-              if (typeof initAutoExpandFields === "function") initAutoExpandFields();
+                '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
               document.getElementById("media-container").innerHTML =
                 '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
             }

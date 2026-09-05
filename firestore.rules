@@ -19,27 +19,16 @@ service cloud.firestore {
       );
     }
 
-    // Check if the user has been blocked from submission
-    function isBlocked() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/blocked_users/$(request.auth.token.email.lower()));
-    }
-
     // 2. COLLECTION RULES
 
     // Admins Collection
     match /admins/{adminId} {
-      // Users can only check their own administrator document status.
-      // Listing the entire collection is strictly restricted to administrators.
-      allow get: if isAuthenticated() && request.auth.token.email.lower() == adminId.lower();
+      // Anyone can check if a single admin document exists (allows server-side validation),
+      // but listing the entire collection is restricted to admins.
+      allow get: if true;
       allow list: if isAdmin();
       // Only existing administrators can add, update, or delete administrator documents
       allow write: if isAdmin();
-    }
-
-    // Blocked Users Collection
-    match /blocked_users/{userEmail} {
-      // Only administrators can manage or view the blocked users list
-      allow read, write: if isAdmin();
     }
 
     // Events Collection (Specific to this project)
@@ -47,10 +36,8 @@ service cloud.firestore {
       // Anyone (public visitors) can read/browse events
       allow read: if true;
 
-      // Logged-in users can submit an event, but they must sign it with their own email address,
-      // and they MUST NOT be blocked from submission.
+      // Logged-in users can submit an event, but they must sign it with their own email address
       allow create: if isAuthenticated() && 
-                    !isBlocked() &&
                     request.resource.data.submittedBy.lower() == request.auth.token.email.lower();
 
       // Only the original submitter or an administrator can delete an event
@@ -108,6 +95,11 @@ service cloud.firestore {
     match /presets/{docId} {
       // Anyone can read or write presets (server-side writes are unauthenticated, 
       // but protected by API-level admin checks)
+      allow read, write: if true;
+    }
+
+    // Savitri Lines Collection
+    match /savitri_lines/{docId} {
       allow read, write: if true;
     }
   }

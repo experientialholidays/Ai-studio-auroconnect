@@ -32,20 +32,7 @@
     </script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Event Dashboard | AuroConnect | Discover, Explore & Navigate Auroville</title>
-    <meta name="description" content="Manage your Auroville event submissions, edit listings, track live happenings, and view details securely with the AuroConnect management dashboard.">
-    <meta name="keywords" content="Auroville, Auroville events, AuroConnect, event dashboard Auroville, manage listings Auroville">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="canonical" href="https://auroconnect.info/dashboard.html">
-
-    <!-- Google Search Favicon Specifications & High-Res App Icons -->
-    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
-    <!-- Marked Markdown Parser -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>Submit Events | AuroConnect</title>
     <style>
       :root {
         --accent: #C85A32;
@@ -134,8 +121,6 @@
         font-weight: 500;
         width: 100%;
         max-width: 300px;
-        margin-left: auto;
-        margin-right: auto;
         transition: all 0.2s;
         display: flex;
         align-items: center;
@@ -235,24 +220,6 @@
         margin-bottom: 1rem;
         border-bottom: 1px solid var(--border);
         padding-bottom: 0.5rem;
-        overflow-x: auto;
-        white-space: nowrap;
-        max-width: 100%;
-        width: 100%;
-        box-sizing: border-box;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-      }
-
-      .dashboard-tabs::-webkit-scrollbar {
-        height: 4px;
-      }
-      .dashboard-tabs::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      .dashboard-tabs::-webkit-scrollbar-thumb {
-        background: var(--border);
-        border-radius: 4px;
       }
 
       .tab-btn {
@@ -265,8 +232,6 @@
         cursor: pointer;
         border-radius: 0.375rem;
         transition: all 0.2s;
-        flex-shrink: 0;
-        white-space: nowrap;
       }
 
       .tab-btn.active {
@@ -340,145 +305,6 @@
         background: var(--bg);
         color: var(--text-secondary);
         border: 1px solid var(--border);
-      }
-
-      /* Event Table Column Widths & Table Layout */
-      table {
-        table-layout: fixed !important;
-        width: 100% !important;
-      }
-
-      .col-chk {
-        width: 48px !important;
-        min-width: 48px !important;
-        max-width: 48px !important;
-        text-align: center !important;
-        padding: 0.75rem 0.5rem !important;
-      }
-      .col-title {
-        width: 250px !important;
-        min-width: 250px !important;
-        max-width: 320px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-category {
-        width: 120px !important;
-        min-width: 120px !important;
-        max-width: 120px !important;
-      }
-      .col-date {
-        width: 160px !important;
-        min-width: 160px !important;
-        max-width: 200px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-time {
-        width: 160px !important;
-        min-width: 160px !important;
-        max-width: 200px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-venue {
-        width: 200px !important;
-        min-width: 200px !important;
-        max-width: 250px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-source {
-        width: 150px !important;
-        min-width: 150px !important;
-        max-width: 180px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-submitted-by {
-        width: 160px !important;
-        min-width: 160px !important;
-        max-width: 200px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-      }
-      .col-submitted-at {
-        width: 170px !important;
-        min-width: 170px !important;
-        max-width: 170px !important;
-        white-space: nowrap !important;
-      }
-      .col-embedding {
-        width: 100px !important;
-        min-width: 100px !important;
-        max-width: 100px !important;
-        text-align: center !important;
-      }
-
-      /* Detaching Expanded Details from Horizontal Scroll */
-      .details-td {
-        padding: 0 !important;
-        border-bottom: 1px solid var(--border) !important;
-        background: rgba(11, 87, 208, 0.015) !important;
-      }
-
-      .event-details-card {
-        position: sticky !important;
-        left: 0.75rem !important;
-        width: calc(100vw - 6rem) !important;
-        max-width: 950px !important;
-        box-sizing: border-box !important;
-        margin: 1rem !important;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.25rem;
-        border: 1px solid var(--border) !important;
-        border-radius: 8px !important;
-        padding: 1.25rem !important;
-        background: var(--surface) !important;
-        box-shadow: 0 4px 12px var(--shadow) !important;
-      }
-
-      /* Actions Bar Styles side-by-side on desktop */
-      .event-actions-bar {
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: flex-end !important;
-        gap: 0.75rem !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        border-top: 1px solid var(--border) !important;
-        padding-top: 1rem !important;
-        margin-top: 0.5rem !important;
-      }
-
-      .event-actions-bar span {
-        margin-right: auto !important;
-        font-size: 0.85rem !important;
-        color: var(--text-secondary) !important;
-        font-weight: 500 !important;
-      }
-
-      .event-actions-bar .btn,
-      .event-actions-bar button {
-        padding: 0.5rem 1rem !important;
-        font-size: 0.85rem !important;
-        border-radius: 6px !important;
-        cursor: pointer !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 0.35rem !important;
-        box-sizing: border-box !important;
-        white-space: nowrap !important;
-        font-weight: 500 !important;
       }
 
       .btn-danger {
@@ -589,36 +415,16 @@
 
       /* Professional Responsive Media Queries for Mobile, Tablet & Laptop */
       @media (max-width: 768px) {
-        html, body {
-          width: 100% !important;
-          max-width: 100vw !important;
-          overflow-x: hidden !important;
+        .dashboard-container {
+          padding: 1.25rem;
+          width: 95%;
+          margin-top: 1rem;
+          margin-bottom: 2rem;
         }
-        .header {
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          padding: 0.75rem 1rem !important;
-        }
-        .dashboard-container,
-        .container,
-        .upload-card,
-        #single-event-form,
-        .form-grid {
-          padding: 1rem !important;
-          width: 100% !important;
-          max-width: 100% !important;
-          box-sizing: border-box !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
-          margin-top: 1rem !important;
-        }
-        #one-time-container,
-        #standard-time-container {
-          flex-direction: column !important;
-          gap: 0.75rem !important;
-          width: 100% !important;
-          box-sizing: border-box !important;
+        .container {
+          padding: 1.5rem;
+          width: 95%;
+          margin-top: 1.5rem;
         }
         .dashboard-header {
           flex-direction: column;
@@ -626,65 +432,15 @@
           gap: 1rem;
         }
         .dashboard-tabs {
-          flex-direction: column !important;
-          width: 100% !important;
-          gap: 0.5rem !important;
-          padding-bottom: 0.75rem !important;
+          flex-wrap: wrap;
+          gap: 0.25rem;
+          width: 100%;
         }
         .tab-btn {
-          width: 100% !important;
-          text-align: left !important;
-          padding: 0.65rem 1rem !important;
-          font-size: 0.88rem !important;
-          border-radius: 8px !important;
-          border: 1px solid var(--border) !important;
-          background: var(--bg) !important;
-          box-sizing: border-box !important;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: flex-start !important;
-        }
-        .tab-btn.active {
-          background: var(--accent) !important;
-          color: #ffffff !important;
-          border-color: var(--accent) !important;
-          font-weight: 600 !important;
-        }
-        .event-details-card {
-          width: calc(100vw - 2.5rem) !important;
-          max-width: 100% !important;
-          margin: 0.75rem 0.5rem !important;
-          padding: 1rem !important;
-          grid-template-columns: 1fr !important;
-          gap: 1rem !important;
-        }
-        .event-actions-bar {
-          flex-direction: column !important;
-          align-items: stretch !important;
-          justify-content: flex-start !important;
-          gap: 0.5rem !important;
-          width: 100% !important;
-          border-top: 1px solid var(--border) !important;
-          padding-top: 1rem !important;
-          margin-top: 0.5rem !important;
-        }
-        .event-actions-bar span {
-          margin-right: 0 !important;
-          margin-bottom: 0.35rem !important;
-          width: 100% !important;
-          text-align: left !important;
-          display: block !important;
-        }
-        .event-actions-bar button,
-        .event-actions-bar .btn {
-          width: 100% !important;
-          max-width: 100% !important;
-          display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-          box-sizing: border-box !important;
-          padding: 0.65rem 1rem !important;
-          font-size: 0.88rem !important;
+          padding: 0.4rem 0.8rem;
+          font-size: 0.8rem;
+          flex: 1 1 auto;
+          text-align: center;
         }
         /* Make form flex rows stack nicely on mobile */
         div[style*="display: flex; gap: 1rem; flex-wrap: wrap"],
@@ -788,7 +544,6 @@
 
       @media (max-width: 1024px) {
         .form-col-8 { grid-column: span 12; }
-        .form-col-6 { grid-column: span 12; }
         .form-col-4 { grid-column: span 6; }
         .form-col-3 { grid-column: span 6; }
       }
@@ -824,12 +579,13 @@
         cursor: pointer !important;
       }
 
-      /* Uniform input/select styling inside forms for perfect height and width alignment */
+      /* Uniform input/select/textarea styling inside forms for perfect height and width alignment */
       .form-grid input[type="text"],
       .form-grid input[type="tel"],
       .form-grid input[type="email"],
       .form-grid input[type="url"],
       .form-grid input[type="date"],
+      .form-grid textarea,
       .form-grid select {
         width: 100% !important;
         max-width: none !important;
@@ -860,29 +616,11 @@
         box-shadow: 0 0 0 3px rgba(11, 87, 208, 0.15) !important;
       }
 
-      /* Allow multi-line textareas (like Title, Description and all expandable text fields) to grow naturally */
-      .form-grid textarea,
-      textarea.auto-expand,
-      textarea {
-        width: 100% !important;
-        max-width: none !important;
-        box-sizing: border-box !important;
-        padding: 0.75rem 1.125rem !important;
-        border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
-        background: var(--bg) !important;
-        color: var(--text) !important;
-        font-family: inherit !important;
-        font-size: 1rem !important;
-        line-height: 1.4 !important;
-        margin: 0 !important;
-        min-height: 48px !important;
-        resize: none !important;
-        overflow-y: hidden !important;
-        white-space: pre-wrap !important;
-        overflow-wrap: break-word !important;
-        word-break: break-word !important;
-        transition: border-color 0.2s, box-shadow 0.2s;
+      /* Allow multi-line textareas (like Description) but enforce other styles */
+      .form-grid textarea {
+        height: auto !important;
+        min-height: 50px !important;
+        resize: vertical !important;
       }
 
       .form-grid textarea#ev-desc {
@@ -1016,289 +754,266 @@
         class="form-grid"
         style="width: 100%; margin-top: 1rem;"
       >
-        <!-- Top Options Row: Location Region Selector -->
-        <div class="form-col-12" style="margin-bottom: 0.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1.15rem; flex-wrap: wrap; gap: 1rem; box-shadow: 0 1px 3px var(--shadow);">
-            <div>
-              <label style="font-weight: 600; font-size: 0.88rem; color: var(--text); display: block; margin-bottom: 0.35rem;">
-                Select Event Location Region <span style="color: var(--accent);">*</span>
-              </label>
-              <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap;">
-                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
-                  <input type="radio" name="ev-region" value="auroville" checked onchange="handleRegionChange('auroville')" />
-                  Auroville & Nearby Area
-                </label>
-                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
-                  <input type="radio" name="ev-region" value="pondicherry" onchange="handleRegionChange('pondicherry')" />
-                  Pondicherry
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Banner when Pondicherry selected -->
-        <div class="form-col-12" id="region-pondicherry-banner" style="display: none; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
-          <span style="font-size: 0.9rem; font-weight: 600;">
-            ⛔ Currently we are accepting events only for Auroville and nearby areas.
-          </span>
-          <button type="button" onclick="const r = document.querySelector('input[name=\'ev-region\'][value=\'auroville\']'); if(r){r.checked=true; handleRegionChange('auroville');}" class="btn btn-sm" style="background: #856404; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
-            Switch to Auroville
-          </button>
-        </div>
-
-        <!-- Main Form Body Wrapper -->
-        <div id="single-event-form-body" class="form-grid form-col-12" style="width: 100%; transition: opacity 0.3s ease;">
-          <!-- Title -->
-          <div class="form-col-6">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Title *</label
-            >
-            <textarea
-              id="ev-title"
-              required
-              rows="1"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                resize: vertical;
-                min-height: 38px;
-              "
-            ></textarea>
-          </div>
-
-          <!-- Type -->
-          <div class="form-col-3">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: block;
-                margin-bottom: 0.2rem;
-              "
-              >Type of Event *</label
-            >
-            <textarea
-              id="ev-type"
-              required
-              rows="1"
-              placeholder="e.g. Workshop, Class"
-              class="auto-expand"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                box-sizing: border-box;
-              "
-            ></textarea>
-          </div>
-
-          <!-- Category -->
-          <div class="form-col-3" id="category-container">
-            <label
-              style="
-                font-size: 0.85rem;
-                font-weight: 500;
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                margin-bottom: 0.2rem;
-              "
-            >
-              <span>Event Category</span>
-              <button
-                type="button"
-                onclick="toggleCategoryCriteriaModal(event)"
-                style="
-                  background: rgba(59, 130, 246, 0.12);
-                  color: var(--accent, #3b82f6);
-                  border: 1px solid var(--border);
-                  border-radius: 50%;
-                  width: 22px;
-                  height: 22px;
-                  font-size: 0.75rem;
-                  font-weight: 700;
-                  cursor: pointer;
-                  display: inline-flex;
-                  align-items: center;
-                  justify-content: center;
-                  padding: 0;
-                  line-height: 1;
-                "
-                title="Click to view Category Selection Criteria & Rules"
-              >ⓘ</button>
-            </label>
-            <select
-              id="ev-category"
-              style="
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                box-sizing: border-box;
-                height: 38px;
-                cursor: pointer;
-              "
-            >
-              <option value="Date-specific Events">Date-specific Events</option>
-              <option value="Weekly Events">Weekly Events</option>
-              <option value="Daily Events">Daily Events</option>
-            </select>
-          </div>
-
-          <!-- Timing Details (Full Width Container) -->
-          <div
-            class="form-col-12"
+        <!-- Title -->
+        <div class="form-col-6">
+          <label
             style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Title *</label
+          >
+          <textarea
+            id="ev-title"
+            required
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
               border: 1px solid var(--border);
-              padding: 1.25rem;
-              border-radius: 8px;
-              background: rgba(0, 0, 0, 0.02);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Type -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Type of Event *</label
+          >
+          <input
+            type="text"
+            id="ev-type"
+            required
+            placeholder="e.g. Workshop, Class"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
+            "
+          />
+        </div>
+
+        <!-- Category -->
+        <div class="form-col-3" id="category-container">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 0.2rem;
             "
           >
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+            <span>Event Category</span>
+            <button
+              type="button"
+              onclick="toggleCategoryCriteriaModal(event)"
+              style="
+                background: rgba(59, 130, 246, 0.12);
+                color: var(--accent, #3b82f6);
+                border: 1px solid var(--border);
+                border-radius: 50%;
+                width: 22px;
+                height: 22px;
+                font-size: 0.75rem;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: justify-center;
+                padding: 0;
+                line-height: 1;
+              "
+              title="Click to view Category Selection Criteria & Rules"
+            >ⓘ</button>
+          </label>
+          <select
+            id="ev-category"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              box-sizing: border-box;
+              height: 38px;
+              cursor: pointer;
+            "
+          >
+            <option value="Date-specific Events">Date-specific Events</option>
+            <option value="Weekly Events">Weekly Events</option>
+            <option value="Daily Events">Daily Events</option>
+          </select>
+        </div>
+
+        <!-- Timing Details (Full Width Container) -->
+        <div
+          class="form-col-12"
+          style="
+            border: 1px solid var(--border);
+            padding: 1.25rem;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.02);
+          "
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+          </div>
+
+          <div>
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 600;
+                display: block;
+                margin-bottom: 0.5rem;
+              "
+              >Event Schedule Type</label
+            >
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+              <label
+                ><input
+                  type="radio"
+                  name="ev-schedule-type"
+                  value="one-time"
+                  checked
+                />
+                Date Specific (One Time)</label
+              >
+              <label
+                ><input type="radio" name="ev-schedule-type" value="recurring" />
+                Recurring</label
+              >
             </div>
 
-            <div>
-              <label
-                style="
-                  font-size: 0.85rem;
-                  font-weight: 600;
-                  display: block;
-                  margin-bottom: 0.5rem;
-                "
-                >Event Schedule Type</label
-              >
-              <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+            <div
+              id="recurring-container"
+              style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
+            >
+              <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
+
+              <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
                 <label
-                  ><input
-                    type="radio"
-                    name="ev-schedule-type"
-                    value="one-time"
-                    checked
-                  />
-                  Date Specific (One Time)</label
+                  ><input type="checkbox" name="ev-weekdays" value="Mon" />
+                  Mon</label
                 >
                 <label
-                  ><input type="radio" name="ev-schedule-type" value="recurring" />
-                  Recurring</label
+                  ><input type="checkbox" name="ev-weekdays" value="Tue" />
+                  Tue</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Wed" />
+                  Wed</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Thu" />
+                  Thu</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Fri" />
+                  Fri</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sat" />
+                  Sat</label
+                >
+                <label
+                  ><input type="checkbox" name="ev-weekdays" value="Sun" />
+                  Sun</label
                 >
               </div>
 
-              <div
-                id="recurring-container"
-                style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
-              >
-                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
-
-                <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Mon" />
-                    Mon</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Tue" />
-                    Tue</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Wed" />
-                    Wed</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Thu" />
-                    Thu</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Fri" />
-                    Fri</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Sat" />
-                    Sat</label
-                  >
-                  <label
-                    ><input type="checkbox" name="ev-weekdays" value="Sun" />
-                    Sun</label
-                  >
-                </div>
-
-                <div style="margin-top: 0.5rem;">
-                  <button
-                    type="button"
-                    id="toggle-recurring-date-btn"
-                    style="
-                      font-size: 0.8rem;
-                      padding: 0.35rem 0.75rem;
-                      border: 1px dashed var(--border);
-                      border-radius: 6px;
-                      background: var(--card-bg, #fff);
-                      color: var(--primary, #3b82f6);
-                      cursor: pointer;
-                      display: inline-flex;
-                      align-items: center;
-                      gap: 0.4rem;
-                      font-weight: 500;
-                    "
-                  >
-                    📅 + Add Date Range / Specific Dates (Optional)
-                  </button>
-                </div>
+              <div style="margin-top: 0.5rem;">
+                <button
+                  type="button"
+                  id="toggle-recurring-date-btn"
+                  style="
+                    font-size: 0.8rem;
+                    padding: 0.35rem 0.75rem;
+                    border: 1px dashed var(--border);
+                    border-radius: 6px;
+                    background: var(--card-bg, #fff);
+                    color: var(--primary, #3b82f6);
+                    cursor: pointer;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    font-weight: 500;
+                  "
+                >
+                  📅 + Add Date Range / Specific Dates (Optional)
+                </button>
               </div>
+            </div>
 
-              <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-                    <label style="font-size: 0.85rem; font-weight: 500;">Start Date</label>
-                    <button type="button" onclick="clearDateField('ev-start-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
-                  </div>
-                  <input
-                    type="date"
-                    id="ev-start-date"
-                    style="
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid var(--border);
-                      border-radius: 6px;
-                      background: var(--bg);
-                      color: var(--text);
-                    "
-                  />
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
-                    <label style="font-size: 0.85rem; font-weight: 500;">End Date</label>
-                    <button type="button" onclick="clearDateField('ev-end-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
-                  </div>
-                  <input
-                    type="date"
-                    id="ev-end-date"
-                    style="
-                      width: 100%;
-                      padding: 0.5rem;
-                      border: 1px solid var(--border);
-                      border-radius: 6px;
-                      background: var(--bg);
-                      color: var(--text);
-                    "
-                  />
-                </div>
+            <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem;">
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >Start Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-start-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
               </div>
+              <div style="flex: 1">
+                <label
+                  style="
+                    font-size: 0.85rem;
+                    font-weight: 500;
+                    display: block;
+                    margin-bottom: 0.2rem;
+                  "
+                  >End Date</label
+                >
+                <input
+                  type="date"
+                  id="ev-end-date"
+                  style="
+                    width: 100%;
+                    padding: 0.5rem;
+                    border: 1px solid var(--border);
+                    border-radius: 6px;
+                    background: var(--bg);
+                    color: var(--text);
+                  "
+                />
+              </div>
+            </div>
 
             <div style="margin-top: 1.5rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -1362,11 +1077,10 @@
 
               <div id="custom-time-container" style="display: none; flex-direction: column; gap: 0.2rem;">
                 <label style="font-size: 0.8rem; font-weight: 500; color: var(--text-secondary);">Custom Time(s) Text</label>
-                <textarea
+                <input
+                  type="text"
                   id="ev-custom-time"
-                  rows="1"
                   placeholder="e.g. 10:00am - 02:00pm OR Flexible"
-                  class="auto-expand"
                   style="
                     width: 100%;
                     padding: 0.5rem;
@@ -1375,7 +1089,7 @@
                     background: var(--bg);
                     color: var(--text);
                   "
-                ></textarea>
+                />
               </div>
             </div>
           </div>
@@ -1409,8 +1123,8 @@
           ></textarea>
         </div>
 
-        <!-- Description -->
-        <div class="form-col-12">
+        <!-- Contribution -->
+        <div class="form-col-3">
           <label
             style="
               font-size: 0.85rem;
@@ -1418,12 +1132,12 @@
               display: block;
               margin-bottom: 0.2rem;
             "
-            >Description *</label
+            >Contribution</label
           >
           <textarea
-            id="ev-desc"
-            required
-            rows="4"
+            id="ev-cost"
+            placeholder="e.g. ₹500, Donation or Free"
+            rows="1"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1431,6 +1145,36 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
+              resize: vertical;
+              min-height: 38px;
+            "
+          ></textarea>
+        </div>
+
+        <!-- Key Info -->
+        <div class="form-col-3">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Key Info</label
+          >
+          <textarea
+            id="ev-audience"
+            placeholder="e.g. Adults, Kids, Prerequisites"
+            rows="1"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+              resize: vertical;
+              min-height: 38px;
             "
           ></textarea>
         </div>
@@ -1446,11 +1190,9 @@
             "
             >Contact Person / Unit</label
           >
-          <textarea
+          <input
+            type="text"
             id="ev-contact-person"
-            rows="1"
-            placeholder="Person / Unit name..."
-            class="auto-expand"
             style="
               width: 100%;
               padding: 0.5rem;
@@ -1458,9 +1200,60 @@
               border-radius: 6px;
               background: var(--bg);
               color: var(--text);
+              height: 38px;
               box-sizing: border-box;
             "
-          ></textarea>
+          />
+        </div>
+
+        <!-- Contact Phone -->
+        <div class="form-col-6">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Contact Phone</label
+          >
+          <div style="display: flex; gap: 0.5rem">
+            <input
+              id="ev-contact-code"
+              type="text"
+              list="submit-country-codes-list"
+              value="+91"
+              placeholder="+91"
+              style="
+                width: 4rem !important;
+                flex: none !important;
+                padding: 0.5rem 0.25rem !important;
+                text-align: center;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                font-size: 0.85rem;
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+            <input
+              type="tel"
+              id="ev-contact"
+              style="
+                flex: 1 !important;
+                min-width: 0 !important;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                height: 38px;
+                box-sizing: border-box;
+              "
+            />
+          </div>
         </div>
 
         <!-- WhatsApp -->
@@ -1511,56 +1304,6 @@
             <input
               type="tel"
               id="ev-whatsapp"
-              style="
-                flex: 1 !important;
-                min-width: 0 !important;
-                padding: 0.5rem;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-          </div>
-        </div>
-
-        <!-- Contact Phone -->
-        <div class="form-col-6">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Contact Phone</label
-          >
-          <div style="display: flex; gap: 0.5rem">
-            <input
-              id="ev-contact-code"
-              type="text"
-              list="submit-country-codes-list"
-              value="+91"
-              placeholder="+91"
-              style="
-                width: 4rem !important;
-                flex: none !important;
-                padding: 0.5rem 0.25rem !important;
-                text-align: center;
-                border: 1px solid var(--border);
-                border-radius: 6px;
-                background: var(--bg);
-                color: var(--text);
-                font-size: 0.85rem;
-                height: 38px;
-                box-sizing: border-box;
-              "
-            />
-            <input
-              type="tel"
-              id="ev-contact"
               style="
                 flex: 1 !important;
                 min-width: 0 !important;
@@ -1650,62 +1393,6 @@
           </button>
         </div>
 
-        <!-- Contribution -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Contribution</label
-          >
-          <textarea
-            id="ev-cost"
-            placeholder="e.g. ₹500, Donation or Free"
-            rows="1"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              resize: vertical;
-              min-height: 38px;
-            "
-          ></textarea>
-        </div>
-
-        <!-- Key Info -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Key Info</label
-          >
-          <textarea
-            id="ev-audience"
-            placeholder="e.g. Adults, Kids, Prerequisites"
-            rows="1"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              resize: vertical;
-              min-height: 38px;
-            "
-          ></textarea>
-        </div>
-
         <!-- Media -->
         <div class="form-col-6">
           <label
@@ -1761,18 +1448,39 @@
         <!-- Hidden Source Filename for seamless backwards compatibility -->
         <input type="hidden" id="ev-excel-filename" value="Single Form Submission" />
 
-        </div><!-- End of single-event-form-body -->
+        <!-- Description -->
+        <div class="form-col-12">
+          <label
+            style="
+              font-size: 0.85rem;
+              font-weight: 500;
+              display: block;
+              margin-bottom: 0.2rem;
+            "
+            >Description *</label
+          >
+          <textarea
+            id="ev-desc"
+            required
+            rows="4"
+            style="
+              width: 100%;
+              padding: 0.5rem;
+              border: 1px solid var(--border);
+              border-radius: 6px;
+              background: var(--bg);
+              color: var(--text);
+            "
+          ></textarea>
+        </div>
 
         <!-- Actions -->
-        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem; flex-wrap: wrap;">
-          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 2; min-width: 160px; max-width: none;">
+        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem;">
+          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; max-width: none;">
             Submit Event
           </button>
-          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; min-width: 120px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
             Cancel Edit
-          </button>
-          <button type="button" onclick="confirmAndClearAllFormData()" class="btn" style="flex: 1; min-width: 130px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);" title="Clear all fields and reset form draft">
-            🗑️ Clear Form Data
           </button>
         </div>
         <div id="single-event-status" class="form-col-12"></div>
@@ -2016,7 +1724,6 @@
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
         <button class="tab-btn" id="btn-tab-contact-messages">Contact Messages (Admin)</button>
         <button class="tab-btn" id="btn-tab-preset-prompts">Preset Prompts (Admin)</button>
-        <button class="tab-btn" id="btn-tab-blocked-users">Blocked Users (Admin)</button>
         <button class="tab-btn" id="btn-tab-chat-logs">Chat Logs (Admin)</button>
         <button class="tab-btn" id="btn-tab-admin-utilities" style="display: none;">⚙️ Admin Utilities & Migration (Admin)</button>
       </div>
@@ -2027,12 +1734,6 @@
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
           These are the events you submitted. Click "Details" to view all fields, or edit/delete them.
         </p>
-
-        <!-- Sub-tabs for Current and Past Experiences -->
-        <div class="sub-tabs-row" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <button id="btn-sub-my-current" class="btn active" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #fff; transition: all 0.2s;">📅 Current Experiences</button>
-          <button id="btn-sub-my-past" class="btn" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-secondary); transition: all 0.2s;">⏳ Past Experiences</button>
-        </div>
 
         <!-- Tab 1 Search/Filter Row -->
         <div class="filters-panel" id="my-events-filters" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2131,30 +1832,23 @@
         <div id="my-events-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
         
         <!-- Bulk Action Bar -->
-        <div class="bulk-action-bar" id="my-events-bulk-bar" style="display: none; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-          <span>Selected: <strong id="my-events-selected-count">0</strong> event(s)</span>
-          <button class="btn btn-secondary" id="btn-my-events-bulk-edit" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit Event
-          </button>
-          <button class="btn btn-danger" id="btn-my-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-            Delete Selected
-          </button>
+        <div class="bulk-action-bar" id="my-events-bulk-bar" style="display: none;">
+          <span>Selected: <strong id="my-events-selected-count">0</strong> events</span>
+          <button class="btn btn-danger" id="btn-my-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Selected</button>
         </div>
 
         <div class="table-wrapper" id="my-events-table-wrapper" style="display: none;">
           <table>
             <thead>
               <tr>
-                <th class="col-chk"><input type="checkbox" id="chk-my-events-all" /></th>
-                <th class="col-title">Title</th>
-                <th class="col-category">Category</th>
-                <th class="col-date">Date</th>
-                <th class="col-time">Time</th>
-                <th class="col-venue">Venue</th>
-                <th class="col-submitted-at">Submitted / Modified</th>
-                <th class="embedding-header col-embedding">Embedding</th>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-my-events-all" /></th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Venue</th>
+                <th>Submitted At</th>
+                <th class="embedding-header">Embedding</th>
               </tr>
             </thead>
             <tbody id="my-events-tbody">
@@ -2170,12 +1864,6 @@
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
           Moderation console to search, inspect, and delete any event in the system.
         </p>
-
-        <!-- Sub-tabs for Current and Past Experiences -->
-        <div class="sub-tabs-row" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <button id="btn-sub-all-current" class="btn active" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #fff; transition: all 0.2s;">📅 Current Experiences</button>
-          <button id="btn-sub-all-past" class="btn" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-secondary); transition: all 0.2s;">⏳ Past Experiences</button>
-        </div>
         
         <!-- Tab 2 Search/Filter Row -->
         <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2274,32 +1962,25 @@
         <div id="all-events-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
 
         <!-- Bulk Action Bar -->
-        <div class="bulk-action-bar" id="all-events-bulk-bar" style="display: none; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
-          <span>Selected: <strong id="all-events-selected-count">0</strong> event(s)</span>
-          <button class="btn btn-secondary" id="btn-all-events-bulk-edit" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            Edit Event
-          </button>
-          <button class="btn btn-danger" id="btn-all-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-            Delete Selected
-          </button>
+        <div class="bulk-action-bar" id="all-events-bulk-bar" style="display: none;">
+          <span>Selected: <strong id="all-events-selected-count">0</strong> events</span>
+          <button class="btn btn-danger" id="btn-all-events-bulk-delete" style="width: auto; max-width: none; font-size: 0.85rem; padding: 0.4rem 0.8rem;">Delete Selected</button>
         </div>
 
         <div class="table-wrapper" id="all-events-table-wrapper" style="display: none;">
           <table>
             <thead>
               <tr>
-                <th class="col-chk"><input type="checkbox" id="chk-all-events-all" /></th>
-                <th class="col-title">Title</th>
-                <th class="col-category">Category</th>
-                <th class="col-date">Date</th>
-                <th class="col-time">Time</th>
-                <th class="col-venue">Venue</th>
-                <th class="col-source">Source</th>
-                <th class="col-submitted-by">Submitted By</th>
-                <th class="col-submitted-at">Submitted / Modified</th>
-                <th class="col-embedding">Embedding</th>
+                <th style="width: 40px; text-align: center;"><input type="checkbox" id="chk-all-events-all" /></th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Venue</th>
+                <th>Source</th>
+                <th>Submitted By</th>
+                <th>Submitted At</th>
+                <th>Embedding</th>
               </tr>
             </thead>
             <tbody id="all-events-tbody">
@@ -2420,53 +2101,6 @@
         </div>
       </div>
 
-      <!-- Tab: Blocked Users (Admin Only) -->
-      <div class="tab-content" id="tab-blocked-users">
-        <h3>🚫 Blocked Users Management</h3>
-        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
-          Prevent specific user email addresses from submitting events or uploading spreadsheets.
-        </p>
-
-        <!-- Form to Block User -->
-        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
-          <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text);">Block a User</h4>
-          <form id="block-user-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 0.75rem;">
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; width: 100%;">
-              <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
-                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">User Email Address *</label>
-                <input type="email" id="input-block-email" required placeholder="user@example.com" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-              </div>
-              <div style="flex: 2; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
-                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Reason for Blocking (Optional)</label>
-                <input type="text" id="input-block-reason" placeholder="e.g., Submitting invalid / spam events" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-              </div>
-            </div>
-            <button class="btn btn-danger" id="btn-block-user" style="align-self: flex-start; padding: 0.5rem 1.25rem; font-size: 0.85rem; margin-top: 0.5rem; background: #d32f2f; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
-              🚫 Block User
-            </button>
-          </form>
-        </div>
-
-        <!-- Blocked Users Table -->
-        <div id="blocked-users-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
-        <div class="table-wrapper" id="blocked-users-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>Email Address</th>
-                <th>Blocked Date</th>
-                <th>Blocked By</th>
-                <th>Reason</th>
-                <th style="width: 120px;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="blocked-users-tbody">
-              <!-- Dynamically populated -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-
       <!-- Tab 6: User Chat Logs (Admin Only) -->
       <div class="tab-content" id="tab-chat-logs">
         <style>
@@ -2536,106 +2170,8 @@
             color: var(--accent);
           }
           .chat-log-text {
+            white-space: pre-wrap;
             word-break: break-word;
-            line-height: 1.55;
-            font-size: 0.92rem;
-          }
-          .chat-log-text p {
-            margin: 0.35rem 0;
-          }
-          .chat-log-text a {
-            color: var(--accent);
-            font-weight: 600;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-          }
-          .chat-log-text ul, .chat-log-text ol {
-            margin: 0.35rem 0;
-            padding-left: 1.25rem;
-          }
-          .chat-log-text h1, .chat-log-text h2, .chat-log-text h3, .chat-log-text h4 {
-            margin: 0.5rem 0 0.25rem 0;
-            color: var(--text);
-            font-weight: 700;
-          }
-          .chat-log-text blockquote {
-            border-left: 3px solid var(--accent);
-            margin: 0.4rem 0;
-            padding-left: 0.75rem;
-            color: var(--text-secondary);
-            font-style: italic;
-          }
-
-          /* Rendered 3-Segment Event Card in Admin Chat Logs */
-          .chat-log-text .event-card {
-            color: var(--text);
-            font-size: 0.9rem;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            box-sizing: border-box;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 0 !important;
-            margin: 8px 0 !important;
-            box-shadow: 0 2px 6px var(--shadow);
-            overflow: hidden;
-            text-align: left;
-          }
-          .chat-log-text .ec-segment.ec-above-title {
-            background: var(--bg);
-            padding: 6px 12px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-          }
-          .chat-log-text .ec-topbar {
-            display: flex !important;
-            justify-content: space-between !important;
-            align-items: center !important;
-            width: 100% !important;
-            box-sizing: border-box !important;
-          }
-          .chat-log-text .ec-type {
-            font-weight: 600 !important;
-            text-transform: uppercase !important;
-            font-size: 0.7rem !important;
-            letter-spacing: 0.05em !important;
-            color: var(--text-secondary) !important;
-            font-style: normal !important;
-          }
-          .chat-log-text .ec-type em, .chat-log-text .ec-type i {
-            font-style: normal !important;
-          }
-          .chat-log-text .ec-date {
-            font-weight: 600 !important;
-            font-size: 0.75rem !important;
-            color: var(--accent) !important;
-            margin-left: auto !important;
-            text-align: right !important;
-            white-space: nowrap !important;
-            display: inline-block !important;
-          }
-          .chat-log-text .ec-segment.ec-title-segment {
-            background: var(--surface);
-            padding: 8px 12px;
-            border-bottom: 1px solid var(--border);
-            border-left: 4px solid var(--accent);
-            font-weight: 700;
-            font-size: 0.95rem;
-          }
-          .chat-log-text .ec-segment.ec-below-title {
-            background: var(--bg);
-            padding: 8px 12px;
-            font-size: 0.85rem;
-            color: var(--text);
           }
           .chat-log-empty-msg {
             color: var(--text-secondary);
@@ -2653,14 +2189,12 @@
 
         <!-- Filters/Search for Chat Logs -->
         <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+          <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
             <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Search Chat History</label>
-              <input type="text" id="chat-logs-search" placeholder="Search by User ID, Session ID, or message content..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              <input type="text" id="chat-logs-search" placeholder="Search by message content or session ID..." style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
             </div>
-            <div style="display: flex; gap: 0.75rem; align-items: center; margin-top: 1.25rem;">
-              <button class="btn-clear-filters" id="btn-clear-chat-logs-filters" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline;">Clear Search</button>
-            </div>
+            <button class="btn-clear-filters" id="btn-clear-chat-logs-filters" style="background: none; border: none; color: var(--accent); font-size: 0.85rem; cursor: pointer; text-decoration: underline; margin-top: 1.25rem;">Clear Search</button>
           </div>
         </div>
 
@@ -2669,11 +2203,10 @@
           <table>
             <thead>
               <tr>
-                <th style="width: 170px;">Session ID</th>
-                <th style="width: 160px;">Last Active At</th>
+                <th style="width: 200px;">Session ID</th>
+                <th style="width: 180px;">Last Active At</th>
                 <th>Conversations / Last Exchange</th>
-                <th style="width: 80px; text-align: center;">Messages</th>
-                <th style="width: 140px; text-align: center;">Actions</th>
+                <th style="width: 100px; text-align: center;">Messages</th>
               </tr>
             </thead>
             <tbody id="chat-logs-tbody">
@@ -2891,8 +2424,6 @@
 
     <script src="/dateTimeParserClient.js"></script>
     <script type="module">
-      var categoryManuallySet = false;
-      window.categoryManuallySet = categoryManuallySet;
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
       import {
         getAuth,
@@ -2993,14 +2524,15 @@
 
       const linksContainer = document.getElementById("links-container");
       document.getElementById("add-link-btn").addEventListener("click", () => {
-        const inputs = linksContainer.querySelectorAll("input, textarea");
+        const inputs = linksContainer.querySelectorAll("input");
         if (inputs.length < 5) {
-          const newLink = document.createElement("textarea");
-          newLink.rows = 1;
-          newLink.className = "ev-link auto-expand";
+          const newLink = document.createElement("input");
+          newLink.type = "text";
+          newLink.className = "ev-link";
           newLink.placeholder = "e.g. google.com or https://google.com";
+          newLink.style.cssText =
+            "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(newLink);
-          if (typeof initAutoExpandFields === "function") initAutoExpandFields();
         } else {
           alert("Maximum 5 links allowed.");
         }
@@ -3039,22 +2571,12 @@
       const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
       const btnTabContactMessages = document.getElementById("btn-tab-contact-messages");
       const btnTabPresetPrompts = document.getElementById("btn-tab-preset-prompts");
-      const btnTabBlockedUsers = document.getElementById("btn-tab-blocked-users");
 
       const tabMyEvents = document.getElementById("tab-my-events");
       const tabAllEvents = document.getElementById("tab-all-events");
       const tabAllKnowledge = document.getElementById("tab-all-knowledge");
       const tabContactMessages = document.getElementById("tab-contact-messages");
       const tabPresetPrompts = document.getElementById("tab-preset-prompts");
-      const tabBlockedUsers = document.getElementById("tab-blocked-users");
-
-      const blockedUsersLoading = document.getElementById("blocked-users-loading");
-      const blockedUsersTableWrapper = document.getElementById("blocked-users-table-wrapper");
-      const blockedUsersTbody = document.getElementById("blocked-users-tbody");
-      const formBlockUser = document.getElementById("block-user-form");
-      const inputBlockEmail = document.getElementById("input-block-email");
-      const inputBlockReason = document.getElementById("input-block-reason");
-      const btnBlockUser = document.getElementById("btn-block-user");
 
       const myEventsLoading = document.getElementById("my-events-loading");
       const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
@@ -3192,28 +2714,6 @@
           if (parts[0]) return formatDateToYYYYMMDD(parts[0]);
         }
         return "";
-      }
-
-      function isEventPastJS(ev) {
-        const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
-        
-        let end = getEventEndDate(ev);
-        if (!end) {
-          let start = getEventStartDate(ev);
-          if (start) {
-            const category = (ev.category || "").toLowerCase().trim();
-            const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
-            const days = (ev.days || "").toLowerCase().trim();
-            const isDaily = days.includes("daily") || days.includes("every day") || days.includes("everyday") || category.includes("daily");
-            const isWeekly = category.includes("weekly") || scheduleType === "weekly" || scheduleType === "recurring" || ev.days;
-            
-            if (!isDaily && !isWeekly) {
-              return start < todayStr;
-            }
-          }
-          return false;
-        }
-        return end < todayStr;
       }
 
       function getEventStartTime(e) {
@@ -3764,41 +3264,6 @@
         return `${hStr}:${mStr}`;
       }
 
-      function autoExpandTextarea(el) {
-        if (!el) return;
-        el.style.setProperty('white-space', 'pre-wrap', 'important');
-        el.style.setProperty('overflow-wrap', 'break-word', 'important');
-        el.style.setProperty('word-break', 'break-word', 'important');
-        el.style.setProperty('overflow-y', 'hidden', 'important');
-        el.style.setProperty('resize', 'none', 'important');
-
-        // Reset inline height to 'auto' to allow scrollHeight to measure natural text dimensions
-        el.style.setProperty('height', 'auto', 'important');
-        const minH = el.id === 'ev-desc' ? 120 : 48;
-        const newHeight = Math.max(minH, el.scrollHeight);
-        el.style.setProperty('height', newHeight + 'px', 'important');
-      }
-
-      function initAutoExpandFields() {
-        const selector = 'textarea, textarea.auto-expand, .auto-expand, .form-grid textarea, #ev-title, #ev-type, #ev-venue, #ev-cost, #ev-audience, #ev-contact-person, #ev-custom-time, #ev-desc, .ev-link';
-        const elements = document.querySelectorAll(selector);
-        elements.forEach(el => {
-          autoExpandTextarea(el);
-          if (!el.dataset.autoExpandBound) {
-            el.dataset.autoExpandBound = 'true';
-            ['input', 'change', 'keyup', 'focus', 'paste', 'blur'].forEach(evtName => {
-              el.addEventListener(evtName, () => {
-                autoExpandTextarea(el);
-              });
-            });
-          }
-        });
-      }
-      window.initAutoExpandFields = initAutoExpandFields;
-      document.addEventListener('DOMContentLoaded', () => {
-        initAutoExpandFields();
-      });
-
       function toggleCustomTime(checked) {
         const stdTime = document.getElementById("standard-time-container");
         const customTimeSelection = document.getElementById("custom-time-container");
@@ -3809,7 +3274,6 @@
           if (stdTime) stdTime.style.display = "flex";
           if (customTimeSelection) customTimeSelection.style.display = "none";
         }
-        initAutoExpandFields();
       }
       window.toggleCustomTime = toggleCustomTime;
 
@@ -3850,12 +3314,10 @@
           cb.checked = false;
         });
 
-        // Determine scheduleType robustly (prioritize category over daysVal for Date-specific)
+        // Determine scheduleType robustly
         let sType = ev.scheduleType;
-        const categoryVal = (ev.category || "").toLowerCase();
-        if (categoryVal.includes("date-specific") || categoryVal.includes("date specific") || categoryVal.includes("one-time")) {
-          sType = "one-time";
-        } else if (!sType) {
+        if (!sType) {
+          const categoryVal = (ev.category || "").toLowerCase();
           const daysVal = (ev.days || "").toLowerCase();
           if (categoryVal.includes("daily") || categoryVal.includes("weekly") || daysVal.includes("mon") || daysVal.includes("tue") || daysVal.includes("wed") || daysVal.includes("thu") || daysVal.includes("fri") || daysVal.includes("sat") || daysVal.includes("sun") || daysVal.includes("every") || daysVal.includes("daily")) {
             sType = "recurring";
@@ -3985,18 +3447,20 @@
 
         if (websiteLinksArray.length > 0) {
           websiteLinksArray.forEach((link) => {
-            const input = document.createElement("textarea");
-            input.rows = 1;
-            input.className = "ev-link auto-expand";
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "ev-link";
             input.placeholder = "e.g. google.com or https://google.com";
             input.value = link;
+            input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
             linksContainer.appendChild(input);
           });
         } else {
-          const input = document.createElement("textarea");
-          input.rows = 1;
-          input.className = "ev-link auto-expand";
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "ev-link";
           input.placeholder = "e.g. google.com or https://google.com";
+          input.style.cssText = "width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);";
           linksContainer.appendChild(input);
         }
         
@@ -4040,33 +3504,7 @@
         if (document.getElementById("ev-custom-time")) {
           document.getElementById("ev-custom-time").value = ev.times || "";
         }
-
-        if (typeof initAutoExpandFields === "function") {
-          initAutoExpandFields();
-          setTimeout(initAutoExpandFields, 100);
-        }
-
-        // Region handling for edit mode
-        let eventRegion = ev.region || "auroville";
-        if (!ev.region && ev.venue) {
-          const venueLower = ev.venue.toLowerCase();
-          if (venueLower.includes("pondicherry") || venueLower.includes("pondy") || venueLower.includes("puducherry")) {
-            eventRegion = "pondicherry";
-          }
-        }
-        const regionRadio = document.querySelector(`input[name="ev-region"][value="${eventRegion}"]`);
-        if (regionRadio) {
-          regionRadio.checked = true;
-          if (typeof handleRegionChange === "function") {
-            handleRegionChange(eventRegion);
-          }
-        }
-
-        // Save form draft immediately so edit state persists on refresh
-        if (typeof saveFormAutosave === "function") {
-          saveFormAutosave();
-        }
-
+        
         // Scroll to form section
         const submissionSection = document.getElementById("single-event-form");
         if (submissionSection) {
@@ -4135,28 +3573,9 @@
         document.getElementById("one-time-container").style.display = "flex";
         document.getElementById("recurring-container").style.display = "none";
         document.getElementById("links-container").innerHTML =
-          '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-        if (typeof initAutoExpandFields === "function") initAutoExpandFields();
+          '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
-          
-        // Reset region selector to Auroville
-        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-        if (aurovilleRadio) {
-          aurovilleRadio.checked = true;
-          if (typeof handleRegionChange === "function") handleRegionChange('auroville');
-        }
-
-        // Reset custom time
-        const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-        if (customTimeToggle) {
-          customTimeToggle.checked = false;
-          if (typeof toggleCustomTime === "function") toggleCustomTime(false);
-        }
-
-        if (window.clearFormAutosave) {
-          window.clearFormAutosave();
-        }
       }
 
       // Bind Cancel Edit Button
@@ -4170,8 +3589,6 @@
       // Bulk actions element references and sets
       const selectedMyEvents = new Set();
       const selectedAllEvents = new Set();
-      const loadedMyEventsMap = new Map();
-      const loadedAllEventsMap = new Map();
 
       const chkMyEventsAll = document.getElementById("chk-my-events-all");
       const myEventsBulkBar = document.getElementById("my-events-bulk-bar");
@@ -4187,20 +3604,6 @@
         if (selectedMyEvents.size > 0) {
           myEventsBulkBar.style.display = "flex";
           myEventsSelectedCount.textContent = selectedMyEvents.size;
-          const btnEdit = document.getElementById("btn-my-events-bulk-edit");
-          if (btnEdit) {
-            if (selectedMyEvents.size === 1) {
-              btnEdit.disabled = false;
-              btnEdit.style.opacity = "1";
-              btnEdit.style.cursor = "pointer";
-              btnEdit.title = "Edit selected event";
-            } else {
-              btnEdit.disabled = true;
-              btnEdit.style.opacity = "0.5";
-              btnEdit.style.cursor = "not-allowed";
-              btnEdit.title = "Can edit only one event at a time";
-            }
-          }
         } else {
           myEventsBulkBar.style.display = "none";
         }
@@ -4210,20 +3613,6 @@
         if (selectedAllEvents.size > 0) {
           allEventsBulkBar.style.display = "flex";
           allEventsSelectedCount.textContent = selectedAllEvents.size;
-          const btnEdit = document.getElementById("btn-all-events-bulk-edit");
-          if (btnEdit) {
-            if (selectedAllEvents.size === 1) {
-              btnEdit.disabled = false;
-              btnEdit.style.opacity = "1";
-              btnEdit.style.cursor = "pointer";
-              btnEdit.title = "Edit selected event";
-            } else {
-              btnEdit.disabled = true;
-              btnEdit.style.opacity = "0.5";
-              btnEdit.style.cursor = "not-allowed";
-              btnEdit.title = "Can edit only one event at a time";
-            }
-          }
         } else {
           allEventsBulkBar.style.display = "none";
         }
@@ -4248,7 +3637,6 @@
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         btnTabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         btnTabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
-        if (btnTabBlockedUsers) btnTabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
         if (btnTabChatLogs) btnTabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
         if (btnTabAdminUtilities) btnTabAdminUtilities.classList.toggle("active", activeTabId === "admin-utilities");
 
@@ -4258,7 +3646,6 @@
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         tabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         tabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
-        if (tabBlockedUsers) tabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
         if (tabChatLogs) tabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
         if (tabAdminUtilities) tabAdminUtilities.classList.toggle("active", activeTabId === "admin-utilities");
 
@@ -4270,8 +3657,6 @@
           loadContactMessages();
         } else if (activeTabId === "preset-prompts") {
           loadPresetPrompts();
-        } else if (activeTabId === "blocked-users") {
-          loadBlockedUsers();
         } else if (activeTabId === "chat-logs") {
           loadChatLogs();
         } else if (activeTabId === "admin-utilities") {
@@ -4281,68 +3666,11 @@
         }
       }
 
-      let activeMyEventsSubTab = "current"; // "current" or "past"
-      let activeAllEventsSubTab = "current"; // "current" or "past"
-
-      // Sub-tab button elements
-      const btnSubMyCurrent = document.getElementById("btn-sub-my-current");
-      const btnSubMyPast = document.getElementById("btn-sub-my-past");
-      const btnSubAllCurrent = document.getElementById("btn-sub-all-current");
-      const btnSubAllPast = document.getElementById("btn-sub-all-past");
-
-      function updateSubTabUI(currentBtn, pastBtn, activeValue) {
-        if (!currentBtn || !pastBtn) return;
-        if (activeValue === "current") {
-          currentBtn.style.border = "1px solid var(--accent)";
-          currentBtn.style.background = "var(--accent)";
-          currentBtn.style.color = "#fff";
-          
-          pastBtn.style.border = "1px solid var(--border)";
-          pastBtn.style.background = "var(--card-bg)";
-          pastBtn.style.color = "var(--text-secondary)";
-        } else {
-          pastBtn.style.border = "1px solid var(--accent)";
-          pastBtn.style.background = "var(--accent)";
-          pastBtn.style.color = "#fff";
-          
-          currentBtn.style.border = "1px solid var(--border)";
-          currentBtn.style.background = "var(--card-bg)";
-          currentBtn.style.color = "var(--text-secondary)";
-        }
-      }
-
-      if (btnSubMyCurrent && btnSubMyPast) {
-        btnSubMyCurrent.onclick = () => {
-          activeMyEventsSubTab = "current";
-          updateSubTabUI(btnSubMyCurrent, btnSubMyPast, "current");
-          loadMyEvents();
-        };
-        btnSubMyPast.onclick = () => {
-          activeMyEventsSubTab = "past";
-          updateSubTabUI(btnSubMyCurrent, btnSubMyPast, "past");
-          loadMyEvents();
-        };
-      }
-
-      if (btnSubAllCurrent && btnSubAllPast) {
-        btnSubAllCurrent.onclick = () => {
-          activeAllEventsSubTab = "current";
-          updateSubTabUI(btnSubAllCurrent, btnSubAllPast, "current");
-          loadAllDatabaseEvents();
-        };
-        btnSubAllPast.onclick = () => {
-          activeAllEventsSubTab = "past";
-          updateSubTabUI(btnSubAllCurrent, btnSubAllPast, "past");
-          loadAllDatabaseEvents();
-        };
-      }
-
       btnTabMyEvents.onclick = () => switchTab("my-events");
       btnTabAllEvents.onclick = () => switchTab("all-events");
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
       btnTabContactMessages.onclick = () => switchTab("contact-messages");
       btnTabPresetPrompts.onclick = () => switchTab("preset-prompts");
-      if (btnTabBlockedUsers) btnTabBlockedUsers.onclick = () => switchTab("blocked-users");
       if (btnTabChatLogs) btnTabChatLogs.onclick = () => switchTab("chat-logs");
       if (btnTabAdminUtilities) btnTabAdminUtilities.onclick = () => switchTab("admin-utilities");
 
@@ -4370,17 +3698,14 @@
           if (requestId !== currentMyEventsRequestId) return;
 
           let events = [];
-          loadedMyEventsMap.clear();
           snapshot.forEach((docSnap) => {
-            const evData = { id: docSnap.id, ...docSnap.data() };
-            events.push(evData);
-            loadedMyEventsMap.set(evData.id, evData);
+            events.push({ id: docSnap.id, ...docSnap.data() });
           });
 
-          // In-memory sort by latest of submittedAt or updatedAt descending
+          // In-memory sort by submittedAt descending
           events.sort((a, b) => {
-            const dateA = Math.max(a.updatedAt ? new Date(a.updatedAt).getTime() : 0, a.submittedAt ? new Date(a.submittedAt).getTime() : 0);
-            const dateB = Math.max(b.updatedAt ? new Date(b.updatedAt).getTime() : 0, b.submittedAt ? new Date(b.submittedAt).getTime() : 0);
+            const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+            const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
             return dateB - dateA;
           });
 
@@ -4498,12 +3823,6 @@
             filteredEvents = filteredEvents.filter((e) => isEventMatchQuery(e, searchQuery));
           }
 
-          // Filter by Current vs Past Experiences sub-tab
-          filteredEvents = filteredEvents.filter((e) => {
-            const isPast = isEventPastJS(e);
-            return activeMyEventsSubTab === "current" ? !isPast : isPast;
-          });
-
           // Auto-select filtered events if any filter is active
           const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
           if (isFilterActive) {
@@ -4541,26 +3860,24 @@
             // Format date & time using dedicated helpers
             let dateStr = formatEventDateDisplay(ev);
             let timeStr = formatEventTimeDisplay(ev);
-            const submittedAtStr = ev.updatedAt
-              ? `${new Date(ev.updatedAt).toLocaleString()} (Modified)`
-              : (ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A");
+            const submittedAtStr = ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A";
 
             tr.innerHTML = `
-              <td class="col-chk" onclick="event.stopPropagation();">
+              <td style="text-align: center;" onclick="event.stopPropagation();">
                 <input type="checkbox" class="chk-my-event" data-id="${ev.id}" ${selectedMyEvents.has(ev.id) ? "checked" : ""} />
               </td>
-              <td class="col-title" style="font-weight: 500;">
+              <td style="font-weight: 500;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span class="chevron-icon" style="display: none;"></span>
                   <span>${ev.title || "Untitled"}</span>
                 </div>
               </td>
-              <td class="col-category"><span class="badge badge-info">${ev.category || "General"}</span></td>
-              <td class="col-date">${dateStr || "N/A"}</td>
-              <td class="col-time">${timeStr || "N/A"}</td>
-              <td class="col-venue">${ev.venue || "N/A"}</td>
-              <td class="col-submitted-at" style="font-size: 0.8rem; color: var(--text-secondary);">${submittedAtStr}</td>
-              ${dashboardIsAdmin ? `<td class="col-embedding">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>` : ''}
+              <td><span class="badge badge-info">${ev.category || "General"}</span></td>
+              <td style="white-space: nowrap;">${dateStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${timeStr || "N/A"}</td>
+              <td>${ev.venue || "N/A"}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
+              ${dashboardIsAdmin ? `<td style="text-align: center;">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>` : ''}
             `;
             myEventsTbody.appendChild(tr);
 
@@ -4568,6 +3885,7 @@
             const detailsTr = document.createElement("tr");
             detailsTr.id = `details-my-${ev.id}`;
             detailsTr.style.display = "none";
+            detailsTr.style.background = "rgba(11, 87, 208, 0.015)";
 
             // Format website links list
             const linksHtml = (ev.websiteLinks && ev.websiteLinks.length > 0) 
@@ -4585,8 +3903,8 @@
 
             if (dashboardIsAdmin) {
               detailsTr.innerHTML = `
-                <td colspan="${colSpan}" class="details-td">
-                  <div class="event-details-card">
+                <td colspan="${colSpan}" style="padding: 1rem 1.5rem;">
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); min-width: 100%; box-sizing: border-box;">
                     
                     <!-- Column 1: General & Schedule -->
                     <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -4662,16 +3980,16 @@
                     </div>
 
                     <!-- Actions section inside details view box -->
-                    <div class="event-actions-bar" style="grid-column: 1 / -1;">
-                      <span>Actions for this event:</span>
-                      <button class="btn btn-secondary btn-edit-event">
+                    <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.75rem; margin-top: 0.5rem;">
+                      <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: auto; font-weight: 500;">Actions for this event:</span>
+                      <button class="btn btn-secondary btn-edit-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         Edit Event
                       </button>
-                      <button class="btn btn-warning btn-hide-event" style="background: ${ev.hidden ? '#e2e8f0' : 'var(--bg)'}; color: ${ev.hidden ? '#475569' : 'var(--text)'};">
+                      <button class="btn btn-warning btn-hide-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 6px; background: ${ev.hidden ? '#e2e8f0' : 'var(--bg)'}; color: ${ev.hidden ? '#475569' : 'var(--text)'}; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                         ${ev.hidden ? '👁️ Show Event' : '👁️‍🗨️ Hide Event'}
                       </button>
-                      <button class="btn btn-danger btn-delete-event">
+                      <button class="btn-danger btn-delete-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         Delete Event
                       </button>
@@ -4682,19 +4000,17 @@
               `;
             } else {
               detailsTr.innerHTML = `
-                <td colspan="${colSpan}" class="details-td">
-                  <div class="event-details-card">
-                    <div class="event-actions-bar">
-                      <span>Actions for this event:</span>
-                      <button class="btn btn-secondary btn-edit-event">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        Edit Event
-                      </button>
-                      <button class="btn btn-danger btn-delete-event">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                        Delete Event
-                      </button>
-                    </div>
+                <td colspan="${colSpan}" style="padding: 1rem 1.5rem;">
+                  <div style="display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); min-width: 100%; box-sizing: border-box;">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: auto; font-weight: 500;">Actions for this event:</span>
+                    <button class="btn btn-secondary btn-edit-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Edit Event
+                    </button>
+                    <button class="btn-danger btn-delete-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                      Delete Event
+                    </button>
                   </div>
                 </td>
               `;
@@ -4806,24 +4122,6 @@
         }
       }
 
-      // Bind Bulk Edit Button for My Events
-      const btnMyEventsBulkEdit = document.getElementById("btn-my-events-bulk-edit");
-      if (btnMyEventsBulkEdit) {
-        btnMyEventsBulkEdit.onclick = () => {
-          if (selectedMyEvents.size === 1) {
-            const selectedId = Array.from(selectedMyEvents)[0];
-            const ev = loadedMyEventsMap.get(selectedId);
-            if (ev) {
-              startEditEvent(ev);
-            } else {
-              alert("Could not find event details for editing.");
-            }
-          } else if (selectedMyEvents.size > 1) {
-            alert("You can edit only one event at a time. Please select a single event to edit.");
-          }
-        };
-      }
-
       // Bind Bulk Delete Button for My Events
       btnMyEventsBulkDelete.onclick = async () => {
         if (selectedMyEvents.size === 0) return;
@@ -4882,17 +4180,14 @@
           if (requestId !== currentAllEventsRequestId) return;
 
           let rawEvents = [];
-          loadedAllEventsMap.clear();
           snapshot.forEach((docSnap) => {
-            const evData = { id: docSnap.id, ...docSnap.data() };
-            rawEvents.push(evData);
-            loadedAllEventsMap.set(evData.id, evData);
+            rawEvents.push({ id: docSnap.id, ...docSnap.data() });
           });
 
-          // Sort in-memory by latest of submittedAt or updatedAt descending
+          // Sort in-memory by submittedAt desc
           rawEvents.sort((a, b) => {
-            const dateA = Math.max(a.updatedAt ? new Date(a.updatedAt).getTime() : 0, a.submittedAt ? new Date(a.submittedAt).getTime() : 0);
-            const dateB = Math.max(b.updatedAt ? new Date(b.updatedAt).getTime() : 0, b.submittedAt ? new Date(b.submittedAt).getTime() : 0);
+            const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+            const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
             return dateB - dateA;
           });
 
@@ -5010,12 +4305,6 @@
             events = events.filter((e) => isEventMatchQuery(e, searchQuery));
           }
 
-          // Filter by Current vs Past Experiences sub-tab
-          events = events.filter((e) => {
-            const isPast = isEventPastJS(e);
-            return activeAllEventsSubTab === "current" ? !isPast : isPast;
-          });
-
           // Auto-select filtered events if any filter is active
           const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
           if (isFilterActive) {
@@ -5047,28 +4336,26 @@
 
             const submitter = ev.submittedBy || "Anonymous";
             const sourceDisplay = ev.excelFilename ? `📄 ${ev.excelFilename}` : "📝 Form";
-            const submittedAtStr = ev.updatedAt
-              ? `${new Date(ev.updatedAt).toLocaleString()} (Modified)`
-              : (ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A");
+            const submittedAtStr = ev.submittedAt ? new Date(ev.submittedAt).toLocaleString() : "N/A";
 
             tr.innerHTML = `
-              <td class="col-chk" onclick="event.stopPropagation();">
+              <td style="text-align: center;" onclick="event.stopPropagation();">
                 <input type="checkbox" class="chk-all-event" data-id="${ev.id}" ${selectedAllEvents.has(ev.id) ? "checked" : ""} />
               </td>
-              <td class="col-title" style="font-weight: 500;">
+              <td style="font-weight: 500;">
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                   <span class="chevron-icon" style="display: none;"></span>
                   <span>${ev.title || "Untitled"}</span>
                 </div>
               </td>
-              <td class="col-category"><span class="badge badge-info">${ev.category || "General"}</span></td>
-              <td class="col-date">${dateStr || "N/A"}</td>
-              <td class="col-time">${timeStr || "N/A"}</td>
-              <td class="col-venue">${ev.venue || "N/A"}</td>
-              <td class="col-source" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
-              <td class="col-submitted-by" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
-              <td class="col-submitted-at">${submittedAtStr}</td>
-              <td class="col-embedding">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>
+              <td><span class="badge badge-info">${ev.category || "General"}</span></td>
+              <td style="white-space: nowrap;">${dateStr || "N/A"}</td>
+              <td style="white-space: nowrap;">${timeStr || "N/A"}</td>
+              <td>${ev.venue || "N/A"}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${ev.excelFilename || ''}">${sourceDisplay}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
+              <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
+              <td style="text-align: center;">${ev.embeddingVector && (ev.embeddingVector.length || (typeof ev.embeddingVector.toArray === 'function' && ev.embeddingVector.toArray().length)) ? '✅' : '❌'}</td>
             `;
             allEventsTbody.appendChild(tr);
 
@@ -5076,6 +4363,7 @@
             const detailsTr = document.createElement("tr");
             detailsTr.id = `details-all-${ev.id}`;
             detailsTr.style.display = "none";
+            detailsTr.style.background = "rgba(11, 87, 208, 0.015)";
 
             // Format website links list
             const linksHtml = (ev.websiteLinks && ev.websiteLinks.length > 0) 
@@ -5092,8 +4380,8 @@
               : (ev.posterUrl ? `<a href="${ev.posterUrl}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size: 0.8rem; display: flex; align-items: center; gap: 0.25rem;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>Poster File</a>` : "None");
 
             detailsTr.innerHTML = `
-              <td colspan="10" class="details-td">
-                <div class="event-details-card">
+              <td colspan="10" style="padding: 1rem 1.5rem;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; background: var(--bg); box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); min-width: 100%; box-sizing: border-box;">
                   
                   <!-- Column 1: General & Schedule -->
                   <div style="display: flex; flex-direction: column; gap: 0.5rem;">
@@ -5167,16 +4455,16 @@
                   </div>
 
                   <!-- Actions section inside details view box -->
-                  <div class="event-actions-bar" style="grid-column: 1 / -1;">
-                    <span>Actions for this event:</span>
-                    <button class="btn btn-secondary btn-edit-all-event">
+                  <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.75rem; margin-top: 0.5rem;">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary); margin-right: auto; font-weight: 500;">Actions for this event:</span>
+                    <button class="btn btn-secondary btn-edit-all-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                       Edit Event
                     </button>
-                    <button class="btn btn-warning btn-hide-event" style="background: ${ev.hidden ? '#e2e8f0' : 'var(--bg)'}; color: ${ev.hidden ? '#475569' : 'var(--text)'};">
+                    <button class="btn btn-warning btn-hide-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border: 1px solid var(--border); border-radius: 6px; background: ${ev.hidden ? '#e2e8f0' : 'var(--bg)'}; color: ${ev.hidden ? '#475569' : 'var(--text)'}; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                       ${ev.hidden ? '👁️ Show Event' : '👁️‍🗨️ Hide Event'}
                     </button>
-                    <button class="btn btn-danger btn-delete-all-event">
+                    <button class="btn-danger btn-delete-all-event" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                       Delete Event
                     </button>
@@ -5286,24 +4574,6 @@
           console.error("Error loading master events:", error);
           allEventsLoading.innerHTML = `<span style="color: red;">Error loading master events: ${error.message}</span>`;
         }
-      }
-
-      // Bind Bulk Edit Button for All Events
-      const btnAllEventsBulkEdit = document.getElementById("btn-all-events-bulk-edit");
-      if (btnAllEventsBulkEdit) {
-        btnAllEventsBulkEdit.onclick = () => {
-          if (selectedAllEvents.size === 1) {
-            const selectedId = Array.from(selectedAllEvents)[0];
-            const ev = loadedAllEventsMap.get(selectedId);
-            if (ev) {
-              startEditEvent(ev);
-            } else {
-              alert("Could not find event details for editing.");
-            }
-          } else if (selectedAllEvents.size > 1) {
-            alert("You can edit only one event at a time. Please select a single event to edit.");
-          }
-        };
       }
 
       // Bind Bulk Delete Button for All Events
@@ -5810,104 +5080,6 @@
         };
       }
 
-      // Blocked Users Management Logic
-      async function loadBlockedUsers() {
-        const currentUser = getCurrentUser();
-        if (!currentUser || !blockedUsersLoading) return;
-        blockedUsersLoading.style.display = "block";
-        blockedUsersTableWrapper.style.display = "none";
-        blockedUsersTbody.innerHTML = "";
-
-        try {
-          const token = await currentUser.getIdToken();
-          const res = await fetch(`/api/admin/blocked_users?token=${encodeURIComponent(token)}`);
-          const data = await res.json();
-
-          blockedUsersLoading.style.display = "none";
-          blockedUsersTableWrapper.style.display = "block";
-
-          if (!data.success || !data.blockedUsers || data.blockedUsers.length === 0) {
-            blockedUsersTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: var(--text-secondary);">No blocked users found.</td></tr>`;
-            return;
-          }
-
-          data.blockedUsers.forEach((bu) => {
-            const tr = document.createElement("tr");
-            const blockedAtStr = bu.blockedAt ? new Date(bu.blockedAt).toLocaleString() : "N/A";
-            tr.innerHTML = `
-              <td style="font-weight: 600; color: var(--text);">${bu.email || bu.id}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${blockedAtStr}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.blockedBy || "Admin"}</td>
-              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.reason || "N/A"}</td>
-              <td>
-                <button class="btn btn-secondary btn-unblock-user" data-email="${bu.email || bu.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
-              </td>
-            `;
-            blockedUsersTbody.appendChild(tr);
-          });
-
-          document.querySelectorAll(".btn-unblock-user").forEach((btn) => {
-            btn.onclick = async (e) => {
-              const email = e.target.getAttribute("data-email");
-              if (confirm(`Are you sure you want to unblock "${email}"? They will be able to submit events again.`)) {
-                const token = await currentUser.getIdToken();
-                const unblockRes = await fetch(`/api/admin/blocked_users/${encodeURIComponent(email)}?token=${encodeURIComponent(token)}`, {
-                  method: "DELETE"
-                });
-                const unblockData = await unblockRes.json();
-                if (unblockData.success) {
-                  showToast(`Successfully unblocked ${email}`, "success");
-                  loadBlockedUsers();
-                } else {
-                  showToast(`Error: ${unblockData.error || "Failed to unblock"}`, "error");
-                }
-              }
-            };
-          });
-        } catch (err) {
-          console.error("Failed to load blocked users:", err);
-          if (blockedUsersLoading) blockedUsersLoading.innerHTML = `<span style="color:var(--danger);">Error loading blocked users.</span>`;
-        }
-      }
-      window.loadBlockedUsers = loadBlockedUsers;
-
-      if (formBlockUser) {
-        formBlockUser.onsubmit = async (e) => {
-          e.preventDefault();
-          const currentUser = getCurrentUser();
-          if (!currentUser) return;
-          const emailToBlock = inputBlockEmail.value.trim();
-          const reason = inputBlockReason.value.trim();
-          if (!emailToBlock) return;
-
-          btnBlockUser.disabled = true;
-          btnBlockUser.innerText = "Blocking...";
-
-          try {
-            const token = await currentUser.getIdToken();
-            const res = await fetch("/api/admin/blocked_users", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token, emailToBlock, reason })
-            });
-            const data = await res.json();
-            if (data.success) {
-              showToast(`Successfully blocked ${emailToBlock}`, "success");
-              inputBlockEmail.value = "";
-              inputBlockReason.value = "";
-              loadBlockedUsers();
-            } else {
-              showToast(`Error: ${data.error || "Failed to block user"}`, "error");
-            }
-          } catch (err) {
-            showToast(`Error: ${err.message}`, "error");
-          } finally {
-            btnBlockUser.disabled = false;
-            btnBlockUser.innerText = "🚫 Block User";
-          }
-        };
-      }
-
       // User Chat Logs Logic (Admin Only)
       let cachedChatSessions = [];
       let chatLogsListenersBound = false;
@@ -5947,29 +5119,6 @@
         }
       }
 
-      function formatSessionDateParts(dateInput) {
-        if (!dateInput) return { dateStr: "Unknown", timeStr: "" };
-        const d = new Date(dateInput);
-        if (isNaN(d.getTime())) return { dateStr: "Unknown", timeStr: "" };
-
-        const day = String(d.getDate()).padStart(2, '0');
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const month = months[d.getMonth()];
-        const year = String(d.getFullYear()).slice(-2);
-
-        let hours = d.getHours();
-        const minutes = String(d.getMinutes()).padStart(2, '0');
-        const ampm = hours >= 12 ? 'PM' : 'AM';
-        hours = hours % 12;
-        hours = hours ? hours : 12;
-        const formattedHours = String(hours).padStart(2, '0');
-
-        return {
-          dateStr: `${day} ${month}'${year}`,
-          timeStr: `${formattedHours}:${minutes} ${ampm}`
-        };
-      }
-
       function setupChatLogsListeners() {
         const chatLogsSearch = document.getElementById("chat-logs-search");
         const btnClearChatLogsFilters = document.getElementById("btn-clear-chat-logs-filters");
@@ -5999,10 +5148,7 @@
         }
 
         const filtered = cachedChatSessions.filter(session => {
-          const sId = (session.id || "").toLowerCase();
-          const uId = (session.userId || (session.id ? "usr_" + session.id.substring(0, 8) : "")).toLowerCase();
-          if (sId.includes(queryVal)) return true;
-          if (uId.includes(queryVal)) return true;
+          if (session.id && session.id.toLowerCase().includes(queryVal)) return true;
           if (session.messages && Array.isArray(session.messages)) {
             return session.messages.some(m => m.text && m.text.toLowerCase().includes(queryVal));
           }
@@ -6010,102 +5156,6 @@
         });
 
         renderChatLogs(filtered);
-      }
-
-      window.filterByUser = function(userId) {
-        const chatLogsSearch = document.getElementById("chat-logs-search");
-        if (chatLogsSearch) {
-          chatLogsSearch.value = userId;
-          filterChatLogs();
-          chatLogsSearch.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          chatLogsSearch.focus();
-        }
-      };
-
-      function stripMarkdownSnippet(str) {
-        if (!str) return "";
-        return str
-          .replace(/\*\*([^*]+)\*\*/g, '$1')
-          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-          .replace(/[#*`_~]/g, '')
-          .trim();
-      }
-
-      function format3SegmentEventCards(container) {
-        if (!container) return;
-        container.querySelectorAll('p').forEach(p => {
-          if (p.querySelector('a[href*="DETAILS::"]') || p.querySelector('a[href^="#DETAILS::"]') || p.querySelector('a[href*="event_details"]')) {
-            p.classList.add('event-card');
-            if (!p.querySelector('.ec-above-title')) {
-              let topBar = p.querySelector('.ec-topbar');
-              const titleStrong = p.querySelector('strong');
-              
-              const aboveDiv = document.createElement('div');
-              aboveDiv.className = 'ec-segment ec-above-title';
-              if (topBar) {
-                if (!topBar.querySelector('.ec-date')) {
-                  const fullText = topBar.textContent || "";
-                  const dateMatch = fullText.match(/(\d{1,2}\s+[A-Za-z]{3}(?:'\d{2})?)/);
-                  if (dateMatch) {
-                    const cleanDate = dateMatch[1];
-                    let typeText = fullText.replace(cleanDate, '').trim();
-                    topBar.innerHTML = `<span class="ec-type">${escapeHTML(typeText || 'EVENT')}</span><span class="ec-date">${escapeHTML(cleanDate)}</span>`;
-                  }
-                }
-                aboveDiv.appendChild(topBar);
-              } else {
-                let typeText = "EVENT DETAILS";
-                let dateText = "";
-                const preNodes = [];
-                while (p.firstChild && p.firstChild !== titleStrong && (!titleStrong || !p.firstChild.contains(titleStrong))) {
-                  preNodes.push(p.firstChild);
-                  p.removeChild(p.firstChild);
-                }
-                const rawPreText = preNodes.map(n => n.textContent).join(' ').trim();
-                if (rawPreText) {
-                  const dateMatch = rawPreText.match(/(\d{1,2}\s+[A-Za-z]{3}(?:'\d{2})?)/);
-                  if (dateMatch) {
-                    dateText = dateMatch[0].trim();
-                    typeText = rawPreText.replace(dateMatch[0], '').trim() || "EVENT";
-                  } else {
-                    typeText = rawPreText;
-                  }
-                }
-                aboveDiv.innerHTML = `<div class="ec-topbar"><span class="ec-type">${escapeHTML(typeText)}</span>${dateText ? `<span class="ec-date">${escapeHTML(dateText)}</span>` : ''}</div>`;
-              }
-              
-              const titleDiv = document.createElement('div');
-              titleDiv.className = 'ec-segment ec-title-segment';
-              if (titleStrong) {
-                titleDiv.appendChild(titleStrong);
-              } else {
-                const textNodes = Array.from(p.childNodes).filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0);
-                if (textNodes.length > 0) {
-                  const s = document.createElement('strong');
-                  s.textContent = textNodes[0].textContent.trim();
-                  titleDiv.appendChild(s);
-                  textNodes[0].remove();
-                }
-              }
-              
-              const belowDiv = document.createElement('div');
-              belowDiv.className = 'ec-segment ec-below-title';
-              
-              while (p.firstChild) {
-                const node = p.firstChild;
-                if (node.nodeName === 'BR') {
-                  p.removeChild(node);
-                } else {
-                  belowDiv.appendChild(node);
-                }
-              }
-              
-              p.appendChild(aboveDiv);
-              p.appendChild(titleDiv);
-              p.appendChild(belowDiv);
-            }
-          }
-        });
       }
 
       function renderChatLogs(sessions) {
@@ -6116,7 +5166,7 @@
         chatLogsTbody.innerHTML = "";
 
         if (sessions.length === 0) {
-          chatLogsTbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No chat sessions found matching criteria.</td></tr>`;
+          chatLogsTbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No chat sessions found matching criteria.</td></tr>`;
           if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "block";
           return;
         }
@@ -6135,31 +5185,14 @@
             if (botMsgs.length > 0) lastBotMsg = botMsgs[botMsgs.length - 1].text || "";
           }
 
-          const displayUserId = session.userId || (session.id ? "usr_" + session.id.substring(0, 8) : "usr_unknown");
-          const activeDateObj = formatSessionDateParts(session.updatedAt);
-
-          let supportPushedDateFormatted = "Never";
-          if (session.lastSupportPushedAt) {
-            const p = formatSessionDateParts(session.lastSupportPushedAt);
-            supportPushedDateFormatted = p.timeStr ? `${p.dateStr}, ${p.timeStr}` : p.dateStr;
-          } else if (session.messages && Array.isArray(session.messages)) {
-            const supportMsgs = session.messages.filter(m => m.isSupportPrompt || (m.text && m.text.includes("Support AuroConnect")));
-            if (supportMsgs.length > 0) {
-              const lastSupportMsg = supportMsgs[supportMsgs.length - 1];
-              if (lastSupportMsg.timestamp) {
-                const p = formatSessionDateParts(lastSupportMsg.timestamp);
-                supportPushedDateFormatted = p.timeStr ? `${p.dateStr}, ${p.timeStr}` : p.dateStr;
-              }
-            }
-          }
+          const lastActiveDate = session.updatedAt ? new Date(session.updatedAt).toLocaleString() : "Unknown";
 
           let exchangeHTML = "";
           if (lastUserMsg || lastBotMsg) {
-            const cleanBotMsgSnippet = stripMarkdownSnippet(lastBotMsg);
             exchangeHTML = `
               <div style="font-size: 0.85rem; max-width: 500px;">
                 ${lastUserMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--text-secondary); margin-bottom: 0.15rem;"><strong>In:</strong> ${escapeHTML(lastUserMsg)}</div>` : ""}
-                ${cleanBotMsgSnippet ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--accent);"><strong>Out:</strong> ${escapeHTML(cleanBotMsgSnippet)}</div>` : ""}
+                ${lastBotMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--accent);"><strong>Out:</strong> ${escapeHTML(lastBotMsg)}</div>` : ""}
               </div>
             `;
           } else {
@@ -6173,28 +5206,10 @@
           trMain.id = rowId;
           trMain.className = "chat-log-row";
           trMain.innerHTML = `
-            <td>
-              <div style="font-family: monospace; font-size: 0.85rem; font-weight: 600; color: var(--text);">${escapeHTML(session.id)}</div>
-              <div style="margin-top: 0.2rem; font-family: monospace; font-size: 0.78rem;">
-                <a href="javascript:void(0)" onclick="event.stopPropagation(); filterByUser('${escapeHTML(displayUserId)}')" title="Click to view all sessions for User ID ${escapeHTML(displayUserId)}" style="color: var(--accent); text-decoration: underline; font-weight: 500;">
-                  ${escapeHTML(displayUserId)}
-                </a>
-              </div>
-            </td>
-            <td style="font-size: 0.85rem; color: var(--text); line-height: 1.35;">
-              <div style="font-size: 0.85rem; font-weight: 600; color: var(--text);">${escapeHTML(activeDateObj.dateStr)}</div>
-              ${activeDateObj.timeStr ? `<div style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-top: 0.15rem;">${escapeHTML(activeDateObj.timeStr)}</div>` : ''}
-            </td>
+            <td style="font-family: monospace; font-size: 0.85rem; font-weight: 600; color: var(--text);">${escapeHTML(session.id)}</td>
+            <td style="font-size: 0.85rem; color: var(--text-secondary);">${escapeHTML(lastActiveDate)}</td>
             <td>${exchangeHTML}</td>
             <td style="text-align: center; font-weight: 600;">${totalMsgCount}</td>
-            <td style="text-align: center;">
-              <button class="btn-push-support" style="background: rgba(245, 158, 11, 0.12); color: #d97706; border: 1px solid #f59e0b; padding: 0.35rem 0.65rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.25rem; transition: background 0.2s;" onclick="event.stopPropagation(); openPushSupportModal('${escapeHTML(session.id)}')">
-                Push Support
-              </button>
-              <div style="font-size: 0.72rem; color: ${supportPushedDateFormatted === "Never" ? "var(--text-secondary)" : "#d97706"}; font-weight: ${supportPushedDateFormatted === "Never" ? "400" : "600"}; margin-top: 0.25rem;">
-                ${supportPushedDateFormatted === "Never" ? "Not Pushed" : `Pushed: ${escapeHTML(supportPushedDateFormatted)}`}
-              </div>
-            </td>
           `;
 
           const trDetails = document.createElement("tr");
@@ -6208,43 +5223,15 @@
               const isUser = msg.role === "user";
               const roleLabel = isUser ? "User Query" : "AuroConnect Assistant";
               const roleClass = isUser ? "user" : "bot";
-              
-              let timestampLabel = "";
-              if (msg.timestamp) {
-                const d = new Date(msg.timestamp);
-                if (!isNaN(d.getTime())) {
-                  timestampLabel = d.toLocaleString();
-                }
-              }
-              if (!timestampLabel && session.updatedAt) {
-                const d = new Date(session.updatedAt);
-                if (!isNaN(d.getTime())) {
-                  timestampLabel = d.toLocaleString();
-                }
-              }
-
-              let renderedBody = "";
-              if (isUser) {
-                renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
-              } else {
-                if (typeof marked !== "undefined") {
-                  try {
-                    renderedBody = marked.parse(msg.text || "", { breaks: true });
-                  } catch (e) {
-                    renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
-                  }
-                } else {
-                  renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
-                }
-              }
+              const timestampLabel = msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
 
               bubblesHTML += `
                 <div class="chat-log-bubble ${roleClass}">
                   <div class="chat-log-bubble-header ${roleClass}">
                     <span>${roleLabel}</span>
-                    <span style="font-size: 0.78rem; opacity: 0.85; font-weight: 500;">📅 ${escapeHTML(timestampLabel)}</span>
+                    <span>${timestampLabel}</span>
                   </div>
-                  <div class="chat-log-text">${renderedBody}</div>
+                  <div class="chat-log-text">${escapeHTML(msg.text || "").replace(/\n/g, "<br>")}</div>
                 </div>
               `;
             });
@@ -6253,20 +5240,15 @@
           }
 
           trDetails.innerHTML = `
-            <td colspan="5" style="padding: 1.25rem; background: var(--bg); border-top: 1px solid var(--border);">
+            <td colspan="4" style="padding: 1.25rem; background: var(--bg); border-top: 1px solid var(--border);">
               <div class="chat-log-details-container">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">
                   <span style="font-weight: 600; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 0.5rem;">
                     💬 Full Conversation Trace
                   </span>
-                  <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <button class="btn" style="width: auto; padding: 0.3rem 0.65rem; font-size: 0.75rem; border-radius: 6px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border: none; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;" onclick="openPushSupportModal('${escapeHTML(session.id)}')">
-                      Send Support Prompt
-                    </button>
-                    <button class="btn" style="width: auto; padding: 0.3rem 0.65rem; font-size: 0.75rem; border-radius: 6px;" onclick="navigator.clipboard.writeText('${session.id}').then(() => alert('Session ID copied!'))">
-                      Copy Session ID
-                    </button>
-                  </div>
+                  <button class="btn" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 4px;" onclick="navigator.clipboard.writeText('${session.id}').then(() => alert('Session ID copied!'))">
+                    Copy Session ID
+                  </button>
                 </div>
                 <div class="chat-log-flow">
                   ${bubblesHTML}
@@ -6274,9 +5256,6 @@
               </div>
             </td>
           `;
-
-          // Format 3-segment cards in assistant responses
-          format3SegmentEventCards(trDetails);
 
           trMain.onclick = () => {
             const currentDisplay = trDetails.style.display;
@@ -6683,9 +5662,8 @@
             
             // Setup User Dashboard
             dashboardIsAdmin = false;
-            dashboardRoleBadge.innerHTML = "";
-            dashboardRoleBadge.className = "";
-            dashboardRoleBadge.style.display = "none";
+            dashboardRoleBadge.innerHTML = "User Mode";
+            dashboardRoleBadge.className = "badge badge-user";
             dashboardTabsRow.style.display = "none";
             if (myEventsFilters) myEventsFilters.style.setProperty("display", "none", "important");
           }
@@ -6859,58 +5837,6 @@
             endSelect.appendChild(optEnd);
           }
         }
-
-        let startTemp = false;
-        let endTemp = false;
-
-        // Set scroll focusing on mousedown/focus for start time
-        startSelect.addEventListener("mousedown", () => {
-          if (!startSelect.value) {
-            startSelect.value = "07:00";
-            startTemp = true;
-          }
-        });
-        startSelect.addEventListener("change", () => {
-          startTemp = false;
-        });
-        startSelect.addEventListener("blur", () => {
-          if (startTemp) {
-            startSelect.value = "";
-            startTemp = false;
-          }
-        });
-        startSelect.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && startTemp) {
-            startSelect.value = "";
-            startTemp = false;
-            startSelect.blur();
-          }
-        });
-
-        // Set scroll focusing on mousedown/focus for end time
-        endSelect.addEventListener("mousedown", () => {
-          if (!endSelect.value) {
-            const startVal = startSelect.value;
-            endSelect.value = startVal || "08:00";
-            endTemp = true;
-          }
-        });
-        endSelect.addEventListener("change", () => {
-          endTemp = false;
-        });
-        endSelect.addEventListener("blur", () => {
-          if (endTemp) {
-            endSelect.value = "";
-            endTemp = false;
-          }
-        });
-        endSelect.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && endTemp) {
-            endSelect.value = "";
-            endTemp = false;
-            endSelect.blur();
-          }
-        });
       }
 
       function formatToAMPM(hhmm) {
@@ -6949,381 +5875,8 @@
         selectEl.value = formattedVal;
       }
 
-      // Safe storage helper with window.name fallback for environments with blocked third-party storage (e.g. iframes)
-      function safeGetItem(key, defaultValue = "") {
-        try {
-          const val = localStorage.getItem(key);
-          if (val !== null) return val;
-        } catch (e) {}
-        try {
-          const store = JSON.parse(window.name || "{}");
-          return store[key] !== undefined ? store[key] : defaultValue;
-        } catch (e) {
-          return defaultValue;
-        }
-      }
-
-      function safeSetItem(key, value) {
-        try {
-          localStorage.setItem(key, value);
-        } catch (e) {}
-        try {
-          const store = JSON.parse(window.name || "{}");
-          store[key] = value;
-          window.name = JSON.stringify(store);
-        } catch (e) {}
-      }
-
-      function safeRemoveItem(key) {
-        try {
-          localStorage.removeItem(key);
-        } catch (e) {}
-        try {
-          const store = JSON.parse(window.name || "{}");
-          delete store[key];
-          window.name = JSON.stringify(store);
-        } catch (e) {}
-      }
-
-      // Date field clearing helper
-      window.clearDateField = function(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) {
-          el.value = "";
-          el.removeAttribute("min");
-          el.dispatchEvent(new Event("change", { bubbles: true }));
-          el.dispatchEvent(new Event("input", { bubbles: true }));
-        }
-        if (elementId === "ev-start-date") {
-          const endEl = document.getElementById("ev-end-date");
-          if (endEl) endEl.removeAttribute("min");
-        }
-        if (typeof saveFormAutosave === "function") saveFormAutosave();
-      };
-
-      // Location Region selection handling & Pondicherry modal alert
-      window.handleRegionChange = function(region) {
-        const banner = document.getElementById("region-pondicherry-banner");
-        const formBody = document.getElementById("single-event-form-body");
-        const submitBtn = document.getElementById("submit-event-btn");
-
-        if (region === "pondicherry") {
-          if (banner) banner.style.display = "flex";
-          if (formBody) {
-            formBody.style.opacity = "0.35";
-            formBody.style.pointerEvents = "none";
-          }
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.style.opacity = "0.5";
-            submitBtn.style.cursor = "not-allowed";
-          }
-          showPondicherryModal();
-        } else {
-          if (banner) banner.style.display = "none";
-          if (formBody) {
-            formBody.style.opacity = "1";
-            formBody.style.pointerEvents = "auto";
-          }
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.style.opacity = "1";
-            submitBtn.style.cursor = "pointer";
-          }
-        }
-        if (typeof saveFormAutosave === "function") saveFormAutosave();
-      };
-
-      window.showPondicherryModal = function() {
-        let modal = document.getElementById("pondicherry-alert-modal");
-        if (!modal) {
-          modal = document.createElement("div");
-          modal.id = "pondicherry-alert-modal";
-          modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 9999999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            box-sizing: border-box;
-          `;
-          modal.innerHTML = `
-            <div style="background: var(--surface, #fff); color: var(--text, #111); border: 1px solid var(--border, #ccc); border-radius: 12px; padding: 1.75rem; max-width: 440px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); text-align: center;">
-              <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🏡</div>
-              <h3 style="margin: 0 0 0.75rem 0; font-size: 1.2rem; font-weight: 700; color: var(--text);">Auroville & Nearby Events Only</h3>
-              <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary, #555); margin-bottom: 1.5rem;">
-                Currently we are accepting events <strong>only for Auroville and nearby areas</strong>.
-              </p>
-              <button type="button" onclick="closePondicherryModalAndReset()" class="btn btn-primary" style="width: 100%; max-width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 0.65rem 1rem; font-size: 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                Got it, Switch to Auroville
-              </button>
-            </div>
-          `;
-          document.body.appendChild(modal);
-        } else {
-          modal.style.display = "flex";
-        }
-      };
-
-      window.closePondicherryModalAndReset = function() {
-        const modal = document.getElementById("pondicherry-alert-modal");
-        if (modal) modal.style.display = "none";
-        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-        if (aurovilleRadio) {
-          aurovilleRadio.checked = true;
-          handleRegionChange('auroville');
-        }
-      };
-
-      // Confirm and Clear All Form Data
-      window.confirmAndClearAllFormData = function() {
-        if (confirm("Are you sure you want to clear all entered form data and reset the draft?")) {
-          if (typeof exitEditMode === "function") {
-            exitEditMode();
-          } else {
-            const singleEventForm = document.getElementById("single-event-form");
-            if (singleEventForm) singleEventForm.reset();
-            
-            const submitBtn = document.getElementById("submit-event-btn");
-            if (submitBtn) submitBtn.textContent = "Submit Event";
-            
-            const cancelBtn = document.getElementById("cancel-edit-btn");
-            if (cancelBtn) cancelBtn.style.display = "none";
-            
-            const linksContainer = document.getElementById("links-container");
-            if (linksContainer) {
-              linksContainer.innerHTML = '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-            }
-            const mediaContainer = document.getElementById("media-container");
-            if (mediaContainer) {
-              mediaContainer.innerHTML = '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
-            }
-            editingEventId = null;
-            existingMediaUrls = [];
-          }
-          
-          const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
-          if (aurovilleRadio) {
-            aurovilleRadio.checked = true;
-            handleRegionChange('auroville');
-          }
-
-          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-          if (customTimeToggle) {
-            customTimeToggle.checked = false;
-            if (typeof toggleCustomTime === "function") toggleCustomTime(false);
-          }
-          
-          clearFormAutosave();
-
-          const statusEl = document.getElementById("single-event-status");
-          if (statusEl) {
-            statusEl.innerHTML = `<span style="color: var(--accent); font-weight: 500; font-size: 0.85rem;">✨ Form data cleared.</span>`;
-            setTimeout(() => { statusEl.innerHTML = ""; }, 3000);
-          }
-        }
-      };
-
-      // Autosave/Persistence logic for dashboard form
-      const AUTOSAVE_KEY = "auroconnect_submit_form_autosave";
-
-      window.saveFormAutosave = function() {
-        try {
-          const regionInput = document.querySelector('input[name="ev-region"]:checked');
-          const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
-          const checkedWeekdays = Array.from(
-            document.querySelectorAll('input[name="ev-weekdays"]:checked')
-          ).map((cb) => cb.value);
-
-          const linkInputs = document.querySelectorAll(".ev-link");
-          const links = Array.from(linkInputs).map((inp) => inp.value);
-
-          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-
-          const data = {
-            editingEventId: (typeof editingEventId !== "undefined") ? editingEventId : null,
-            existingMediaUrls: (typeof existingMediaUrls !== "undefined") ? existingMediaUrls : [],
-            region: regionInput ? regionInput.value : "auroville",
-            title: document.getElementById("ev-title")?.value || "",
-            type: document.getElementById("ev-type")?.value || "",
-            category: document.getElementById("ev-category")?.value || "",
-            categoryManuallySet: (typeof categoryManuallySet !== "undefined") ? categoryManuallySet : false,
-            scheduleType: scheduleTypeInput ? scheduleTypeInput.value : "one-time",
-            startDate: document.getElementById("ev-start-date")?.value || "",
-            endDate: document.getElementById("ev-end-date")?.value || "",
-            weekdays: checkedWeekdays,
-            isCustomTime: customTimeToggle ? customTimeToggle.checked : false,
-            customTimeStr: document.getElementById("ev-custom-time")?.value || "",
-            startTime: document.getElementById("ev-start-time")?.value || "",
-            endTime: document.getElementById("ev-end-time")?.value || "",
-            venue: document.getElementById("ev-venue")?.value || "",
-            cost: document.getElementById("ev-cost")?.value || "",
-            audience: document.getElementById("ev-audience")?.value || "",
-            contactPerson: document.getElementById("ev-contact-person")?.value || "",
-            contactCode: document.getElementById("ev-contact-code")?.value || "+91",
-            contact: document.getElementById("ev-contact")?.value || "",
-            whatsappCode: document.getElementById("ev-whatsapp-code")?.value || "+91",
-            whatsapp: document.getElementById("ev-whatsapp")?.value || "",
-            email: document.getElementById("ev-email")?.value || "",
-            desc: document.getElementById("ev-desc")?.value || "",
-            excelFilename: document.getElementById("ev-excel-filename")?.value || "",
-            links: links,
-            timestamp: Date.now()
-          };
-
-          safeSetItem(AUTOSAVE_KEY, JSON.stringify(data));
-        } catch (e) {
-          console.error("Autosave save error:", e);
-        }
-      };
-
-      window.loadFormAutosave = function() {
-        try {
-          const saved = safeGetItem(AUTOSAVE_KEY);
-          if (!saved) return;
-          const data = JSON.parse(saved);
-
-          if (data.region) {
-            const regionRadio = document.querySelector(`input[name="ev-region"][value="${data.region}"]`);
-            if (regionRadio) {
-              regionRadio.checked = true;
-              handleRegionChange(data.region);
-            }
-          }
-
-          if (data.editingEventId) {
-            editingEventId = data.editingEventId;
-            existingMediaUrls = data.existingMediaUrls || [];
-            
-            const submitBtn = document.getElementById("submit-event-btn");
-            if (submitBtn) submitBtn.textContent = "Update Event";
-            const cancelBtn = document.getElementById("cancel-edit-btn");
-            if (cancelBtn) cancelBtn.style.display = "block";
-            
-            if (existingMediaUrls.length > 0) {
-              const extMediaContainer = document.getElementById("editing-existing-media");
-              if (extMediaContainer) extMediaContainer.style.display = "flex";
-              if (typeof renderExistingMediaList === "function") {
-                renderExistingMediaList();
-              }
-            }
-          }
-
-          if (data.title && document.getElementById("ev-title")) document.getElementById("ev-title").value = data.title;
-          if (data.type && document.getElementById("ev-type")) document.getElementById("ev-type").value = data.type;
-          if (data.category && document.getElementById("ev-category")) document.getElementById("ev-category").value = data.category;
-          if (typeof data.categoryManuallySet !== "undefined") categoryManuallySet = data.categoryManuallySet;
-          if (data.excelFilename && document.getElementById("ev-excel-filename")) document.getElementById("ev-excel-filename").value = data.excelFilename;
-
-          if (data.scheduleType) {
-            const radio = document.querySelector(`input[name="ev-schedule-type"][value="${data.scheduleType}"]`);
-            if (radio) {
-              radio.checked = true;
-              const oneTimeContainer = document.getElementById("one-time-container");
-              const recurringContainer = document.getElementById("recurring-container");
-              if (oneTimeContainer && recurringContainer) {
-                if (data.scheduleType === "one-time") {
-                  oneTimeContainer.style.display = "flex";
-                  recurringContainer.style.display = "none";
-                } else {
-                  oneTimeContainer.style.display = "none";
-                  recurringContainer.style.display = "flex";
-                }
-              }
-            }
-          }
-
-          if (data.startDate && document.getElementById("ev-start-date")) document.getElementById("ev-start-date").value = data.startDate;
-          if (data.endDate && document.getElementById("ev-end-date")) document.getElementById("ev-end-date").value = data.endDate;
-
-          if (data.weekdays) {
-            document.querySelectorAll('input[name="ev-weekdays"]').forEach((cb) => {
-              cb.checked = data.weekdays.includes(cb.value);
-            });
-          }
-
-          if (typeof data.isCustomTime !== "undefined") {
-            const customTimeToggle = document.getElementById("ev-custom-time-toggle");
-            if (customTimeToggle) {
-              customTimeToggle.checked = data.isCustomTime;
-              if (typeof toggleCustomTime === "function") toggleCustomTime(data.isCustomTime);
-            }
-          }
-          if (data.customTimeStr && document.getElementById("ev-custom-time")) document.getElementById("ev-custom-time").value = data.customTimeStr;
-
-          if (data.startTime && document.getElementById("ev-start-time")) document.getElementById("ev-start-time").value = data.startTime;
-          if (data.endTime && document.getElementById("ev-end-time")) document.getElementById("ev-end-time").value = data.endTime;
-          if (data.venue && document.getElementById("ev-venue")) document.getElementById("ev-venue").value = data.venue;
-          if (data.cost && document.getElementById("ev-cost")) document.getElementById("ev-cost").value = data.cost;
-          if (data.audience && document.getElementById("ev-audience")) document.getElementById("ev-audience").value = data.audience;
-          if (data.contactPerson && document.getElementById("ev-contact-person")) document.getElementById("ev-contact-person").value = data.contactPerson;
-          if (data.contactCode && document.getElementById("ev-contact-code")) document.getElementById("ev-contact-code").value = data.contactCode;
-          if (data.contact && document.getElementById("ev-contact")) document.getElementById("ev-contact").value = data.contact;
-          if (data.whatsappCode && document.getElementById("ev-whatsapp-code")) document.getElementById("ev-whatsapp-code").value = data.whatsappCode;
-          if (data.whatsapp && document.getElementById("ev-whatsapp")) document.getElementById("ev-whatsapp").value = data.whatsapp;
-          if (data.email && document.getElementById("ev-email")) document.getElementById("ev-email").value = data.email;
-          if (data.desc && document.getElementById("ev-desc")) document.getElementById("ev-desc").value = data.desc;
-
-          if (data.links && data.links.length > 0) {
-            const linksContainer = document.getElementById("links-container");
-            if (linksContainer) {
-              linksContainer.innerHTML = "";
-              data.links.forEach((linkVal) => {
-                const input = document.createElement("textarea");
-                input.rows = 1;
-                input.className = "ev-link auto-expand";
-                input.placeholder = "e.g. google.com or https://google.com";
-                input.value = linkVal;
-                linksContainer.appendChild(input);
-              });
-            }
-          }
-          
-          if (typeof initAutoExpandFields === "function") {
-            initAutoExpandFields();
-          }
-        } catch (e) {
-          console.error("Autosave load error:", e);
-        }
-      };
-
-      window.clearFormAutosave = function() {
-        try {
-          safeRemoveItem(AUTOSAVE_KEY);
-        } catch (e) {
-          console.error("Autosave clear error:", e);
-        }
-      };
-
-      // Unload & Disconnect listeners
-      window.addEventListener("beforeunload", saveFormAutosave);
-      window.addEventListener("pagehide", saveFormAutosave);
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") {
-          saveFormAutosave();
-        }
-      });
-
       // Initialize dropdowns
       populateTimeDropdowns();
-
-      // Load saved form work
-      loadFormAutosave();
-
-      // Attach listeners on the single-event-form
-      const singleEventFormElem = document.getElementById("single-event-form");
-      if (singleEventFormElem) {
-        singleEventFormElem.addEventListener("input", saveFormAutosave);
-        singleEventFormElem.addEventListener("change", saveFormAutosave);
-      }
 
       // Ensure End Date can never be less than Start Date
       const startDateEl = document.getElementById("ev-start-date");
@@ -7341,6 +5894,8 @@
           }
         });
       }
+
+      let categoryManuallySet = false;
 
       function calculateDaysInRange(startDateStr, endDateStr) {
         if (!startDateStr) return "";
@@ -8594,8 +7149,7 @@
               oneTimeContainer.style.display = "flex";
               recurringContainer.style.display = "none";
               document.getElementById("links-container").innerHTML =
-                '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
-              if (typeof initAutoExpandFields === "function") initAutoExpandFields();
+                '<input type="text" class="ev-link" placeholder="e.g. google.com or https://google.com" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
               document.getElementById("media-container").innerHTML =
                 '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
             }
@@ -8687,126 +7241,7 @@
       </div>
     </div>
 
-    <!-- Push Support Prompt Modal -->
-    <div id="push-support-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; padding: 1rem;" onclick="if(event.target.id==='push-support-modal') closePushSupportModal()">
-      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; max-width: 550px; width: 100%; padding: 1.5rem; box-shadow: 0 20px 40px rgba(0,0,0,0.3); display: flex; flex-direction: column; gap: 1rem;" onclick="event.stopPropagation()">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
-          <h3 style="margin: 0; font-size: 1.1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
-            ☕ Push Support Notification
-          </h3>
-          <button type="button" onclick="closePushSupportModal()" style="background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer;">✕</button>
-        </div>
-        <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
-          Targeting: <strong id="push-support-session-id-display" style="color: var(--accent);">sess_123</strong>
-        </p>
-        <div>
-          <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem;">
-            Custom Support Message / Prompt (Markdown supported):
-          </label>
-          <textarea id="push-support-message-input" rows="5" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical;">☕ **Support AuroConnect**
-
-Enjoying AuroConnect? If this platform helps you explore events, activities, and happenings in Auroville, consider supporting us with a coffee! Every contribution keeps AuroConnect free and community-focused.
-
-[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)</textarea>
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
-          <button type="button" onclick="closePushSupportModal()" class="btn" style="background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;">Cancel</button>
-          <button id="push-support-modal-send" type="button" onclick="submitPushSupportNotification()" class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #ffffff; border: none; padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);">
-            <span>🚀</span> Send Support Prompt
-          </button>
-        </div>
-      </div>
-    </div>
-
     <script>
-      let currentTargetSessionForSupport = null;
-
-      window.openPushSupportModal = function(sessionId) {
-        currentTargetSessionForSupport = sessionId;
-        const modal = document.getElementById("push-support-modal");
-        const displayEl = document.getElementById("push-support-session-id-display");
-        if (displayEl) {
-          displayEl.textContent = sessionId === "ALL" ? "All Active Chat Sessions (Broadcast)" : sessionId;
-        }
-        if (modal) {
-          modal.style.display = "flex";
-        }
-      };
-
-      window.closePushSupportModal = function() {
-        const modal = document.getElementById("push-support-modal");
-        if (modal) modal.style.display = "none";
-      };
-
-      window.submitPushSupportNotification = async function() {
-        if (!currentTargetSessionForSupport) return;
-        const sendBtn = document.getElementById("push-support-modal-send");
-        const msgInput = document.getElementById("push-support-message-input");
-        const customMsg = msgInput ? msgInput.value.trim() : "";
-
-        let token = "";
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-          try {
-            token = await currentUser.getIdToken();
-          } catch(e) {
-            console.error("Error getting ID token:", e);
-          }
-        }
-
-        if (!token) {
-          const authUserStr = localStorage.getItem("auroconnect_auth_user");
-          if (authUserStr) {
-            try {
-              const parsed = JSON.parse(authUserStr);
-              token = parsed.stsTokenManager?.accessToken || parsed.accessToken || "";
-            } catch(e) {}
-          }
-        }
-
-        if (!token) {
-          alert("Admin token not found. Please ensure you are logged in as admin.");
-          return;
-        }
-
-        try {
-          if (sendBtn) {
-            sendBtn.disabled = true;
-            sendBtn.textContent = "Sending...";
-          }
-
-          const res = await fetch("/api/admin/push-support-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              token,
-              sessionId: currentTargetSessionForSupport,
-              customMessage: customMsg,
-              broadcast: currentTargetSessionForSupport === "ALL"
-            })
-          });
-
-          const data = await res.json();
-          if (!data.success) {
-            throw new Error(data.error || "Failed to push support notification");
-          }
-
-          alert(`Success! Support prompt pushed. (${data.deliveredOnlineCount} user(s) currently online received it instantly, ${data.sessionsUpdatedCount} session(s) updated in history)`);
-          closePushSupportModal();
-
-          if (typeof loadChatSessions === "function") {
-            loadChatSessions();
-          }
-        } catch (err) {
-          alert("Error: " + err.message);
-        } finally {
-          if (sendBtn) {
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = "<span>🚀</span> Send Support Prompt";
-          }
-        }
-      };
-
       window.toggleCategoryCriteriaModal = function(e) {
         if (e) e.preventDefault();
         const modal = document.getElementById("category-info-modal");

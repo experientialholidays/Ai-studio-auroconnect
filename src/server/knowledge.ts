@@ -3,8 +3,8 @@ import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
-import { collection, doc, writeBatch, serverTimestamp, vector } from "firebase/firestore";
-import { ai, verifyAuthToken, db, isUserAdmin } from "./firebase-ai.js";
+import { FieldValue } from "firebase-admin/firestore";
+import { ai, verifyAuthToken, adminDb, isUserAdmin } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -176,38 +176,15 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
       return sendError(500, "Failed to generate any embeddings for the document.");
     }
 
-    sendProgress(85, `Saving ${embeddedChunks.length} chunks to knowledge base...`, "Saving chunks directly to Firestore from server-side");
+    sendProgress(85, `Writing ${embeddedChunks.length} chunks to knowledge base...`, "Sending chunks to browser for client-side insertion");
     const uploadedBy = decodedToken.email;
-    
-    const dbBatchSize = 100;
-    let chunkCount = 0;
-    
-    for (let i = 0; i < embeddedChunks.length; i += dbBatchSize) {
-      const chunkBatch = embeddedChunks.slice(i, i + dbBatchSize);
-      const firestoreBatch = writeBatch(db);
-      const knowledgeCol = collection(db, "knowledge");
-      
-      for (const item of chunkBatch) {
-        const newDocRef = doc(knowledgeCol);
-        const docData: any = {
-          filename,
-          text: item.text,
-          uploadedAt: serverTimestamp(),
-          uploadedBy: uploadedBy || "info.experientialholidays@gmail.com",
-          chunkIndex: chunkCount,
-          embeddingVector: item.embeddingVector && Array.isArray(item.embeddingVector)
-            ? vector(item.embeddingVector)
-            : null
-        };
-        firestoreBatch.set(newDocRef, docData);
-        chunkCount++;
-      }
-      
-      console.log(`[Server Firestore] Saving knowledge chunk batch starting at index ${i}...`);
-      await firestoreBatch.commit();
-    }
-    
-    sendSuccess(`Successfully uploaded and indexed knowledge document: ${filename}`, "All chunks saved to database successfully.");
+    res.write(JSON.stringify({
+      type: "knowledge_chunks",
+      filename,
+      uploadedBy,
+      chunks: embeddedChunks
+    }) + "\n");
+    res.end();
 
   } catch (e: any) {
     console.error("upload_knowledge error:", e);

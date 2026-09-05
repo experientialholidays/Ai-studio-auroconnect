@@ -30,7 +30,6 @@ const adminApp = getApps().length === 0
   : getApp();
 
 export const adminDb = getAdminFirestore(adminApp);
-adminDb.settings({ ignoreUndefinedProperties: true });
 
 // Client SDK initialization
 export const appFirebase = initializeApp(firebaseConfig);
@@ -67,22 +66,10 @@ export async function isUserAdmin(email: string): Promise<boolean> {
   }
   
   try {
-    const adminDocSnap = await adminDb.collection("admins").doc(emailLower).get();
-    return adminDocSnap.exists;
+    const adminDocSnap = await getDoc(doc(db, "admins", emailLower));
+    return adminDocSnap.exists();
   } catch (e) {
     console.error("Error checking database-backed admins collection:", e);
-  }
-  return false;
-}
-
-export async function isUserBlocked(email: string): Promise<boolean> {
-  if (!email) return false;
-  const emailLower = email.trim().toLowerCase();
-  try {
-    const docSnap = await adminDb.collection("blocked_users").doc(emailLower).get();
-    return docSnap.exists;
-  } catch (e) {
-    console.error("Error checking blocked_users collection:", e);
   }
   return false;
 }
