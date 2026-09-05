@@ -355,49 +355,23 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
       }
       
-      // 3. Save this batch directly to Firestore and upload drive posters to Storage on the server using Admin SDK
-      const firestoreBatch = adminDb.batch();
-      
-      for (const ev of batch) {
-        if (ev.base64Poster && ev.base64Poster.data) {
-          try {
-            const downloadUrl = await uploadPosterToStorage(
-              ev.base64Poster.data,
-              ev.base64Poster.contentType,
-              ev.title,
-              userEmail
-            );
-            if (downloadUrl) {
-              ev.posterUrl = downloadUrl;
-              console.log(`[Server Storage] Poster uploaded for "${ev.title}" -> ${downloadUrl}`);
-            }
-          } catch (uploadErr: any) {
-            console.error(`[Server Storage Error] Failed to upload poster for "${ev.title}":`, uploadErr.message || uploadErr);
-          }
-        }
-        delete ev.base64Poster; // Ensure we never store massive base64 in Firestore!
-        
-        // Save as plain array of numbers for fast in-memory cosine similarity checks
-        
-        const newDocRef = adminDb.collection("events").doc();
-        firestoreBatch.set(newDocRef, ev);
-      }
-      
-      console.log(`[Server Firestore] Saving batch ${batchNum} of ${totalBatches} directly to database...`);
-      await firestoreBatch.commit();
+      // 3. Instead of saving to Firestore on the server (which fails with permission errors in Cloud Run),
+      // we stream the parsed events back to the client as "chunks", allowing the fully authenticated 
+      // browser client to upload posters and save the events to Firestore securely!
+      res.write(JSON.stringify({ type: "chunks", events: batch }) + "\n");
       
       // Send progress to client to update the UI progress bar and log console
       sendProgress(
         percent,
-        `Saved batch ${batchNum} of ${totalBatches} directly to database.`,
-        `Committed ${Math.min(totalEvents, i + batchSize)} of ${totalEvents} events to Firestore.`
+        `Processed and embedded batch ${batchNum} of ${totalBatches}. Ready to save.`,
+        `Processed and embedded ${Math.min(totalEvents, i + batchSize)} of ${totalEvents} events.`
       );
       
-      // Sleep for 2 seconds before processing the next batch of 5
-      await new Promise(r => setTimeout(r, 2000));
+      // Sleep for 1 second before processing the next batch of 5
+      await new Promise(r => setTimeout(r, 1000));
     }
 
-    sendSuccess(`Successfully processed and saved all ${totalEvents} events!`, "All batches saved to database successfully.");
+    sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches sent to browser for saving.");
 
   } catch (e: any) {
     console.error("upload_events error:", e);
