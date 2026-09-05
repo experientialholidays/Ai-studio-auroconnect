@@ -6,7 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
-import { db, firebaseConfig, verifyAuthToken, isUserAdmin, adminDb } from "./src/server/firebase-ai.js";
+import { db, adminDb, firebaseConfig, verifyAuthToken, isUserAdmin, isUserBlocked } from "./src/server/firebase-ai.js";
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, where, limit } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
@@ -790,6 +790,36 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     const snapshot = await getDocs(colRef);
     let events = snapshot.docs.map((docSnap) => ({ uuid: docSnap.id, ...docSnap.data() } as any));
 
+    // Filter out past events for public search and chat (display of events for users)
+    const todayStr = timeInfo.dateStr; // "YYYY-MM-DD"
+    events = events.filter((data) => {
+      let end = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || "";
+      if (!end && data.dates) {
+        const parts = data.dates.split(" to ");
+        if (parts[1]) end = parts[1].trim();
+        else if (parts[0]) end = parts[0].trim();
+      }
+      
+      if (!end) {
+        let start = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+        if (start) {
+          const category = (data.category || "").toLowerCase().trim();
+          const scheduleType = (data.scheduleType || "").toLowerCase().trim();
+          const daysStr = Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "");
+          const daysLower = daysStr.toLowerCase();
+          const isDaily = daysLower.includes("daily") || daysLower.includes("every day") || daysLower.includes("everyday") || category.includes("daily");
+          const isWeekly = category.includes("weekly") || scheduleType === "weekly" || scheduleType === "recurring" || data.days;
+          
+          if (!isDaily && !isWeekly) {
+            // One-time event with only startDate
+            return start >= todayStr;
+          }
+        }
+        return true; // No dates, keep it
+      }
+      return end >= todayStr;
+    });
+
     const getWeekdayFromDateStr = (dateStr) => {
       try {
         const parts = dateStr.split("-");
@@ -928,6 +958,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
 
         if (isDateMatch && filterDate === timeInfo.dateStr) {
           if (isEventEnded(data, timeInfo.time24)) {
+            console.log(`[FILTER] [Already Ended] Event "${data.title}" (ID: ${data.uuid || data.id || "N/A"}) removed bcs it has already ended today. Today: ${timeInfo.dateStr} ${timeInfo.time24}, Event timings: ${data.times || data.startTime || ""}`);
             isDateMatch = false;
           }
         }
@@ -944,6 +975,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         let isMatch = isDaily || daysLower.includes(filterDay.toLowerCase());
         if (isMatch && timeInfo.weekday.toLowerCase() === filterDay.toLowerCase()) {
           if (isEventEnded(data, timeInfo.time24)) {
+            console.log(`[FILTER] [Already Ended] Event "${data.title}" (ID: ${data.uuid || data.id || "N/A"}) removed bcs it has already ended on this weekday. Time: ${timeInfo.time24}, Event timings: ${data.times || data.startTime || ""}`);
             isMatch = false;
           }
         }
@@ -973,7 +1005,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
             }
           }
           events.sort((a, b) => (b.similarityScore || -1) - (a.similarityScore || -1));
-          events = events.slice(0, 15);
+          events = events.slice(0, 22);
         }
       } catch (err) {
         console.error("Embedding search failed:", err);
@@ -998,9 +1030,9 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
 }
 async function getEventDetails(eventId) {
   try {
-    const docRef = await getDoc(doc(db, "events", eventId));
-    if (!docRef.exists()) return "⚠️ **Details not found.**";
-    const data = docRef.data();
+    const docSnap = await getDoc(doc(db, "events", eventId));
+    if (!docSnap.exists()) return "⚠️ **Details not found.**";
+    const data = docSnap.data();
     const header = [];
     header.push(`### ${data.title}`);
     if (data.type || data.category) header.push(`_${data.type || data.category}_`);
@@ -1119,11 +1151,22 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       filterTimeAfter = parsed.filter_time_after || "";
     } catch {
     }
+
+    console.log(`\n=================== [CHAT WS REQUEST] ===================`);
+    console.log(`User Query: "${message}"`);
+    console.log(`Selected Bucket: "${bucket}"`);
+    console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterDay, filterTimeAfter })}`);
+
     if (bucket === "A") {
       ws.send(JSON.stringify({ type: "status", status: "Searching events" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, timeZone);
+
       let botReply = "";
       if (Array.isArray(rawEvents)) {
+        console.log(`[Bucket A] Matched ${rawEvents.length} events:`);
+        rawEvents.forEach((ev, i) => {
+          console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
+        });
         const output = formatCategorizedEvents(rawEvents, introText);
         botReply = output;
       } else {
@@ -1140,8 +1183,13 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
       let botReply = "";
 
       if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+        console.log(`[Bucket B] No matching events found.`);
         botReply = "I couldn't find any upcoming events matching those criteria.";
       } else {
+        console.log(`[Bucket B] Chunks or events sent to AI:`);
+        rawEvents.forEach((ev, i) => {
+          console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
+        });
         const eventSummaries = rawEvents.map((ev) => {
           const id = ev.uuid || ev.id || "";
           const title = ev.title || "";
@@ -1274,8 +1322,13 @@ Do not include any conversational fluff, Markdown formatting outside JSON, or te
               return { ...doc2, score };
             });
             scoredDocs.sort((a, b) => b.score - a.score);
-            console.log(`[RAG] Top 3 chunks scores:`, scoredDocs.slice(0, 3).map((d) => ({ file: d.filename, chunk: d.chunkIndex, score: d.score })));
-            const topChunks = scoredDocs.slice(0, 10);
+            const topChunks = scoredDocs.slice(0, 12);
+            console.log(`[RAG] Top retrieved chunks (before neighbor expansion, k=12):`);
+            topChunks.forEach((c, idx) => {
+              const textPreview = c.text ? c.text.substring(0, 120).replace(/\n/g, ' ') + '...' : '';
+              console.log(`  ${idx+1}. File: "${c.filename}", Chunk Index: ${c.chunkIndex}, Score: ${c.score.toFixed(4)}, Preview: "${textPreview}"`);
+            });
+
             const chunksToInclude = /* @__PURE__ */ new Set();
             const docMap = /* @__PURE__ */ new Map();
             docs.forEach((doc2) => {
@@ -1294,6 +1347,13 @@ Do not include any conversational fluff, Markdown formatting outside JSON, or te
                 }
               });
             });
+
+            console.log(`[RAG] Expanded final chunks sent to AI (Total: ${finalChunks.length}):`);
+            finalChunks.forEach((c, idx) => {
+              const textPreview = c.text ? c.text.substring(0, 120).replace(/\n/g, ' ') + '...' : '';
+              console.log(`  ${idx+1}. File: "${c.filename}", Chunk Index: ${c.chunkIndex}, Preview: "${textPreview}"`);
+            });
+
             const chunksByFile: Record<string, any[]> = {};
             finalChunks.forEach((c) => {
               if (!chunksByFile[c.filename]) chunksByFile[c.filename] = [];
@@ -1331,6 +1391,7 @@ ${message}
 
 ### DETAILED CONTEXT / CLARIFIED INTENT ###
 ${searchQuery || message}`;
+
       const res = await ai.models.generateContent({
         model: MODEL,
         contents: [
@@ -1494,11 +1555,20 @@ async function createServer() {
             filterTimeAfter = parsed.filter_time_after;
         } catch { }
 
+        console.log(`\n=================== [CHAT HTTP REQUEST] ===================`);
+        console.log(`User Query: "${lastMessage}"`);
+        console.log(`Selected Bucket: "${bucket}"`);
+        console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterDay, filterTimeAfter })}`);
+
         if (bucket === "A") {
              res.write(`data: ${JSON.stringify({ status: "Searching events" })}\n\n`);
              const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, tz);
              let output = "";
              if (Array.isArray(rawEvents)) {
+                 console.log(`[Bucket A] Matched ${rawEvents.length} events:`);
+                 rawEvents.forEach((ev, i) => {
+                     console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
+                 });
                  output = formatCategorizedEvents(rawEvents, introText);
              } else {
                  output = "No upcoming events match the requested criteria.";
@@ -1508,9 +1578,26 @@ async function createServer() {
         }
         else if (bucket === "B") {
              res.write(`data: ${JSON.stringify({ status: "Extracting top matches" })}\n\n`);
-             const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, false, tz);
+             const rawEventsArray = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterTimeAfter, true, tz);
              
-             if (typeof rawEvents !== "string" || !rawEvents.trim() || rawEvents.includes("I couldn't find any upcoming events")) {
+             let rawEventsMarkdown = "";
+             if (Array.isArray(rawEventsArray) && rawEventsArray.length > 0) {
+                 console.log(`[Bucket B] Chunks or events sent to AI:`);
+                 rawEventsArray.forEach((ev, i) => {
+                     console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
+                 });
+                 let out = [];
+                 rawEventsArray.forEach((data) => {
+                     out.push(formatEventMarkdown(data));
+                     out.push("");
+                 });
+                 rawEventsMarkdown = out.join("\n");
+             } else {
+                 console.log(`[Bucket B] No matching events found.`);
+                 rawEventsMarkdown = "I couldn't find any upcoming events matching those criteria.";
+             }
+             
+             if (!rawEventsMarkdown.trim() || rawEventsMarkdown.includes("I couldn't find any upcoming events")) {
                  res.write(`data: ${JSON.stringify({ status: "" })}\n\n`);
                  res.write(`data: ${JSON.stringify({ chunk: "No matching events found." })}\n\n`);
              } else {
@@ -1520,7 +1607,7 @@ async function createServer() {
              Today's Date: ${timeInfo.formattedNow}
              
              Here are the raw events retrieved from our database:
-             ${rawEvents}
+             ${rawEventsMarkdown}
              
              Based strictly on the User Query, carefully filter and present these events nicely to the user.
              Only show the events that match their topic (e.g., if they asked for Yoga, don't show Dance).
@@ -1597,7 +1684,12 @@ async function createServer() {
                         });
                         
                         scoredDocs.sort((a, b) => b.score - a.score);
-                        const topChunks = scoredDocs.slice(0, 10);
+                        const topChunks = scoredDocs.slice(0, 12);
+                        console.log(`[RAG] Top retrieved chunks (before neighbor expansion, k=12):`);
+                        topChunks.forEach((c, idx) => {
+                            const textPreview = c.text ? c.text.substring(0, 120).replace(/\n/g, ' ') + '...' : '';
+                            console.log(`  ${idx+1}. File: "${c.filename}", Chunk Index: ${c.chunkIndex}, Score: ${c.score.toFixed(4)}, Preview: "${textPreview}"`);
+                        });
                         
                         const docMap = new Map<string, typeof docs[0]>();
                         docs.forEach(doc => {
@@ -1617,6 +1709,12 @@ async function createServer() {
                                     finalChunks.push(docMap.get(key)!);
                                 }
                             });
+                        });
+
+                        console.log(`[RAG] Expanded final chunks sent to AI (Total: ${finalChunks.length}):`);
+                        finalChunks.forEach((c, idx) => {
+                            const textPreview = c.text ? c.text.substring(0, 120).replace(/\n/g, ' ') + '...' : '';
+                            console.log(`  ${idx+1}. File: "${c.filename}", Chunk Index: ${c.chunkIndex}, Preview: "${textPreview}"`);
                         });
                         
                         const chunksByFile: Record<string, typeof docs> = {};
@@ -1814,16 +1912,14 @@ ${searchQuery || lastMessage}`;
             return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
         }
 
-        const chatSessionsCol = collection(db, "chat_sessions");
-
         // Active cleanup: delete any session older than 45 days
         try {
             const fortyFiveDaysAgo = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
-            const expiredQuery = query(chatSessionsCol, where("updatedAt", "<", fortyFiveDaysAgo));
-            const expiredSnapshot = await getDocs(expiredQuery);
-            const deletePromises: Promise<void>[] = [];
+            const q = query(collection(db, "chat_sessions"), where("updatedAt", "<", fortyFiveDaysAgo));
+            const expiredSnapshot = await getDocs(q);
+            const deletePromises: Promise<any>[] = [];
             expiredSnapshot.forEach((docSnap) => {
-                deletePromises.push(deleteDoc(docSnap.ref));
+                deletePromises.push(deleteDoc(doc(db, "chat_sessions", docSnap.id)));
             });
             if (deletePromises.length > 0) {
                 await Promise.all(deletePromises);
@@ -1833,8 +1929,8 @@ ${searchQuery || lastMessage}`;
             console.error("Error during active chat sessions cleanup:", cleanupErr);
         }
 
-        const q = query(chatSessionsCol, orderBy("updatedAt", "desc"));
-        const snapshot = await getDocs(q);
+        const qSessions = query(collection(db, "chat_sessions"), orderBy("updatedAt", "desc"));
+        const snapshot = await getDocs(qSessions);
         const sessions: any[] = [];
         snapshot.forEach((docSnap) => {
             sessions.push({ id: docSnap.id, ...docSnap.data() });
@@ -1849,6 +1945,89 @@ ${searchQuery || lastMessage}`;
 
   // Track active WebSocket connections by sessionId
   const activeWsClients = new Map<string, Set<WebSocket>>();
+
+  // Check if a user is blocked
+  app.get("/api/check_blocked", async (req, res) => {
+    try {
+      const email = req.query.email as string;
+      if (!email) return res.json({ isBlocked: false });
+      const isBlocked = await isUserBlocked(email);
+      res.json({ isBlocked });
+    } catch (err: any) {
+      res.json({ isBlocked: false });
+    }
+  });
+
+  // Admin: Get list of blocked users
+  app.get("/api/admin/blocked_users", async (req, res) => {
+    try {
+      const token = req.query.token as string;
+      const isAdmin = await checkIfAdmin(token);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      }
+      const snapshot = await adminDb.collection("blocked_users").get();
+      const list: any[] = [];
+      snapshot.forEach((docSnap) => {
+        list.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      res.json({ success: true, blockedUsers: list });
+    } catch (err: any) {
+      console.error("Error fetching blocked users:", err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Admin: Block a user
+  app.post("/api/admin/blocked_users", express.json(), async (req, res) => {
+    try {
+      const { token, emailToBlock, reason } = req.body;
+      const isAdmin = await checkIfAdmin(token);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      }
+      const verified = await verifyAuthToken(token);
+      const adminEmail = verified?.email || "admin";
+
+      if (!emailToBlock || typeof emailToBlock !== "string") {
+        return res.status(400).json({ success: false, error: "Valid email address required" });
+      }
+
+      const cleanEmail = emailToBlock.trim().toLowerCase();
+      await adminDb.collection("blocked_users").doc(cleanEmail).set({
+        email: cleanEmail,
+        blockedAt: new Date().toISOString(),
+        blockedBy: adminEmail,
+        reason: reason || "Blocked by administrator"
+      });
+
+      res.json({ success: true, message: `Successfully blocked ${cleanEmail}` });
+    } catch (err: any) {
+      console.error("Error blocking user:", err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // Admin: Unblock a user
+  app.delete("/api/admin/blocked_users/:email", express.json(), async (req, res) => {
+    try {
+      const token = (req.query.token as string) || (req.body && req.body.token);
+      const isAdmin = await checkIfAdmin(token);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      }
+      const emailToUnblock = req.params.email ? req.params.email.trim().toLowerCase() : "";
+      if (!emailToUnblock) {
+        return res.status(400).json({ success: false, error: "Email parameter required" });
+      }
+
+      await adminDb.collection("blocked_users").doc(emailToUnblock).delete();
+      res.json({ success: true, message: `Successfully unblocked ${emailToUnblock}` });
+    } catch (err: any) {
+      console.error("Error unblocking user:", err);
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
   app.post("/api/admin/push-support-notification", async (req, res) => {
     try {
@@ -1882,12 +2061,10 @@ ${searchQuery || lastMessage}`;
           }
         }
 
-        // Persist to recent active chat sessions in Firestore
-        const chatSessionsCol = collection(db, "chat_sessions");
-        const q = query(chatSessionsCol, orderBy("updatedAt", "desc"), limit(50));
-        const snapshot = await getDocs(q);
+        // Persist to recent active chat sessions in Firestore using adminDb
+        const snapshot = await adminDb.collection("chat_sessions").orderBy("updatedAt", "desc").limit(50).get();
 
-        const updatePromises: Promise<void>[] = [];
+        const updatePromises: Promise<any>[] = [];
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           const msgs = Array.isArray(data.messages) ? [...data.messages] : [];
@@ -1898,7 +2075,7 @@ ${searchQuery || lastMessage}`;
             isSupportPrompt: true
           });
           updatePromises.push(
-            setDoc(docSnap.ref, { messages: msgs, updatedAt: new Date().toISOString() }, { merge: true })
+            adminDb.collection("chat_sessions").doc(docSnap.id).set({ messages: msgs, updatedAt: new Date().toISOString() }, { merge: true })
           );
         });
 
@@ -1921,12 +2098,12 @@ ${searchQuery || lastMessage}`;
           }
         }
 
-        // Persist message to Firestore chat_sessions document
-        const sessionDocRef = doc(db, "chat_sessions", sessionId);
-        const docSnap = await getDoc(sessionDocRef);
+        // Persist message to Firestore chat_sessions document using adminDb
+        const sessionRef = adminDb.collection("chat_sessions").doc(sessionId);
+        const docSnap = await sessionRef.get();
         let msgs: any[] = [];
-        const existingDocData = docSnap.exists() ? docSnap.data() : {};
-        if (docSnap.exists() && Array.isArray(existingDocData?.messages)) {
+        const existingDocData = docSnap.exists ? docSnap.data() : {};
+        if (docSnap.exists && Array.isArray(existingDocData?.messages)) {
           msgs = [...existingDocData.messages];
         }
         const pushTimeIso = new Date().toISOString();
@@ -1940,7 +2117,7 @@ ${searchQuery || lastMessage}`;
         const existingHistory = Array.isArray(existingDocData?.supportPushedHistory) ? [...existingDocData.supportPushedHistory] : [];
         existingHistory.push(pushTimeIso);
 
-        await setDoc(sessionDocRef, {
+        await sessionRef.set({
           messages: msgs,
           lastSupportPushedAt: pushTimeIso,
           supportPushedHistory: existingHistory,
@@ -2302,7 +2479,6 @@ ${searchQuery || lastMessage}`;
 
   async function saveChatSession(sessionId: string, history: any[], userId?: string) {
     try {
-      const sessionDocRef = doc(db, "chat_sessions", sessionId);
       const now = new Date();
       const expireDate = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000); // 45 days in the future
       const updateData: any = {
@@ -2313,7 +2489,7 @@ ${searchQuery || lastMessage}`;
       if (userId) {
         updateData.userId = userId;
       }
-      await setDoc(sessionDocRef, updateData, { merge: true });
+      await setDoc(doc(db, "chat_sessions", sessionId), updateData, { merge: true });
     } catch (err) {
       console.error("Error saving chat session history to Firestore:", err);
     }
@@ -2364,15 +2540,14 @@ ${searchQuery || lastMessage}`;
     // Load from Firestore
     const loadSessionHistory = async () => {
       try {
-        const sessionDocRef = doc(db, "chat_sessions", sessionId);
-        const docSnap = await getDoc(sessionDocRef);
+        const docSnap = await getDoc(doc(db, "chat_sessions", sessionId));
         if (docSnap.exists()) {
           const data = docSnap.data();
           if (data && Array.isArray(data.messages)) {
             const updatedAtMs = data.updatedAt ? new Date(data.updatedAt).getTime() : Date.now();
             const isExpired = Date.now() - updatedAtMs > 45 * 24 * 60 * 60 * 1000; // 45 days
             if (isExpired) {
-              await deleteDoc(sessionDocRef);
+              await deleteDoc(doc(db, "chat_sessions", sessionId));
               console.log(`Deleted expired session ${sessionId} upon load attempt.`);
               return false;
             }

@@ -2,7 +2,7 @@ import { Router } from "express";
 import { getAuth } from "firebase-admin/auth";
 import * as cheerio from "cheerio";
 import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb, isUserAdmin } from "./firebase-ai.js";
+import { ai, verifyAuthToken, db, isUserAdmin } from "./firebase-ai.js";
 import { splitIntoChunks } from "./knowledge.js";
 
 const router = Router();

@@ -44,6 +44,8 @@
     <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
     <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
     <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+    <!-- Marked Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
       :root {
         --accent: #C85A32;
@@ -132,6 +134,8 @@
         font-weight: 500;
         width: 100%;
         max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
         transition: all 0.2s;
         display: flex;
         align-items: center;
@@ -231,6 +235,24 @@
         margin-bottom: 1rem;
         border-bottom: 1px solid var(--border);
         padding-bottom: 0.5rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+
+      .dashboard-tabs::-webkit-scrollbar {
+        height: 4px;
+      }
+      .dashboard-tabs::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .dashboard-tabs::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 4px;
       }
 
       .tab-btn {
@@ -243,6 +265,8 @@
         cursor: pointer;
         border-radius: 0.375rem;
         transition: all 0.2s;
+        flex-shrink: 0;
+        white-space: nowrap;
       }
 
       .tab-btn.active {
@@ -764,6 +788,7 @@
 
       @media (max-width: 1024px) {
         .form-col-8 { grid-column: span 12; }
+        .form-col-6 { grid-column: span 12; }
         .form-col-4 { grid-column: span 6; }
         .form-col-3 { grid-column: span 6; }
       }
@@ -991,266 +1016,289 @@
         class="form-grid"
         style="width: 100%; margin-top: 1rem;"
       >
-        <!-- Title -->
-        <div class="form-col-6">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Title *</label
-          >
-          <textarea
-            id="ev-title"
-            required
-            rows="1"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              resize: vertical;
-              min-height: 38px;
-            "
-          ></textarea>
-        </div>
-
-        <!-- Type -->
-        <div class="form-col-3">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: block;
-              margin-bottom: 0.2rem;
-            "
-            >Type of Event *</label
-          >
-          <textarea
-            id="ev-type"
-            required
-            rows="1"
-            placeholder="e.g. Workshop, Class"
-            class="auto-expand"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              box-sizing: border-box;
-            "
-          ></textarea>
-        </div>
-
-        <!-- Category -->
-        <div class="form-col-3" id="category-container">
-          <label
-            style="
-              font-size: 0.85rem;
-              font-weight: 500;
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin-bottom: 0.2rem;
-            "
-          >
-            <span>Event Category</span>
-            <button
-              type="button"
-              onclick="toggleCategoryCriteriaModal(event)"
-              style="
-                background: rgba(59, 130, 246, 0.12);
-                color: var(--accent, #3b82f6);
-                border: 1px solid var(--border);
-                border-radius: 50%;
-                width: 22px;
-                height: 22px;
-                font-size: 0.75rem;
-                font-weight: 700;
-                cursor: pointer;
-                display: inline-flex;
-                align-items: center;
-                justify-content: justify-center;
-                padding: 0;
-                line-height: 1;
-              "
-              title="Click to view Category Selection Criteria & Rules"
-            >ⓘ</button>
-          </label>
-          <select
-            id="ev-category"
-            style="
-              width: 100%;
-              padding: 0.5rem;
-              border: 1px solid var(--border);
-              border-radius: 6px;
-              background: var(--bg);
-              color: var(--text);
-              box-sizing: border-box;
-              height: 38px;
-              cursor: pointer;
-            "
-          >
-            <option value="Date-specific Events">Date-specific Events</option>
-            <option value="Weekly Events">Weekly Events</option>
-            <option value="Daily Events">Daily Events</option>
-          </select>
-        </div>
-
-        <!-- Timing Details (Full Width Container) -->
-        <div
-          class="form-col-12"
-          style="
-            border: 1px solid var(--border);
-            padding: 1.25rem;
-            border-radius: 8px;
-            background: rgba(0, 0, 0, 0.02);
-          "
-        >
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
-            <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
+        <!-- Top Options Row: Location Region Selector -->
+        <div class="form-col-12" style="margin-bottom: 0.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 1.15rem; flex-wrap: wrap; gap: 1rem; box-shadow: 0 1px 3px var(--shadow);">
+            <div>
+              <label style="font-weight: 600; font-size: 0.88rem; color: var(--text); display: block; margin-bottom: 0.35rem;">
+                Select Event Location Region <span style="color: var(--accent);">*</span>
+              </label>
+              <div style="display: flex; gap: 1.25rem; align-items: center; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
+                  <input type="radio" name="ev-region" value="auroville" checked onchange="handleRegionChange('auroville')" />
+                  Auroville & Nearby Area
+                </label>
+                <label style="display: flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.88rem; font-weight: 500; color: var(--text);">
+                  <input type="radio" name="ev-region" value="pondicherry" onchange="handleRegionChange('pondicherry')" />
+                  Pondicherry
+                </label>
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div>
+        <!-- Banner when Pondicherry selected -->
+        <div class="form-col-12" id="region-pondicherry-banner" style="display: none; background: #fff3cd; color: #856404; border: 1px solid #ffeeba; border-radius: 8px; padding: 0.85rem 1.25rem; margin-bottom: 0.5rem; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <span style="font-size: 0.9rem; font-weight: 600;">
+            ⛔ Currently we are accepting events only for Auroville and nearby areas.
+          </span>
+          <button type="button" onclick="const r = document.querySelector('input[name=\'ev-region\'][value=\'auroville\']'); if(r){r.checked=true; handleRegionChange('auroville');}" class="btn btn-sm" style="background: #856404; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+            Switch to Auroville
+          </button>
+        </div>
+
+        <!-- Main Form Body Wrapper -->
+        <div id="single-event-form-body" class="form-grid form-col-12" style="width: 100%; transition: opacity 0.3s ease;">
+          <!-- Title -->
+          <div class="form-col-6">
             <label
               style="
                 font-size: 0.85rem;
-                font-weight: 600;
+                font-weight: 500;
                 display: block;
-                margin-bottom: 0.5rem;
+                margin-bottom: 0.2rem;
               "
-              >Event Schedule Type</label
+              >Title *</label
             >
-            <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
-              <label
-                ><input
-                  type="radio"
-                  name="ev-schedule-type"
-                  value="one-time"
-                  checked
-                />
-                Date Specific (One Time)</label
-              >
-              <label
-                ><input type="radio" name="ev-schedule-type" value="recurring" />
-                Recurring</label
-              >
-            </div>
+            <textarea
+              id="ev-title"
+              required
+              rows="1"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                resize: vertical;
+                min-height: 38px;
+              "
+            ></textarea>
+          </div>
 
-            <div
-              id="recurring-container"
-              style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
+          <!-- Type -->
+          <div class="form-col-3">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.2rem;
+              "
+              >Type of Event *</label
             >
-              <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
+            <textarea
+              id="ev-type"
+              required
+              rows="1"
+              placeholder="e.g. Workshop, Class"
+              class="auto-expand"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+              "
+            ></textarea>
+          </div>
 
-              <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Mon" />
-                  Mon</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Tue" />
-                  Tue</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Wed" />
-                  Wed</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Thu" />
-                  Thu</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Fri" />
-                  Fri</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Sat" />
-                  Sat</label
-                >
-                <label
-                  ><input type="checkbox" name="ev-weekdays" value="Sun" />
-                  Sun</label
-                >
-              </div>
+          <!-- Category -->
+          <div class="form-col-3" id="category-container">
+            <label
+              style="
+                font-size: 0.85rem;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 0.2rem;
+              "
+            >
+              <span>Event Category</span>
+              <button
+                type="button"
+                onclick="toggleCategoryCriteriaModal(event)"
+                style="
+                  background: rgba(59, 130, 246, 0.12);
+                  color: var(--accent, #3b82f6);
+                  border: 1px solid var(--border);
+                  border-radius: 50%;
+                  width: 22px;
+                  height: 22px;
+                  font-size: 0.75rem;
+                  font-weight: 700;
+                  cursor: pointer;
+                  display: inline-flex;
+                  align-items: center;
+                  justify-content: center;
+                  padding: 0;
+                  line-height: 1;
+                "
+                title="Click to view Category Selection Criteria & Rules"
+              >ⓘ</button>
+            </label>
+            <select
+              id="ev-category"
+              style="
+                width: 100%;
+                padding: 0.5rem;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                background: var(--bg);
+                color: var(--text);
+                box-sizing: border-box;
+                height: 38px;
+                cursor: pointer;
+              "
+            >
+              <option value="Date-specific Events">Date-specific Events</option>
+              <option value="Weekly Events">Weekly Events</option>
+              <option value="Daily Events">Daily Events</option>
+            </select>
+          </div>
 
-              <div style="margin-top: 0.5rem;">
-                <button
-                  type="button"
-                  id="toggle-recurring-date-btn"
-                  style="
-                    font-size: 0.8rem;
-                    padding: 0.35rem 0.75rem;
-                    border: 1px dashed var(--border);
-                    border-radius: 6px;
-                    background: var(--card-bg, #fff);
-                    color: var(--primary, #3b82f6);
-                    cursor: pointer;
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.4rem;
-                    font-weight: 500;
-                  "
-                >
-                  📅 + Add Date Range / Specific Dates (Optional)
-                </button>
-              </div>
+          <!-- Timing Details (Full Width Container) -->
+          <div
+            class="form-col-12"
+            style="
+              border: 1px solid var(--border);
+              padding: 1.25rem;
+              border-radius: 8px;
+              background: rgba(0, 0, 0, 0.02);
+            "
+          >
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px dashed var(--border); padding-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+              <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Timing Details</span>
             </div>
 
-            <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem;">
-              <div style="flex: 1">
+            <div>
+              <label
+                style="
+                  font-size: 0.85rem;
+                  font-weight: 600;
+                  display: block;
+                  margin-bottom: 0.5rem;
+                "
+                >Event Schedule Type</label
+              >
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem">
                 <label
-                  style="
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    display: block;
-                    margin-bottom: 0.2rem;
-                  "
-                  >Start Date</label
+                  ><input
+                    type="radio"
+                    name="ev-schedule-type"
+                    value="one-time"
+                    checked
+                  />
+                  Date Specific (One Time)</label
                 >
-                <input
-                  type="date"
-                  id="ev-start-date"
-                  style="
-                    width: 100%;
-                    padding: 0.5rem;
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    background: var(--bg);
-                    color: var(--text);
-                  "
-                />
-              </div>
-              <div style="flex: 1">
                 <label
-                  style="
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    display: block;
-                    margin-bottom: 0.2rem;
-                  "
-                  >End Date</label
+                  ><input type="radio" name="ev-schedule-type" value="recurring" />
+                  Recurring</label
                 >
-                <input
-                  type="date"
-                  id="ev-end-date"
-                  style="
-                    width: 100%;
-                    padding: 0.5rem;
-                    border: 1px solid var(--border);
-                    border-radius: 6px;
-                    background: var(--bg);
-                    color: var(--text);
-                  "
-                />
               </div>
-            </div>
+
+              <div
+                id="recurring-container"
+                style="display: none; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;"
+              >
+                <label style="font-size: 0.85rem; font-weight: 500; display: block; margin-bottom: 0.2rem;">Select Weekdays</label>
+
+                <div id="recurring-weekdays-selection" style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Mon" />
+                    Mon</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Tue" />
+                    Tue</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Wed" />
+                    Wed</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Thu" />
+                    Thu</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Fri" />
+                    Fri</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Sat" />
+                    Sat</label
+                  >
+                  <label
+                    ><input type="checkbox" name="ev-weekdays" value="Sun" />
+                    Sun</label
+                  >
+                </div>
+
+                <div style="margin-top: 0.5rem;">
+                  <button
+                    type="button"
+                    id="toggle-recurring-date-btn"
+                    style="
+                      font-size: 0.8rem;
+                      padding: 0.35rem 0.75rem;
+                      border: 1px dashed var(--border);
+                      border-radius: 6px;
+                      background: var(--card-bg, #fff);
+                      color: var(--primary, #3b82f6);
+                      cursor: pointer;
+                      display: inline-flex;
+                      align-items: center;
+                      gap: 0.4rem;
+                      font-weight: 500;
+                    "
+                  >
+                    📅 + Add Date Range / Specific Dates (Optional)
+                  </button>
+                </div>
+              </div>
+
+              <div id="one-time-container" style="display: flex; gap: 2rem; margin-bottom: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+                    <label style="font-size: 0.85rem; font-weight: 500;">Start Date</label>
+                    <button type="button" onclick="clearDateField('ev-start-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
+                  </div>
+                  <input
+                    type="date"
+                    id="ev-start-date"
+                    style="
+                      width: 100%;
+                      padding: 0.5rem;
+                      border: 1px solid var(--border);
+                      border-radius: 6px;
+                      background: var(--bg);
+                      color: var(--text);
+                    "
+                  />
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem;">
+                    <label style="font-size: 0.85rem; font-weight: 500;">End Date</label>
+                    <button type="button" onclick="clearDateField('ev-end-date')" style="background: none; border: none; color: var(--accent); font-size: 0.75rem; cursor: pointer; text-decoration: underline; padding: 0; font-weight: 500;">❌ Clear Date</button>
+                  </div>
+                  <input
+                    type="date"
+                    id="ev-end-date"
+                    style="
+                      width: 100%;
+                      padding: 0.5rem;
+                      border: 1px solid var(--border);
+                      border-radius: 6px;
+                      background: var(--bg);
+                      color: var(--text);
+                    "
+                  />
+                </div>
+              </div>
 
             <div style="margin-top: 1.5rem;">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -1713,13 +1761,18 @@
         <!-- Hidden Source Filename for seamless backwards compatibility -->
         <input type="hidden" id="ev-excel-filename" value="Single Form Submission" />
 
+        </div><!-- End of single-event-form-body -->
+
         <!-- Actions -->
-        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem;">
-          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 1; max-width: none;">
+        <div class="form-col-12" style="display: flex; gap: 0.75rem; width: 100%; margin-top: 1rem; flex-wrap: wrap;">
+          <button type="submit" class="btn btn-primary" id="submit-event-btn" style="flex: 2; min-width: 160px; max-width: none;">
             Submit Event
           </button>
-          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
+          <button type="button" class="btn" id="cancel-edit-btn" style="display: none; flex: 1; min-width: 120px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text);">
             Cancel Edit
+          </button>
+          <button type="button" onclick="confirmAndClearAllFormData()" class="btn" style="flex: 1; min-width: 130px; max-width: none; background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);" title="Clear all fields and reset form draft">
+            🗑️ Clear Form Data
           </button>
         </div>
         <div id="single-event-status" class="form-col-12"></div>
@@ -1963,6 +2016,7 @@
         <button class="tab-btn" id="btn-tab-all-knowledge">All Knowledge PDFs (Admin)</button>
         <button class="tab-btn" id="btn-tab-contact-messages">Contact Messages (Admin)</button>
         <button class="tab-btn" id="btn-tab-preset-prompts">Preset Prompts (Admin)</button>
+        <button class="tab-btn" id="btn-tab-blocked-users">Blocked Users (Admin)</button>
         <button class="tab-btn" id="btn-tab-chat-logs">Chat Logs (Admin)</button>
         <button class="tab-btn" id="btn-tab-admin-utilities" style="display: none;">⚙️ Admin Utilities & Migration (Admin)</button>
       </div>
@@ -1973,6 +2027,12 @@
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
           These are the events you submitted. Click "Details" to view all fields, or edit/delete them.
         </p>
+
+        <!-- Sub-tabs for Current and Past Experiences -->
+        <div class="sub-tabs-row" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button id="btn-sub-my-current" class="btn active" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #fff; transition: all 0.2s;">📅 Current Experiences</button>
+          <button id="btn-sub-my-past" class="btn" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-secondary); transition: all 0.2s;">⏳ Past Experiences</button>
+        </div>
 
         <!-- Tab 1 Search/Filter Row -->
         <div class="filters-panel" id="my-events-filters" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2110,6 +2170,12 @@
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
           Moderation console to search, inspect, and delete any event in the system.
         </p>
+
+        <!-- Sub-tabs for Current and Past Experiences -->
+        <div class="sub-tabs-row" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <button id="btn-sub-all-current" class="btn active" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: #fff; transition: all 0.2s;">📅 Current Experiences</button>
+          <button id="btn-sub-all-past" class="btn" style="padding: 0.5rem 1.25rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-secondary); transition: all 0.2s;">⏳ Past Experiences</button>
+        </div>
         
         <!-- Tab 2 Search/Filter Row -->
         <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2354,6 +2420,53 @@
         </div>
       </div>
 
+      <!-- Tab: Blocked Users (Admin Only) -->
+      <div class="tab-content" id="tab-blocked-users">
+        <h3>🚫 Blocked Users Management</h3>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: -0.5rem;">
+          Prevent specific user email addresses from submitting events or uploading spreadsheets.
+        </p>
+
+        <!-- Form to Block User -->
+        <div class="filters-panel" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem;">
+          <h4 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text);">Block a User</h4>
+          <form id="block-user-form" onsubmit="event.preventDefault();" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; width: 100%;">
+              <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">User Email Address *</label>
+                <input type="email" id="input-block-email" required placeholder="user@example.com" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              </div>
+              <div style="flex: 2; min-width: 250px; display: flex; flex-direction: column; gap: 0.25rem;">
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Reason for Blocking (Optional)</label>
+                <input type="text" id="input-block-reason" placeholder="e.g., Submitting invalid / spam events" style="padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              </div>
+            </div>
+            <button class="btn btn-danger" id="btn-block-user" style="align-self: flex-start; padding: 0.5rem 1.25rem; font-size: 0.85rem; margin-top: 0.5rem; background: #d32f2f; color: #fff; border: none; border-radius: 6px; cursor: pointer;">
+              🚫 Block User
+            </button>
+          </form>
+        </div>
+
+        <!-- Blocked Users Table -->
+        <div id="blocked-users-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
+        <div class="table-wrapper" id="blocked-users-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Email Address</th>
+                <th>Blocked Date</th>
+                <th>Blocked By</th>
+                <th>Reason</th>
+                <th style="width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="blocked-users-tbody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Tab 6: User Chat Logs (Admin Only) -->
       <div class="tab-content" id="tab-chat-logs">
         <style>
@@ -2423,8 +2536,106 @@
             color: var(--accent);
           }
           .chat-log-text {
-            white-space: pre-wrap;
             word-break: break-word;
+            line-height: 1.55;
+            font-size: 0.92rem;
+          }
+          .chat-log-text p {
+            margin: 0.35rem 0;
+          }
+          .chat-log-text a {
+            color: var(--accent);
+            font-weight: 600;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+          }
+          .chat-log-text ul, .chat-log-text ol {
+            margin: 0.35rem 0;
+            padding-left: 1.25rem;
+          }
+          .chat-log-text h1, .chat-log-text h2, .chat-log-text h3, .chat-log-text h4 {
+            margin: 0.5rem 0 0.25rem 0;
+            color: var(--text);
+            font-weight: 700;
+          }
+          .chat-log-text blockquote {
+            border-left: 3px solid var(--accent);
+            margin: 0.4rem 0;
+            padding-left: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+          }
+
+          /* Rendered 3-Segment Event Card in Admin Chat Logs */
+          .chat-log-text .event-card {
+            color: var(--text);
+            font-size: 0.9rem;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0 !important;
+            margin: 8px 0 !important;
+            box-shadow: 0 2px 6px var(--shadow);
+            overflow: hidden;
+            text-align: left;
+          }
+          .chat-log-text .ec-segment.ec-above-title {
+            background: var(--bg);
+            padding: 6px 12px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          .chat-log-text .ec-topbar {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+          }
+          .chat-log-text .ec-type {
+            font-weight: 600 !important;
+            text-transform: uppercase !important;
+            font-size: 0.7rem !important;
+            letter-spacing: 0.05em !important;
+            color: var(--text-secondary) !important;
+            font-style: normal !important;
+          }
+          .chat-log-text .ec-type em, .chat-log-text .ec-type i {
+            font-style: normal !important;
+          }
+          .chat-log-text .ec-date {
+            font-weight: 600 !important;
+            font-size: 0.75rem !important;
+            color: var(--accent) !important;
+            margin-left: auto !important;
+            text-align: right !important;
+            white-space: nowrap !important;
+            display: inline-block !important;
+          }
+          .chat-log-text .ec-segment.ec-title-segment {
+            background: var(--surface);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            font-weight: 700;
+            font-size: 0.95rem;
+          }
+          .chat-log-text .ec-segment.ec-below-title {
+            background: var(--bg);
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text);
           }
           .chat-log-empty-msg {
             color: var(--text-secondary);
@@ -2680,6 +2891,8 @@
 
     <script src="/dateTimeParserClient.js"></script>
     <script type="module">
+      var categoryManuallySet = false;
+      window.categoryManuallySet = categoryManuallySet;
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
       import {
         getAuth,
@@ -2826,12 +3039,22 @@
       const btnTabAllKnowledge = document.getElementById("btn-tab-all-knowledge");
       const btnTabContactMessages = document.getElementById("btn-tab-contact-messages");
       const btnTabPresetPrompts = document.getElementById("btn-tab-preset-prompts");
+      const btnTabBlockedUsers = document.getElementById("btn-tab-blocked-users");
 
       const tabMyEvents = document.getElementById("tab-my-events");
       const tabAllEvents = document.getElementById("tab-all-events");
       const tabAllKnowledge = document.getElementById("tab-all-knowledge");
       const tabContactMessages = document.getElementById("tab-contact-messages");
       const tabPresetPrompts = document.getElementById("tab-preset-prompts");
+      const tabBlockedUsers = document.getElementById("tab-blocked-users");
+
+      const blockedUsersLoading = document.getElementById("blocked-users-loading");
+      const blockedUsersTableWrapper = document.getElementById("blocked-users-table-wrapper");
+      const blockedUsersTbody = document.getElementById("blocked-users-tbody");
+      const formBlockUser = document.getElementById("block-user-form");
+      const inputBlockEmail = document.getElementById("input-block-email");
+      const inputBlockReason = document.getElementById("input-block-reason");
+      const btnBlockUser = document.getElementById("btn-block-user");
 
       const myEventsLoading = document.getElementById("my-events-loading");
       const myEventsTableWrapper = document.getElementById("my-events-table-wrapper");
@@ -2969,6 +3192,28 @@
           if (parts[0]) return formatDateToYYYYMMDD(parts[0]);
         }
         return "";
+      }
+
+      function isEventPastJS(ev) {
+        const todayStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD in local time
+        
+        let end = getEventEndDate(ev);
+        if (!end) {
+          let start = getEventStartDate(ev);
+          if (start) {
+            const category = (ev.category || "").toLowerCase().trim();
+            const scheduleType = (ev.scheduleType || "").toLowerCase().trim();
+            const days = (ev.days || "").toLowerCase().trim();
+            const isDaily = days.includes("daily") || days.includes("every day") || days.includes("everyday") || category.includes("daily");
+            const isWeekly = category.includes("weekly") || scheduleType === "weekly" || scheduleType === "recurring" || ev.days;
+            
+            if (!isDaily && !isWeekly) {
+              return start < todayStr;
+            }
+          }
+          return false;
+        }
+        return end < todayStr;
       }
 
       function getEventStartTime(e) {
@@ -3605,10 +3850,12 @@
           cb.checked = false;
         });
 
-        // Determine scheduleType robustly
+        // Determine scheduleType robustly (prioritize category over daysVal for Date-specific)
         let sType = ev.scheduleType;
-        if (!sType) {
-          const categoryVal = (ev.category || "").toLowerCase();
+        const categoryVal = (ev.category || "").toLowerCase();
+        if (categoryVal.includes("date-specific") || categoryVal.includes("date specific") || categoryVal.includes("one-time")) {
+          sType = "one-time";
+        } else if (!sType) {
           const daysVal = (ev.days || "").toLowerCase();
           if (categoryVal.includes("daily") || categoryVal.includes("weekly") || daysVal.includes("mon") || daysVal.includes("tue") || daysVal.includes("wed") || daysVal.includes("thu") || daysVal.includes("fri") || daysVal.includes("sat") || daysVal.includes("sun") || daysVal.includes("every") || daysVal.includes("daily")) {
             sType = "recurring";
@@ -3798,7 +4045,28 @@
           initAutoExpandFields();
           setTimeout(initAutoExpandFields, 100);
         }
-        
+
+        // Region handling for edit mode
+        let eventRegion = ev.region || "auroville";
+        if (!ev.region && ev.venue) {
+          const venueLower = ev.venue.toLowerCase();
+          if (venueLower.includes("pondicherry") || venueLower.includes("pondy") || venueLower.includes("puducherry")) {
+            eventRegion = "pondicherry";
+          }
+        }
+        const regionRadio = document.querySelector(`input[name="ev-region"][value="${eventRegion}"]`);
+        if (regionRadio) {
+          regionRadio.checked = true;
+          if (typeof handleRegionChange === "function") {
+            handleRegionChange(eventRegion);
+          }
+        }
+
+        // Save form draft immediately so edit state persists on refresh
+        if (typeof saveFormAutosave === "function") {
+          saveFormAutosave();
+        }
+
         // Scroll to form section
         const submissionSection = document.getElementById("single-event-form");
         if (submissionSection) {
@@ -3871,6 +4139,24 @@
         if (typeof initAutoExpandFields === "function") initAutoExpandFields();
         document.getElementById("media-container").innerHTML =
           '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+          
+        // Reset region selector to Auroville
+        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
+        if (aurovilleRadio) {
+          aurovilleRadio.checked = true;
+          if (typeof handleRegionChange === "function") handleRegionChange('auroville');
+        }
+
+        // Reset custom time
+        const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+        if (customTimeToggle) {
+          customTimeToggle.checked = false;
+          if (typeof toggleCustomTime === "function") toggleCustomTime(false);
+        }
+
+        if (window.clearFormAutosave) {
+          window.clearFormAutosave();
+        }
       }
 
       // Bind Cancel Edit Button
@@ -3962,6 +4248,7 @@
         btnTabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         btnTabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         btnTabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
+        if (btnTabBlockedUsers) btnTabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
         if (btnTabChatLogs) btnTabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
         if (btnTabAdminUtilities) btnTabAdminUtilities.classList.toggle("active", activeTabId === "admin-utilities");
 
@@ -3971,6 +4258,7 @@
         tabAllKnowledge.classList.toggle("active", activeTabId === "all-knowledge");
         tabContactMessages.classList.toggle("active", activeTabId === "contact-messages");
         tabPresetPrompts.classList.toggle("active", activeTabId === "preset-prompts");
+        if (tabBlockedUsers) tabBlockedUsers.classList.toggle("active", activeTabId === "blocked-users");
         if (tabChatLogs) tabChatLogs.classList.toggle("active", activeTabId === "chat-logs");
         if (tabAdminUtilities) tabAdminUtilities.classList.toggle("active", activeTabId === "admin-utilities");
 
@@ -3982,6 +4270,8 @@
           loadContactMessages();
         } else if (activeTabId === "preset-prompts") {
           loadPresetPrompts();
+        } else if (activeTabId === "blocked-users") {
+          loadBlockedUsers();
         } else if (activeTabId === "chat-logs") {
           loadChatLogs();
         } else if (activeTabId === "admin-utilities") {
@@ -3991,11 +4281,68 @@
         }
       }
 
+      let activeMyEventsSubTab = "current"; // "current" or "past"
+      let activeAllEventsSubTab = "current"; // "current" or "past"
+
+      // Sub-tab button elements
+      const btnSubMyCurrent = document.getElementById("btn-sub-my-current");
+      const btnSubMyPast = document.getElementById("btn-sub-my-past");
+      const btnSubAllCurrent = document.getElementById("btn-sub-all-current");
+      const btnSubAllPast = document.getElementById("btn-sub-all-past");
+
+      function updateSubTabUI(currentBtn, pastBtn, activeValue) {
+        if (!currentBtn || !pastBtn) return;
+        if (activeValue === "current") {
+          currentBtn.style.border = "1px solid var(--accent)";
+          currentBtn.style.background = "var(--accent)";
+          currentBtn.style.color = "#fff";
+          
+          pastBtn.style.border = "1px solid var(--border)";
+          pastBtn.style.background = "var(--card-bg)";
+          pastBtn.style.color = "var(--text-secondary)";
+        } else {
+          pastBtn.style.border = "1px solid var(--accent)";
+          pastBtn.style.background = "var(--accent)";
+          pastBtn.style.color = "#fff";
+          
+          currentBtn.style.border = "1px solid var(--border)";
+          currentBtn.style.background = "var(--card-bg)";
+          currentBtn.style.color = "var(--text-secondary)";
+        }
+      }
+
+      if (btnSubMyCurrent && btnSubMyPast) {
+        btnSubMyCurrent.onclick = () => {
+          activeMyEventsSubTab = "current";
+          updateSubTabUI(btnSubMyCurrent, btnSubMyPast, "current");
+          loadMyEvents();
+        };
+        btnSubMyPast.onclick = () => {
+          activeMyEventsSubTab = "past";
+          updateSubTabUI(btnSubMyCurrent, btnSubMyPast, "past");
+          loadMyEvents();
+        };
+      }
+
+      if (btnSubAllCurrent && btnSubAllPast) {
+        btnSubAllCurrent.onclick = () => {
+          activeAllEventsSubTab = "current";
+          updateSubTabUI(btnSubAllCurrent, btnSubAllPast, "current");
+          loadAllDatabaseEvents();
+        };
+        btnSubAllPast.onclick = () => {
+          activeAllEventsSubTab = "past";
+          updateSubTabUI(btnSubAllCurrent, btnSubAllPast, "past");
+          loadAllDatabaseEvents();
+        };
+      }
+
       btnTabMyEvents.onclick = () => switchTab("my-events");
       btnTabAllEvents.onclick = () => switchTab("all-events");
       btnTabAllKnowledge.onclick = () => switchTab("all-knowledge");
       btnTabContactMessages.onclick = () => switchTab("contact-messages");
       btnTabPresetPrompts.onclick = () => switchTab("preset-prompts");
+      if (btnTabBlockedUsers) btnTabBlockedUsers.onclick = () => switchTab("blocked-users");
       if (btnTabChatLogs) btnTabChatLogs.onclick = () => switchTab("chat-logs");
       if (btnTabAdminUtilities) btnTabAdminUtilities.onclick = () => switchTab("admin-utilities");
 
@@ -4150,6 +4497,12 @@
           if (searchQuery) {
             filteredEvents = filteredEvents.filter((e) => isEventMatchQuery(e, searchQuery));
           }
+
+          // Filter by Current vs Past Experiences sub-tab
+          filteredEvents = filteredEvents.filter((e) => {
+            const isPast = isEventPastJS(e);
+            return activeMyEventsSubTab === "current" ? !isPast : isPast;
+          });
 
           // Auto-select filtered events if any filter is active
           const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
@@ -4656,6 +5009,12 @@
           if (searchQuery) {
             events = events.filter((e) => isEventMatchQuery(e, searchQuery));
           }
+
+          // Filter by Current vs Past Experiences sub-tab
+          events = events.filter((e) => {
+            const isPast = isEventPastJS(e);
+            return activeAllEventsSubTab === "current" ? !isPast : isPast;
+          });
 
           // Auto-select filtered events if any filter is active
           const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
@@ -5451,6 +5810,104 @@
         };
       }
 
+      // Blocked Users Management Logic
+      async function loadBlockedUsers() {
+        const currentUser = getCurrentUser();
+        if (!currentUser || !blockedUsersLoading) return;
+        blockedUsersLoading.style.display = "block";
+        blockedUsersTableWrapper.style.display = "none";
+        blockedUsersTbody.innerHTML = "";
+
+        try {
+          const token = await currentUser.getIdToken();
+          const res = await fetch(`/api/admin/blocked_users?token=${encodeURIComponent(token)}`);
+          const data = await res.json();
+
+          blockedUsersLoading.style.display = "none";
+          blockedUsersTableWrapper.style.display = "block";
+
+          if (!data.success || !data.blockedUsers || data.blockedUsers.length === 0) {
+            blockedUsersTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: var(--text-secondary);">No blocked users found.</td></tr>`;
+            return;
+          }
+
+          data.blockedUsers.forEach((bu) => {
+            const tr = document.createElement("tr");
+            const blockedAtStr = bu.blockedAt ? new Date(bu.blockedAt).toLocaleString() : "N/A";
+            tr.innerHTML = `
+              <td style="font-weight: 600; color: var(--text);">${bu.email || bu.id}</td>
+              <td style="font-size: 0.85rem; color: var(--text-secondary);">${blockedAtStr}</td>
+              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.blockedBy || "Admin"}</td>
+              <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.reason || "N/A"}</td>
+              <td>
+                <button class="btn btn-secondary btn-unblock-user" data-email="${bu.email || bu.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
+              </td>
+            `;
+            blockedUsersTbody.appendChild(tr);
+          });
+
+          document.querySelectorAll(".btn-unblock-user").forEach((btn) => {
+            btn.onclick = async (e) => {
+              const email = e.target.getAttribute("data-email");
+              if (confirm(`Are you sure you want to unblock "${email}"? They will be able to submit events again.`)) {
+                const token = await currentUser.getIdToken();
+                const unblockRes = await fetch(`/api/admin/blocked_users/${encodeURIComponent(email)}?token=${encodeURIComponent(token)}`, {
+                  method: "DELETE"
+                });
+                const unblockData = await unblockRes.json();
+                if (unblockData.success) {
+                  showToast(`Successfully unblocked ${email}`, "success");
+                  loadBlockedUsers();
+                } else {
+                  showToast(`Error: ${unblockData.error || "Failed to unblock"}`, "error");
+                }
+              }
+            };
+          });
+        } catch (err) {
+          console.error("Failed to load blocked users:", err);
+          if (blockedUsersLoading) blockedUsersLoading.innerHTML = `<span style="color:var(--danger);">Error loading blocked users.</span>`;
+        }
+      }
+      window.loadBlockedUsers = loadBlockedUsers;
+
+      if (formBlockUser) {
+        formBlockUser.onsubmit = async (e) => {
+          e.preventDefault();
+          const currentUser = getCurrentUser();
+          if (!currentUser) return;
+          const emailToBlock = inputBlockEmail.value.trim();
+          const reason = inputBlockReason.value.trim();
+          if (!emailToBlock) return;
+
+          btnBlockUser.disabled = true;
+          btnBlockUser.innerText = "Blocking...";
+
+          try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch("/api/admin/blocked_users", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token, emailToBlock, reason })
+            });
+            const data = await res.json();
+            if (data.success) {
+              showToast(`Successfully blocked ${emailToBlock}`, "success");
+              inputBlockEmail.value = "";
+              inputBlockReason.value = "";
+              loadBlockedUsers();
+            } else {
+              showToast(`Error: ${data.error || "Failed to block user"}`, "error");
+            }
+          } catch (err) {
+            showToast(`Error: ${err.message}`, "error");
+          } finally {
+            btnBlockUser.disabled = false;
+            btnBlockUser.innerText = "🚫 Block User";
+          }
+        };
+      }
+
       // User Chat Logs Logic (Admin Only)
       let cachedChatSessions = [];
       let chatLogsListenersBound = false;
@@ -5565,6 +6022,92 @@
         }
       };
 
+      function stripMarkdownSnippet(str) {
+        if (!str) return "";
+        return str
+          .replace(/\*\*([^*]+)\*\*/g, '$1')
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+          .replace(/[#*`_~]/g, '')
+          .trim();
+      }
+
+      function format3SegmentEventCards(container) {
+        if (!container) return;
+        container.querySelectorAll('p').forEach(p => {
+          if (p.querySelector('a[href*="DETAILS::"]') || p.querySelector('a[href^="#DETAILS::"]') || p.querySelector('a[href*="event_details"]')) {
+            p.classList.add('event-card');
+            if (!p.querySelector('.ec-above-title')) {
+              let topBar = p.querySelector('.ec-topbar');
+              const titleStrong = p.querySelector('strong');
+              
+              const aboveDiv = document.createElement('div');
+              aboveDiv.className = 'ec-segment ec-above-title';
+              if (topBar) {
+                if (!topBar.querySelector('.ec-date')) {
+                  const fullText = topBar.textContent || "";
+                  const dateMatch = fullText.match(/(\d{1,2}\s+[A-Za-z]{3}(?:'\d{2})?)/);
+                  if (dateMatch) {
+                    const cleanDate = dateMatch[1];
+                    let typeText = fullText.replace(cleanDate, '').trim();
+                    topBar.innerHTML = `<span class="ec-type">${escapeHTML(typeText || 'EVENT')}</span><span class="ec-date">${escapeHTML(cleanDate)}</span>`;
+                  }
+                }
+                aboveDiv.appendChild(topBar);
+              } else {
+                let typeText = "EVENT DETAILS";
+                let dateText = "";
+                const preNodes = [];
+                while (p.firstChild && p.firstChild !== titleStrong && (!titleStrong || !p.firstChild.contains(titleStrong))) {
+                  preNodes.push(p.firstChild);
+                  p.removeChild(p.firstChild);
+                }
+                const rawPreText = preNodes.map(n => n.textContent).join(' ').trim();
+                if (rawPreText) {
+                  const dateMatch = rawPreText.match(/(\d{1,2}\s+[A-Za-z]{3}(?:'\d{2})?)/);
+                  if (dateMatch) {
+                    dateText = dateMatch[0].trim();
+                    typeText = rawPreText.replace(dateMatch[0], '').trim() || "EVENT";
+                  } else {
+                    typeText = rawPreText;
+                  }
+                }
+                aboveDiv.innerHTML = `<div class="ec-topbar"><span class="ec-type">${escapeHTML(typeText)}</span>${dateText ? `<span class="ec-date">${escapeHTML(dateText)}</span>` : ''}</div>`;
+              }
+              
+              const titleDiv = document.createElement('div');
+              titleDiv.className = 'ec-segment ec-title-segment';
+              if (titleStrong) {
+                titleDiv.appendChild(titleStrong);
+              } else {
+                const textNodes = Array.from(p.childNodes).filter(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim().length > 0);
+                if (textNodes.length > 0) {
+                  const s = document.createElement('strong');
+                  s.textContent = textNodes[0].textContent.trim();
+                  titleDiv.appendChild(s);
+                  textNodes[0].remove();
+                }
+              }
+              
+              const belowDiv = document.createElement('div');
+              belowDiv.className = 'ec-segment ec-below-title';
+              
+              while (p.firstChild) {
+                const node = p.firstChild;
+                if (node.nodeName === 'BR') {
+                  p.removeChild(node);
+                } else {
+                  belowDiv.appendChild(node);
+                }
+              }
+              
+              p.appendChild(aboveDiv);
+              p.appendChild(titleDiv);
+              p.appendChild(belowDiv);
+            }
+          }
+        });
+      }
+
       function renderChatLogs(sessions) {
         const chatLogsTbody = document.getElementById("chat-logs-tbody");
         const chatLogsTableWrapper = document.getElementById("chat-logs-table-wrapper");
@@ -5612,10 +6155,11 @@
 
           let exchangeHTML = "";
           if (lastUserMsg || lastBotMsg) {
+            const cleanBotMsgSnippet = stripMarkdownSnippet(lastBotMsg);
             exchangeHTML = `
               <div style="font-size: 0.85rem; max-width: 500px;">
                 ${lastUserMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--text-secondary); margin-bottom: 0.15rem;"><strong>In:</strong> ${escapeHTML(lastUserMsg)}</div>` : ""}
-                ${lastBotMsg ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--accent);"><strong>Out:</strong> ${escapeHTML(lastBotMsg)}</div>` : ""}
+                ${cleanBotMsgSnippet ? `<div style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; color: var(--accent);"><strong>Out:</strong> ${escapeHTML(cleanBotMsgSnippet)}</div>` : ""}
               </div>
             `;
           } else {
@@ -5679,13 +6223,28 @@
                 }
               }
 
+              let renderedBody = "";
+              if (isUser) {
+                renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
+              } else {
+                if (typeof marked !== "undefined") {
+                  try {
+                    renderedBody = marked.parse(msg.text || "", { breaks: true });
+                  } catch (e) {
+                    renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
+                  }
+                } else {
+                  renderedBody = escapeHTML(msg.text || "").replace(/\n/g, "<br>");
+                }
+              }
+
               bubblesHTML += `
                 <div class="chat-log-bubble ${roleClass}">
                   <div class="chat-log-bubble-header ${roleClass}">
                     <span>${roleLabel}</span>
                     <span style="font-size: 0.78rem; opacity: 0.85; font-weight: 500;">📅 ${escapeHTML(timestampLabel)}</span>
                   </div>
-                  <div class="chat-log-text">${escapeHTML(msg.text || "").replace(/\n/g, "<br>")}</div>
+                  <div class="chat-log-text">${renderedBody}</div>
                 </div>
               `;
             });
@@ -5715,6 +6274,9 @@
               </div>
             </td>
           `;
+
+          // Format 3-segment cards in assistant responses
+          format3SegmentEventCards(trDetails);
 
           trMain.onclick = () => {
             const currentDisplay = trDetails.style.display;
@@ -6387,8 +6949,381 @@
         selectEl.value = formattedVal;
       }
 
+      // Safe storage helper with window.name fallback for environments with blocked third-party storage (e.g. iframes)
+      function safeGetItem(key, defaultValue = "") {
+        try {
+          const val = localStorage.getItem(key);
+          if (val !== null) return val;
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          return store[key] !== undefined ? store[key] : defaultValue;
+        } catch (e) {
+          return defaultValue;
+        }
+      }
+
+      function safeSetItem(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          store[key] = value;
+          window.name = JSON.stringify(store);
+        } catch (e) {}
+      }
+
+      function safeRemoveItem(key) {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {}
+        try {
+          const store = JSON.parse(window.name || "{}");
+          delete store[key];
+          window.name = JSON.stringify(store);
+        } catch (e) {}
+      }
+
+      // Date field clearing helper
+      window.clearDateField = function(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+          el.value = "";
+          el.removeAttribute("min");
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        if (elementId === "ev-start-date") {
+          const endEl = document.getElementById("ev-end-date");
+          if (endEl) endEl.removeAttribute("min");
+        }
+        if (typeof saveFormAutosave === "function") saveFormAutosave();
+      };
+
+      // Location Region selection handling & Pondicherry modal alert
+      window.handleRegionChange = function(region) {
+        const banner = document.getElementById("region-pondicherry-banner");
+        const formBody = document.getElementById("single-event-form-body");
+        const submitBtn = document.getElementById("submit-event-btn");
+
+        if (region === "pondicherry") {
+          if (banner) banner.style.display = "flex";
+          if (formBody) {
+            formBody.style.opacity = "0.35";
+            formBody.style.pointerEvents = "none";
+          }
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.style.opacity = "0.5";
+            submitBtn.style.cursor = "not-allowed";
+          }
+          showPondicherryModal();
+        } else {
+          if (banner) banner.style.display = "none";
+          if (formBody) {
+            formBody.style.opacity = "1";
+            formBody.style.pointerEvents = "auto";
+          }
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = "1";
+            submitBtn.style.cursor = "pointer";
+          }
+        }
+        if (typeof saveFormAutosave === "function") saveFormAutosave();
+      };
+
+      window.showPondicherryModal = function() {
+        let modal = document.getElementById("pondicherry-alert-modal");
+        if (!modal) {
+          modal = document.createElement("div");
+          modal.id = "pondicherry-alert-modal";
+          modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            box-sizing: border-box;
+          `;
+          modal.innerHTML = `
+            <div style="background: var(--surface, #fff); color: var(--text, #111); border: 1px solid var(--border, #ccc); border-radius: 12px; padding: 1.75rem; max-width: 440px; width: 100%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); text-align: center;">
+              <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🏡</div>
+              <h3 style="margin: 0 0 0.75rem 0; font-size: 1.2rem; font-weight: 700; color: var(--text);">Auroville & Nearby Events Only</h3>
+              <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-secondary, #555); margin-bottom: 1.5rem;">
+                Currently we are accepting events <strong>only for Auroville and nearby areas</strong>.
+              </p>
+              <button type="button" onclick="closePondicherryModalAndReset()" class="btn btn-primary" style="width: 100%; max-width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 0.65rem 1rem; font-size: 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Got it, Switch to Auroville
+              </button>
+            </div>
+          `;
+          document.body.appendChild(modal);
+        } else {
+          modal.style.display = "flex";
+        }
+      };
+
+      window.closePondicherryModalAndReset = function() {
+        const modal = document.getElementById("pondicherry-alert-modal");
+        if (modal) modal.style.display = "none";
+        const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
+        if (aurovilleRadio) {
+          aurovilleRadio.checked = true;
+          handleRegionChange('auroville');
+        }
+      };
+
+      // Confirm and Clear All Form Data
+      window.confirmAndClearAllFormData = function() {
+        if (confirm("Are you sure you want to clear all entered form data and reset the draft?")) {
+          if (typeof exitEditMode === "function") {
+            exitEditMode();
+          } else {
+            const singleEventForm = document.getElementById("single-event-form");
+            if (singleEventForm) singleEventForm.reset();
+            
+            const submitBtn = document.getElementById("submit-event-btn");
+            if (submitBtn) submitBtn.textContent = "Submit Event";
+            
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) cancelBtn.style.display = "none";
+            
+            const linksContainer = document.getElementById("links-container");
+            if (linksContainer) {
+              linksContainer.innerHTML = '<textarea class="ev-link auto-expand" rows="1" placeholder="e.g. google.com or https://google.com"></textarea>';
+            }
+            const mediaContainer = document.getElementById("media-container");
+            if (mediaContainer) {
+              mediaContainer.innerHTML = '<input type="file" class="ev-media" accept="image/*,.pdf,.ppt,.pptx" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);">';
+            }
+            editingEventId = null;
+            existingMediaUrls = [];
+          }
+          
+          const aurovilleRadio = document.querySelector('input[name="ev-region"][value="auroville"]');
+          if (aurovilleRadio) {
+            aurovilleRadio.checked = true;
+            handleRegionChange('auroville');
+          }
+
+          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+          if (customTimeToggle) {
+            customTimeToggle.checked = false;
+            if (typeof toggleCustomTime === "function") toggleCustomTime(false);
+          }
+          
+          clearFormAutosave();
+
+          const statusEl = document.getElementById("single-event-status");
+          if (statusEl) {
+            statusEl.innerHTML = `<span style="color: var(--accent); font-weight: 500; font-size: 0.85rem;">✨ Form data cleared.</span>`;
+            setTimeout(() => { statusEl.innerHTML = ""; }, 3000);
+          }
+        }
+      };
+
+      // Autosave/Persistence logic for dashboard form
+      const AUTOSAVE_KEY = "auroconnect_submit_form_autosave";
+
+      window.saveFormAutosave = function() {
+        try {
+          const regionInput = document.querySelector('input[name="ev-region"]:checked');
+          const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
+          const checkedWeekdays = Array.from(
+            document.querySelectorAll('input[name="ev-weekdays"]:checked')
+          ).map((cb) => cb.value);
+
+          const linkInputs = document.querySelectorAll(".ev-link");
+          const links = Array.from(linkInputs).map((inp) => inp.value);
+
+          const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+
+          const data = {
+            editingEventId: (typeof editingEventId !== "undefined") ? editingEventId : null,
+            existingMediaUrls: (typeof existingMediaUrls !== "undefined") ? existingMediaUrls : [],
+            region: regionInput ? regionInput.value : "auroville",
+            title: document.getElementById("ev-title")?.value || "",
+            type: document.getElementById("ev-type")?.value || "",
+            category: document.getElementById("ev-category")?.value || "",
+            categoryManuallySet: (typeof categoryManuallySet !== "undefined") ? categoryManuallySet : false,
+            scheduleType: scheduleTypeInput ? scheduleTypeInput.value : "one-time",
+            startDate: document.getElementById("ev-start-date")?.value || "",
+            endDate: document.getElementById("ev-end-date")?.value || "",
+            weekdays: checkedWeekdays,
+            isCustomTime: customTimeToggle ? customTimeToggle.checked : false,
+            customTimeStr: document.getElementById("ev-custom-time")?.value || "",
+            startTime: document.getElementById("ev-start-time")?.value || "",
+            endTime: document.getElementById("ev-end-time")?.value || "",
+            venue: document.getElementById("ev-venue")?.value || "",
+            cost: document.getElementById("ev-cost")?.value || "",
+            audience: document.getElementById("ev-audience")?.value || "",
+            contactPerson: document.getElementById("ev-contact-person")?.value || "",
+            contactCode: document.getElementById("ev-contact-code")?.value || "+91",
+            contact: document.getElementById("ev-contact")?.value || "",
+            whatsappCode: document.getElementById("ev-whatsapp-code")?.value || "+91",
+            whatsapp: document.getElementById("ev-whatsapp")?.value || "",
+            email: document.getElementById("ev-email")?.value || "",
+            desc: document.getElementById("ev-desc")?.value || "",
+            excelFilename: document.getElementById("ev-excel-filename")?.value || "",
+            links: links,
+            timestamp: Date.now()
+          };
+
+          safeSetItem(AUTOSAVE_KEY, JSON.stringify(data));
+        } catch (e) {
+          console.error("Autosave save error:", e);
+        }
+      };
+
+      window.loadFormAutosave = function() {
+        try {
+          const saved = safeGetItem(AUTOSAVE_KEY);
+          if (!saved) return;
+          const data = JSON.parse(saved);
+
+          if (data.region) {
+            const regionRadio = document.querySelector(`input[name="ev-region"][value="${data.region}"]`);
+            if (regionRadio) {
+              regionRadio.checked = true;
+              handleRegionChange(data.region);
+            }
+          }
+
+          if (data.editingEventId) {
+            editingEventId = data.editingEventId;
+            existingMediaUrls = data.existingMediaUrls || [];
+            
+            const submitBtn = document.getElementById("submit-event-btn");
+            if (submitBtn) submitBtn.textContent = "Update Event";
+            const cancelBtn = document.getElementById("cancel-edit-btn");
+            if (cancelBtn) cancelBtn.style.display = "block";
+            
+            if (existingMediaUrls.length > 0) {
+              const extMediaContainer = document.getElementById("editing-existing-media");
+              if (extMediaContainer) extMediaContainer.style.display = "flex";
+              if (typeof renderExistingMediaList === "function") {
+                renderExistingMediaList();
+              }
+            }
+          }
+
+          if (data.title && document.getElementById("ev-title")) document.getElementById("ev-title").value = data.title;
+          if (data.type && document.getElementById("ev-type")) document.getElementById("ev-type").value = data.type;
+          if (data.category && document.getElementById("ev-category")) document.getElementById("ev-category").value = data.category;
+          if (typeof data.categoryManuallySet !== "undefined") categoryManuallySet = data.categoryManuallySet;
+          if (data.excelFilename && document.getElementById("ev-excel-filename")) document.getElementById("ev-excel-filename").value = data.excelFilename;
+
+          if (data.scheduleType) {
+            const radio = document.querySelector(`input[name="ev-schedule-type"][value="${data.scheduleType}"]`);
+            if (radio) {
+              radio.checked = true;
+              const oneTimeContainer = document.getElementById("one-time-container");
+              const recurringContainer = document.getElementById("recurring-container");
+              if (oneTimeContainer && recurringContainer) {
+                if (data.scheduleType === "one-time") {
+                  oneTimeContainer.style.display = "flex";
+                  recurringContainer.style.display = "none";
+                } else {
+                  oneTimeContainer.style.display = "none";
+                  recurringContainer.style.display = "flex";
+                }
+              }
+            }
+          }
+
+          if (data.startDate && document.getElementById("ev-start-date")) document.getElementById("ev-start-date").value = data.startDate;
+          if (data.endDate && document.getElementById("ev-end-date")) document.getElementById("ev-end-date").value = data.endDate;
+
+          if (data.weekdays) {
+            document.querySelectorAll('input[name="ev-weekdays"]').forEach((cb) => {
+              cb.checked = data.weekdays.includes(cb.value);
+            });
+          }
+
+          if (typeof data.isCustomTime !== "undefined") {
+            const customTimeToggle = document.getElementById("ev-custom-time-toggle");
+            if (customTimeToggle) {
+              customTimeToggle.checked = data.isCustomTime;
+              if (typeof toggleCustomTime === "function") toggleCustomTime(data.isCustomTime);
+            }
+          }
+          if (data.customTimeStr && document.getElementById("ev-custom-time")) document.getElementById("ev-custom-time").value = data.customTimeStr;
+
+          if (data.startTime && document.getElementById("ev-start-time")) document.getElementById("ev-start-time").value = data.startTime;
+          if (data.endTime && document.getElementById("ev-end-time")) document.getElementById("ev-end-time").value = data.endTime;
+          if (data.venue && document.getElementById("ev-venue")) document.getElementById("ev-venue").value = data.venue;
+          if (data.cost && document.getElementById("ev-cost")) document.getElementById("ev-cost").value = data.cost;
+          if (data.audience && document.getElementById("ev-audience")) document.getElementById("ev-audience").value = data.audience;
+          if (data.contactPerson && document.getElementById("ev-contact-person")) document.getElementById("ev-contact-person").value = data.contactPerson;
+          if (data.contactCode && document.getElementById("ev-contact-code")) document.getElementById("ev-contact-code").value = data.contactCode;
+          if (data.contact && document.getElementById("ev-contact")) document.getElementById("ev-contact").value = data.contact;
+          if (data.whatsappCode && document.getElementById("ev-whatsapp-code")) document.getElementById("ev-whatsapp-code").value = data.whatsappCode;
+          if (data.whatsapp && document.getElementById("ev-whatsapp")) document.getElementById("ev-whatsapp").value = data.whatsapp;
+          if (data.email && document.getElementById("ev-email")) document.getElementById("ev-email").value = data.email;
+          if (data.desc && document.getElementById("ev-desc")) document.getElementById("ev-desc").value = data.desc;
+
+          if (data.links && data.links.length > 0) {
+            const linksContainer = document.getElementById("links-container");
+            if (linksContainer) {
+              linksContainer.innerHTML = "";
+              data.links.forEach((linkVal) => {
+                const input = document.createElement("textarea");
+                input.rows = 1;
+                input.className = "ev-link auto-expand";
+                input.placeholder = "e.g. google.com or https://google.com";
+                input.value = linkVal;
+                linksContainer.appendChild(input);
+              });
+            }
+          }
+          
+          if (typeof initAutoExpandFields === "function") {
+            initAutoExpandFields();
+          }
+        } catch (e) {
+          console.error("Autosave load error:", e);
+        }
+      };
+
+      window.clearFormAutosave = function() {
+        try {
+          safeRemoveItem(AUTOSAVE_KEY);
+        } catch (e) {
+          console.error("Autosave clear error:", e);
+        }
+      };
+
+      // Unload & Disconnect listeners
+      window.addEventListener("beforeunload", saveFormAutosave);
+      window.addEventListener("pagehide", saveFormAutosave);
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden") {
+          saveFormAutosave();
+        }
+      });
+
       // Initialize dropdowns
       populateTimeDropdowns();
+
+      // Load saved form work
+      loadFormAutosave();
+
+      // Attach listeners on the single-event-form
+      const singleEventFormElem = document.getElementById("single-event-form");
+      if (singleEventFormElem) {
+        singleEventFormElem.addEventListener("input", saveFormAutosave);
+        singleEventFormElem.addEventListener("change", saveFormAutosave);
+      }
 
       // Ensure End Date can never be less than Start Date
       const startDateEl = document.getElementById("ev-start-date");
@@ -6406,8 +7341,6 @@
           }
         });
       }
-
-      let categoryManuallySet = false;
 
       function calculateDaysInRange(startDateStr, endDateStr) {
         if (!startDateStr) return "";
@@ -7811,18 +8744,24 @@ Enjoying AuroConnect? If this platform helps you explore events, activities, and
         const msgInput = document.getElementById("push-support-message-input");
         const customMsg = msgInput ? msgInput.value.trim() : "";
 
-        const authUserStr = localStorage.getItem("auroconnect_auth_user");
         let token = "";
-        if (authUserStr) {
+        const currentUser = getCurrentUser();
+        if (currentUser) {
           try {
-            const parsed = JSON.parse(authUserStr);
-            token = parsed.stsTokenManager?.accessToken || parsed.accessToken || "";
-          } catch(e) {}
+            token = await currentUser.getIdToken();
+          } catch(e) {
+            console.error("Error getting ID token:", e);
+          }
         }
 
-        if (!token && typeof firebase !== "undefined" && firebase.auth) {
-          const user = firebase.auth().currentUser;
-          if (user) token = await user.getIdToken();
+        if (!token) {
+          const authUserStr = localStorage.getItem("auroconnect_auth_user");
+          if (authUserStr) {
+            try {
+              const parsed = JSON.parse(authUserStr);
+              token = parsed.stsTokenManager?.accessToken || parsed.accessToken || "";
+            } catch(e) {}
+          }
         }
 
         if (!token) {

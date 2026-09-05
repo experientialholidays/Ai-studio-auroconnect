@@ -2,11 +2,43 @@ import { Router } from "express";
 import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import { read, utils } from "xlsx";
-import { adminDb, verifyAuthToken, ai, isUserAdmin } from "./firebase-ai.js";
+import { collection, doc, writeBatch, vector } from "firebase/firestore";
+import { getStorage } from "firebase-admin/storage";
+import crypto from "crypto";
+import { db, verifyAuthToken, ai, isUserAdmin, isUserBlocked } from "./firebase-ai.js";
 import { parseEventDates, parseEventTimes, parseEventDays } from "./dateTimeParser.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
+
+async function uploadPosterToStorage(base64Data: string, contentType: string, title: string, userEmail: string): Promise<string | null> {
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const randomId = Math.random().toString(36).substring(2, 10);
+    const cleanTitle = (title || "poster").toLowerCase().replace(/[^a-z0-9]/g, "_").substring(0, 30);
+    const fileName = `${Date.now()}_${cleanTitle}_${randomId}.jpg`;
+    
+    const bucket = getStorage().bucket("auro-connect.firebasestorage.app");
+    const fileRef = bucket.file(`event-media/${fileName}`);
+    const token = crypto.randomUUID();
+
+    await fileRef.save(buffer, {
+      metadata: {
+        contentType: contentType || "image/jpeg",
+        metadata: {
+          uploadedBy: userEmail,
+          firebaseStorageDownloadTokens: token
+        }
+      }
+    });
+
+    const downloadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodeURIComponent(fileRef.name)}?alt=media&token=${token}`;
+    return downloadUrl;
+  } catch (err: any) {
+    console.error(`Failed server-side poster upload for "${title}":`, err.message || err);
+    return null;
+  }
+}
 
 router.post("/api/upload_events", upload.single("file"), async (req, res) => {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -42,6 +74,10 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
       return sendError(401, "Invalid authentication token or failed to verify");
     }
     const userEmail = decodedToken.email ? decodedToken.email.toLowerCase() : "";
+    const userIsBlocked = await isUserBlocked(userEmail);
+    if (userIsBlocked) {
+      return sendError(403, "Forbidden: Your account has been blocked from submitting events.");
+    }
     const isAdmin = await isUserAdmin(userEmail);
     if (!isAdmin) {
       return sendError(403, "Forbidden: Admin access required.");
@@ -186,10 +222,21 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         }
       }
       
+      let sType = "one-time";
+      const catLowerChecked = (cat || "").toLowerCase();
+      if (catLowerChecked.includes("date-specific") || catLowerChecked.includes("date specific") || catLowerChecked.includes("one-time")) {
+        sType = "one-time";
+      } else if (catLowerChecked.includes("daily") || catLowerChecked.includes("weekly") || catLowerChecked.includes("weekday")) {
+        sType = "recurring";
+      } else {
+        sType = "one-time";
+      }
+
       const processed: Record<string, any> = {
         title: getVal(["Event Name", "Title", "Name"]),
         type: getVal(["Type of event", "Type"]),
         category: cat || "Weekly Events",
+        scheduleType: sType,
         dates: parsedDateObj.dates || "",
         days: parsedDays || "",
         times: parsedTimeObj.times || "",
@@ -309,17 +356,52 @@ router.post("/api/upload_events", upload.single("file"), async (req, res) => {
         await new Promise(r => setTimeout(r, 200));
       }
       
-      // 3. Stream this batch of 5 immediately to the client
-      res.write(JSON.stringify({ 
-        type: "chunks", 
-        events: batch 
-      }) + "\n");
+      // 3. Save this batch directly to Firestore and upload drive posters to Storage on the server
+      const firestoreBatch = writeBatch(db);
+      const eventCol = collection(db, "events");
+      
+      for (const ev of batch) {
+        if (ev.base64Poster && ev.base64Poster.data) {
+          try {
+            const downloadUrl = await uploadPosterToStorage(
+              ev.base64Poster.data,
+              ev.base64Poster.contentType,
+              ev.title,
+              userEmail
+            );
+            if (downloadUrl) {
+              ev.posterUrl = downloadUrl;
+              console.log(`[Server Storage] Poster uploaded for "${ev.title}" -> ${downloadUrl}`);
+            }
+          } catch (uploadErr: any) {
+            console.error(`[Server Storage Error] Failed to upload poster for "${ev.title}":`, uploadErr.message || uploadErr);
+          }
+        }
+        delete ev.base64Poster; // Ensure we never store massive base64 in Firestore!
+        
+        if (ev.embeddingVector && Array.isArray(ev.embeddingVector)) {
+          ev.embeddingVector = vector(ev.embeddingVector);
+        }
+        
+        const newDocRef = doc(eventCol);
+        firestoreBatch.set(newDocRef, ev);
+      }
+      
+      console.log(`[Server Firestore] Saving batch ${batchNum} of ${totalBatches} directly to database...`);
+      await firestoreBatch.commit();
+      
+      // Send progress to client to update the UI progress bar and log console
+      sendProgress(
+        percent,
+        `Saved batch ${batchNum} of ${totalBatches} directly to database.`,
+        `Committed ${Math.min(totalEvents, i + batchSize)} of ${totalEvents} events to Firestore.`
+      );
       
       // Sleep for 2 seconds before processing the next batch of 5
       await new Promise(r => setTimeout(r, 2000));
     }
 
-    sendSuccess(`Successfully processed all ${totalEvents} events!`, "All batches streamed and saved successfully.");
+    sendSuccess(`Successfully processed and saved all ${totalEvents} events!`, "All batches saved to database successfully.");
 
   } catch (e: any) {
     console.error("upload_events error:", e);
