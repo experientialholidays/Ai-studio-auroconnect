@@ -3673,10 +3673,14 @@
             };
           }
 
-          // Bind single edit actions
+           // Bind single edit actions
           myEventsTbody.querySelectorAll(".btn-edit-event").forEach((btn) => {
             btn.onclick = (e) => {
               e.stopPropagation();
+              if (window.isCurrentUserBlocked) {
+                alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+                return;
+              }
               const docId = btn.getAttribute("data-id");
               const targetEv = events.find((item) => item.id === docId);
               if (targetEv) {
@@ -4104,6 +4108,10 @@
           allEventsTbody.querySelectorAll(".btn-edit-all-event").forEach((btn) => {
             btn.onclick = (e) => {
               e.stopPropagation();
+              if (window.isCurrentUserBlocked) {
+                alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+                return;
+              }
               const docId = btn.getAttribute("data-id");
               const targetEv = events.find((item) => item.id === docId);
               if (targetEv) {
@@ -4115,6 +4123,11 @@
           // Bind single delete actions
           allEventsTbody.querySelectorAll(".btn-delete-all-event").forEach((btn) => {
             btn.onclick = async (e) => {
+              e.stopPropagation();
+              if (window.isCurrentUserBlocked) {
+                alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+                return;
+              }
               const docId = btn.getAttribute("data-id");
               if (confirm("Are you sure you want to delete this event from the master database? This action cannot be undone.")) {
                 try {
@@ -4538,8 +4551,8 @@
         };
       }
 
-      async function checkCurrentUserBlockedStatus() {
-        const currentUser = getCurrentUser();
+      async function checkCurrentUserBlockedStatus(providedUser) {
+        const currentUser = providedUser || getCurrentUser();
         const banner = document.getElementById("user-blocked-banner");
         const singleSubmitBtn = document.getElementById("submit-event-btn") || document.getElementById("btn-single-submit");
 
@@ -4699,7 +4712,6 @@
         const currentUser = getCurrentUser();
         if (currentUser) {
           loginSection.style.display = "none";
-          uploadSection.style.display = "flex";
           dashboardSection.style.display = "none";
 
           // Show admin-only section for specific user
@@ -4766,8 +4778,11 @@
             categorySelect.disabled = !dashboardIsAdmin;
           }
 
-          // Check if current user is blocked
-          await checkCurrentUserBlockedStatus();
+          // Check if current user is blocked first to avoid UI race conditions/flickering
+          await checkCurrentUserBlockedStatus(currentUser);
+
+          // Now safely display uploadSection
+          uploadSection.style.display = "flex";
 
           // Automatically default to my-events view
           switchTab("my-events");

@@ -4557,6 +4557,10 @@
             if (editBtn) {
               editBtn.onclick = (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+                  return;
+                }
                 startEditEvent(ev);
               };
             }
@@ -4588,6 +4592,10 @@
             if (hideBtn) {
               hideBtn.onclick = async (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from updating event visibility.");
+                  return;
+                }
                 const isCurrentlyHidden = ev.hidden === true;
                 const newHiddenState = !isCurrentlyHidden;
                 try {
@@ -5000,6 +5008,10 @@
             if (editAllBtn) {
               editAllBtn.onclick = (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+                  return;
+                }
                 startEditEvent(ev);
               };
             }
@@ -5008,6 +5020,10 @@
             if (deleteAllBtn) {
               deleteAllBtn.onclick = async (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+                  return;
+                }
                 if (confirm("Are you sure you want to delete this event from the master database? This action cannot be undone.")) {
                   try {
                     await deleteDoc(doc(db, "events", ev.id));
@@ -5025,6 +5041,10 @@
             if (hideAllBtn) {
               hideAllBtn.onclick = async (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from updating event visibility.");
+                  return;
+                }
                 const isCurrentlyHidden = ev.hidden === true;
                 const newHiddenState = !isCurrentlyHidden;
                 try {
@@ -6551,8 +6571,8 @@
         }, 3000);
       }
 
-      async function checkCurrentUserBlockedStatus() {
-        const currentUser = getCurrentUser();
+      async function checkCurrentUserBlockedStatus(providedUser) {
+        const currentUser = providedUser || getCurrentUser();
         const banner = document.getElementById("user-blocked-banner");
         const singleSubmitBtn = document.getElementById("submit-event-btn") || document.getElementById("btn-single-submit");
 
@@ -6675,7 +6695,6 @@
         if (currentUser) {
           loginSection.style.display = "none";
           uploadSection.style.display = "none";
-          dashboardSection.style.display = "flex";
 
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
@@ -6743,8 +6762,11 @@
             categorySelect.disabled = !dashboardIsAdmin;
           }
 
-          // Check if current user is blocked
-          await checkCurrentUserBlockedStatus();
+          // Check if current user is blocked first to avoid UI race conditions/flickering
+          await checkCurrentUserBlockedStatus(currentUser);
+
+          // Now safely display dashboardSection
+          dashboardSection.style.display = "flex";
 
           // Automatically default to my-events view
           switchTab("my-events");

@@ -88,7 +88,17 @@ export async function isUserAdmin(email: string): Promise<boolean> {
       return true;
     }
   } catch (e) {
-    console.error("Error checking admins collection in Firestore:", e);
+    console.error("Error checking admins collection in Firestore with Admin SDK:", e);
+    // Fallback to Client SDK DB check (which works via Client configuration API Key and is allowed by security rules)
+    try {
+      const docRef = doc(db, "admins", emailLower);
+      const docSnapClient = await getDoc(docRef);
+      if (docSnapClient.exists()) {
+        return true;
+      }
+    } catch (clientErr) {
+      console.error("Error checking admins collection in Firestore with Client SDK:", clientErr);
+    }
   }
 
   // 2. Fallback check for initial project bootstrap accounts
@@ -102,6 +112,21 @@ export async function isUserAdmin(email: string): Promise<boolean> {
 export async function isUserBlocked(email: string): Promise<boolean> {
   if (!email) return false;
   const emailLower = email.trim().toLowerCase();
+  
+  // 1. Check blocked_users using Client SDK (highly reliable as it uses client API key and is allowed by security rules)
+  try {
+    const docRef = doc(db, "blocked_users", emailLower);
+    const docSnapClient = await getDoc(docRef);
+    if (docSnapClient.exists()) return true;
+
+    const encDocRef = doc(db, "blocked_users", encodeURIComponent(emailLower));
+    const encSnapClient = await getDoc(encDocRef);
+    if (encSnapClient.exists()) return true;
+  } catch (clientErr) {
+    console.error("Error checking blocked_users via Client SDK:", clientErr);
+  }
+
+  // 2. Fallback check using Admin SDK
   try {
     const docSnap = await adminDb.collection("blocked_users").doc(emailLower).get();
     if (docSnap.exists) return true;
@@ -111,7 +136,7 @@ export async function isUserBlocked(email: string): Promise<boolean> {
     const querySnap = await adminDb.collection("blocked_users").where("email", "==", emailLower).get();
     if (!querySnap.empty) return true;
   } catch (e) {
-    console.error("Error checking blocked_users collection:", e);
+    console.error("Error checking blocked_users collection via Admin SDK:", e);
   }
   return false;
 }
