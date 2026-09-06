@@ -4552,7 +4552,8 @@
 
           if (data.isBlocked) {
             if (!banner) {
-              const formContainer = document.getElementById("upload-section");
+              const isDashboard = window.location.pathname.endsWith("dashboard.html");
+              const formContainer = isDashboard ? document.getElementById("dashboard-section") : document.getElementById("upload-section");
               if (formContainer) {
                 const div = document.createElement("div");
                 div.id = "user-blocked-banner";
@@ -4744,7 +4745,7 @@
           }
 
           // Check if current user is blocked
-          checkCurrentUserBlockedStatus();
+          await checkCurrentUserBlockedStatus();
 
           // Automatically default to my-events view
           switchTab("my-events");
