@@ -39,11 +39,11 @@
     <link rel="canonical" href="https://auroconnect.info/dashboard.html">
 
     <!-- Google Search Favicon Specifications & High-Res App Icons -->
-    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3">
     <!-- Marked Markdown Parser -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
@@ -3712,6 +3712,10 @@
       window.toggleCustomTime = toggleCustomTime;
 
       function startEditEvent(ev) {
+        if (window.isCurrentUserBlocked) {
+          alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+          return;
+        }
         editingEventId = ev.id;
         
         // Show the upload form section so the user can see they are editing
@@ -4411,6 +4415,10 @@
             detailsTr.id = `details-my-${ev.id}`;
             detailsTr.style.display = "none";
 
+            const isBlk = !!window.isCurrentUserBlocked;
+            const btnEditAttrs = isBlk ? "disabled style='opacity: 0.5; cursor: not-allowed;' title='Editing disabled: Account blocked'" : "";
+            const btnDelAttrs = isBlk ? "disabled style='opacity: 0.5; cursor: not-allowed;' title='Deletion disabled: Account blocked'" : "";
+
             // Format website links list
             const linksHtml = (ev.websiteLinks && ev.websiteLinks.length > 0) 
               ? ev.websiteLinks.map(l => `<a href="${l}" target="_blank" style="color: var(--accent); text-decoration: underline; font-size:0.8rem; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${l}</a>`).join('')
@@ -4506,14 +4514,14 @@
                     <!-- Actions section inside details view box -->
                     <div class="event-actions-bar" style="grid-column: 1 / -1;">
                       <span>Actions for this event:</span>
-                      <button class="btn btn-secondary btn-edit-event">
+                      <button class="btn btn-secondary btn-edit-event" ${btnEditAttrs}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         Edit Event
                       </button>
                       <button class="btn btn-warning btn-hide-event" style="background: ${ev.hidden ? '#e2e8f0' : 'var(--bg)'}; color: ${ev.hidden ? '#475569' : 'var(--text)'};">
                         ${ev.hidden ? '👁️ Show Event' : '👁️‍🗨️ Hide Event'}
                       </button>
-                      <button class="btn btn-danger btn-delete-event">
+                      <button class="btn btn-danger btn-delete-event" ${btnDelAttrs}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         Delete Event
                       </button>
@@ -4528,11 +4536,11 @@
                   <div class="event-details-card">
                     <div class="event-actions-bar">
                       <span>Actions for this event:</span>
-                      <button class="btn btn-secondary btn-edit-event">
+                      <button class="btn btn-secondary btn-edit-event" ${btnEditAttrs}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         Edit Event
                       </button>
-                      <button class="btn btn-danger btn-delete-event">
+                      <button class="btn btn-danger btn-delete-event" ${btnDelAttrs}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                         Delete Event
                       </button>
@@ -4556,6 +4564,10 @@
             if (deleteBtn) {
               deleteBtn.onclick = async (e) => {
                 e.stopPropagation();
+                if (window.isCurrentUserBlocked) {
+                  alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+                  return;
+                }
                 if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
                   try {
                     await deleteDoc(doc(db, "events", ev.id));
@@ -4668,6 +4680,10 @@
 
       // Bind Bulk Delete Button for My Events
       btnMyEventsBulkDelete.onclick = async () => {
+        if (window.isCurrentUserBlocked) {
+          alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+          return;
+        }
         if (selectedMyEvents.size === 0) return;
         const confirmMsg = `Are you sure you want to delete all ${selectedMyEvents.size} selected events? This action cannot be undone.`;
         if (confirm(confirmMsg)) {
@@ -6529,6 +6545,98 @@
         }, 3000);
       }
 
+      async function checkCurrentUserBlockedStatus() {
+        const currentUser = getCurrentUser();
+        const banner = document.getElementById("user-blocked-banner");
+        const singleSubmitBtn = document.getElementById("submit-event-btn") || document.getElementById("btn-single-submit");
+
+        if (!currentUser) {
+          if (banner) banner.style.display = "none";
+          window.isCurrentUserBlocked = false;
+          return false;
+        }
+
+        try {
+          const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(currentUser.email)}`);
+          const data = await res.json();
+          window.isCurrentUserBlocked = !!data.isBlocked;
+
+          if (data.isBlocked) {
+            if (!banner) {
+              const formContainer = document.getElementById("upload-section");
+              if (formContainer) {
+                const div = document.createElement("div");
+                div.id = "user-blocked-banner";
+                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; text-align: left; line-height: 1.5;";
+                div.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${escapeHTML(currentUser.email)}) has been blocked by an administrator. You are not allowed to submit new events, upload spreadsheets, or edit past events.</span>`;
+                formContainer.insertBefore(div, formContainer.firstChild);
+              }
+            } else {
+              banner.style.display = "flex";
+            }
+
+            // Hide submission form & heading
+            const singleEventForm = document.getElementById("single-event-form");
+            if (singleEventForm) {
+              singleEventForm.style.display = "none";
+            }
+            const submitHeading = document.querySelector("#upload-section h2");
+            if (submitHeading) {
+              submitHeading.style.display = "none";
+            }
+
+            if (singleSubmitBtn) {
+              singleSubmitBtn.disabled = true;
+              singleSubmitBtn.style.opacity = "0.6";
+              singleSubmitBtn.style.cursor = "not-allowed";
+              singleSubmitBtn.innerText = "🚫 Submissions & Edits Disabled (Account Blocked)";
+            }
+
+            // Disable spreadsheet upload buttons
+            const uploadBtn = document.getElementById("btn-upload-spreadsheet") || document.getElementById("upload-btn");
+            if (uploadBtn) {
+              uploadBtn.disabled = true;
+              uploadBtn.style.opacity = "0.6";
+              uploadBtn.style.cursor = "not-allowed";
+            }
+
+            // Disable all edit buttons in My Events list
+            document.querySelectorAll(".btn-edit-event, .btn-edit-all-event").forEach((btn) => {
+              btn.disabled = true;
+              btn.style.opacity = "0.5";
+              btn.style.cursor = "not-allowed";
+              btn.title = "Editing disabled: Account blocked";
+            });
+
+            return true;
+          } else {
+            if (banner) banner.style.display = "none";
+
+            // Show submission form & heading
+            const singleEventForm = document.getElementById("single-event-form");
+            if (singleEventForm) {
+              singleEventForm.style.display = "block";
+            }
+            const submitHeading = document.querySelector("#upload-section h2");
+            if (submitHeading) {
+              submitHeading.style.display = "block";
+            }
+
+            if (singleSubmitBtn) {
+              singleSubmitBtn.disabled = false;
+              singleSubmitBtn.style.opacity = "1";
+              singleSubmitBtn.style.cursor = "pointer";
+              singleSubmitBtn.innerText = typeof editingEventId !== "undefined" && editingEventId ? "Update Event" : "Submit Event";
+            }
+            return false;
+          }
+        } catch (err) {
+          console.error("Check blocked status error:", err);
+          return false;
+        }
+      }
+      window.checkCurrentUserBlockedStatus = checkCurrentUserBlockedStatus;
+
       function getCurrentUser() {
         if (typeof auth !== "undefined" && auth) {
           return auth.currentUser;
@@ -6609,6 +6717,9 @@
           if (categorySelect) {
             categorySelect.disabled = !dashboardIsAdmin;
           }
+
+          // Check if current user is blocked
+          checkCurrentUserBlockedStatus();
 
           // Automatically default to my-events view
           switchTab("my-events");

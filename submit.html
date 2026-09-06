@@ -39,16 +39,16 @@
     <link rel="canonical" href="https://auroconnect.info/submit.html">
 
     <!-- Google Search Favicon Specifications & High-Res App Icons -->
-    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03" />
-    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+    <link rel="shortcut icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="48x48" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="96x96" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="icon" type="image/png" sizes="192x192" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3" />
+    <link rel="apple-touch-icon" href="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3">
 
     <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
     <meta property="og:title" content="Submit an Event | AuroConnect">
     <meta property="og:description" content="Share your workshop, exhibition, performance, or event with the Auroville community on AuroConnect.">
-    <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/file_0000000029cc8211bf0a6ea5feb99441.png?alt=media&token=db74a821-cd4d-4d67-8644-fceb403f0b03">
+    <meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/auro-connect.firebasestorage.app/o/512%20logo.png?alt=media&token=2a2a34af-1c2f-4f49-87b5-79ec3919bfb3">
     <meta property="og:image:width" content="512">
     <meta property="og:image:height" content="512">
     <meta property="og:type" content="website">
@@ -3511,6 +3511,10 @@
             // Format dates/schedule beautifully using our robust helper
             let scheduleStr = formatEventSchedule(ev);
 
+            const isBlk = !!window.isCurrentUserBlocked;
+            const btnEditAttrs = isBlk ? "disabled style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: not-allowed; margin-right: 0.25rem; opacity: 0.5;' title='Editing disabled: Account blocked'" : "style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;'";
+            const btnDelAttrs = isBlk ? "disabled style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: not-allowed; opacity: 0.5;' title='Deletion disabled: Account blocked'" : "style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;'";
+
             tr.innerHTML = `
               <td style="text-align: center;" onclick="event.stopPropagation();">
                 <input type="checkbox" class="chk-my-event" data-id="${ev.id}" ${selectedMyEvents.has(ev.id) ? "checked" : ""} />
@@ -3525,8 +3529,8 @@
               <td>${scheduleStr || "N/A"}</td>
               <td>${ev.venue || "N/A"}</td>
               <td style="white-space: nowrap;" onclick="event.stopPropagation();">
-                <button class="btn btn-secondary btn-edit-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
-                <button class="btn-danger btn-delete-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
+                <button class="btn btn-secondary btn-edit-event" data-id="${ev.id}" ${btnEditAttrs}>Edit</button>
+                <button class="btn-danger btn-delete-event" data-id="${ev.id}" ${btnDelAttrs}>Delete</button>
               </td>
             `;
             myEventsTbody.appendChild(tr);
@@ -3684,6 +3688,10 @@
           // Bind single delete actions
           myEventsTbody.querySelectorAll(".btn-delete-event").forEach((btn) => {
             btn.onclick = async (e) => {
+              if (window.isCurrentUserBlocked) {
+                alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+                return;
+              }
               const docId = btn.getAttribute("data-id");
               if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
                 try {
@@ -3709,6 +3717,10 @@
 
       // Bind Bulk Delete Button for My Events
       btnMyEventsBulkDelete.onclick = async () => {
+        if (window.isCurrentUserBlocked) {
+          alert("⛔ Account Blocked: Your account has been restricted by an administrator from deleting events.");
+          return;
+        }
         if (selectedMyEvents.size === 0) return;
         const confirmMsg = `Are you sure you want to delete all ${selectedMyEvents.size} selected events? This action cannot be undone.`;
         if (confirm(confirmMsg)) {
@@ -4540,16 +4552,26 @@
 
           if (data.isBlocked) {
             if (!banner) {
-              const formContainer = document.querySelector(".form-container") || document.getElementById("single-event-section");
+              const formContainer = document.getElementById("upload-section");
               if (formContainer) {
                 const div = document.createElement("div");
                 div.id = "user-blocked-banner";
-                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;";
+                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; text-align: left; line-height: 1.5;";
                 div.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${escapeHTML(currentUser.email)}) has been blocked by an administrator. You are not allowed to submit new events, upload spreadsheets, or edit past events.</span>`;
                 formContainer.insertBefore(div, formContainer.firstChild);
               }
             } else {
               banner.style.display = "flex";
+            }
+
+            // Hide the submission form and heading
+            const singleEventForm = document.getElementById("single-event-form");
+            if (singleEventForm) {
+              singleEventForm.style.display = "none";
+            }
+            const submitHeading = document.getElementById("submit-heading") || document.querySelector("#upload-section h2");
+            if (submitHeading) {
+              submitHeading.style.display = "none";
             }
 
             if (singleSubmitBtn) {
@@ -4578,6 +4600,17 @@
             return true;
           } else {
             if (banner) banner.style.display = "none";
+
+            // Show the submission form and heading
+            const singleEventForm = document.getElementById("single-event-form");
+            if (singleEventForm) {
+              singleEventForm.style.display = "block";
+            }
+            const submitHeading = document.getElementById("submit-heading") || document.querySelector("#upload-section h2");
+            if (submitHeading) {
+              submitHeading.style.display = "block";
+            }
+
             if (singleSubmitBtn) {
               singleSubmitBtn.disabled = false;
               singleSubmitBtn.style.opacity = "1";
