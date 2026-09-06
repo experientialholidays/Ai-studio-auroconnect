@@ -10,9 +10,13 @@ service cloud.firestore {
     }
 
     // Check if the authenticated user is an administrator
-    // Checks if their email exists in the 'admins' collection
+    // Checks if their email matches the core admin email OR exists in the 'admins' collection
     function isAdmin() {
-      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()));
+      return isAuthenticated() && (
+        request.auth.token.email.lower() == "info.experientialholidays@gmail.com" ||
+        request.auth.token.email.lower() == "info.auroconnect@gmail.com" ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
+      );
     }
 
     // Check if the user has been blocked from submission

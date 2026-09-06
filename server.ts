@@ -2074,34 +2074,16 @@ ${searchQuery || lastMessage}`;
       // 2. Query all docs in blocked_users and delete matching documents
       const allDocsSnap = await adminDb.collection("blocked_users").get();
       const deletePromises: Promise<any>[] = [];
-      const targetSearch = emailToUnblock;
-      const targetRaw = rawParam.trim().toLowerCase();
-
       allDocsSnap.forEach((docSnap) => {
-        const rawId = docSnap.id;
-        const idLower = rawId.toLowerCase();
-        let decodedIdLower = idLower;
-        try { decodedIdLower = decodeURIComponent(rawId).toLowerCase(); } catch(e) {}
-
+        const docIdLower = docSnap.id.toLowerCase();
         const docData = docSnap.data() || {};
-        const docEmail = (docData.email || "").trim().toLowerCase();
-        let decodedDocEmail = docEmail;
-        try { decodedDocEmail = decodeURIComponent(docEmail).toLowerCase(); } catch(e) {}
-
-        const docDataId = (docData.id || "").trim().toLowerCase();
-
-        const matches = (
-          idLower === targetSearch ||
-          idLower === targetRaw ||
-          decodedIdLower === targetSearch ||
-          decodedIdLower === targetRaw ||
-          (docEmail && docEmail === targetSearch) ||
-          (decodedDocEmail && decodedDocEmail === targetSearch) ||
-          (docDataId && docDataId === targetSearch) ||
-          (docDataId && docDataId === targetRaw)
-        );
-
-        if (matches) {
+        const docEmailLower = (docData.email || "").trim().toLowerCase();
+        if (
+          docIdLower === emailToUnblock ||
+          docIdLower === rawParam.trim().toLowerCase() ||
+          docIdLower === encodeURIComponent(emailToUnblock).toLowerCase() ||
+          (emailToUnblock && docEmailLower === emailToUnblock)
+        ) {
           deletePromises.push(docSnap.ref.delete().catch(e => console.warn("adminDb doc delete err:", e.message)));
         }
       });
@@ -2650,14 +2632,6 @@ ${searchQuery || lastMessage}`;
                             "I am your AI companion, here to help you explore and experience Auroville. 🌿✨\n\n" +
                             "Auroville is a place to experience yourself and the world differently—to grow, create, and connect.\n\n" +
                             "Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.\n\n" +
-                            "<br>\n\n" +
-                            "🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  \n" +
-                            "🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  \n" +
-                            "🎶 Feel the rhythm with music concerts, choir, and dance classes.  \n" +
-                            "🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  \n" +
-                            "💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  \n" +
-                            "🤝 Be part of the community through learning, volunteering, and sharing circles.\n\n" +
-                            "<br>\n\n" +
                             "Curious about Auroville or looking for something specific? Just ask.\n\n" +
                             "Let's explore Auroville together. 💫";
                 }
@@ -2735,14 +2709,6 @@ ${searchQuery || lastMessage}`;
                      "I am your AI companion, here to help you explore and experience Auroville. 🌿✨\n\n" +
                      "Auroville is a place to experience yourself and the world differently—to grow, create, and connect.\n\n" +
                      "Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.\n\n" +
-                     "<br>\n\n" +
-                     "🧘 Deepen within through meditation and talks on the works of Sri Aurobindo.  \n" +
-                     "🎨 Immerse in creativity through art exhibitions, pottery, writing, and cultural workshops.  \n" +
-                     "🎶 Feel the rhythm with music concerts, choir, and dance classes.  \n" +
-                     "🌱 Reconnect with nature through forest walks, permaculture, and eco-living workshops.  \n" +
-                     "💆 Heal and rejuvenate through Ayurveda, Reiki, massage, and movement therapies.  \n" +
-                     "🤝 Be part of the community through learning, volunteering, and sharing circles.\n\n" +
-                     "<br>\n\n" +
                      "Curious about Auroville or looking for something specific? Just ask.\n\n" +
                      "Let's explore Auroville together. 💫" + savitriPart
         }));

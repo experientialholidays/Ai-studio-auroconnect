@@ -9,7 +9,11 @@ service firebase.storage {
 
     // Helper function to check if the authenticated user is an admin
     function isAdmin() {
-      return isAuthenticated() && firestore.exists(/databases/ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4/documents/admins/$(request.auth.token.email.lower()));
+      return isAuthenticated() && (
+        request.auth.token.email.lower() == "info.experientialholidays@gmail.com" ||
+        request.auth.token.email.lower() == "info.auroconnect@gmail.com" ||
+        firestore.exists(/databases/ai-studio-64cdf999-24b6-49a7-bf7c-8606ad4d20d4/documents/admins/$(request.auth.token.email.lower()))
+      );
     }
 
     // Rule for event-media uploads (e.g. event images, posters, and PDFs)
