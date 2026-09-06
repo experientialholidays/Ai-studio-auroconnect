@@ -997,7 +997,7 @@
         </div>
       </div>
 
-      <h2 style="align-self: flex-start; max-width: 600px; width: 100%">
+      <h2 id="submit-heading" style="align-self: flex-start; max-width: 600px; width: 100%">
         Submit an Entry
       </h2>
       <!-- Heading description removed as requested -->
@@ -3923,6 +3923,10 @@
             return;
           }
 
+          const isBlk = !!window.isCurrentUserBlocked;
+          const btnEditAttrs = isBlk ? "disabled style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: not-allowed; margin-right: 0.25rem; opacity: 0.5;' title='Editing disabled: Account blocked'" : "style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;'";
+          const btnDelAttrs = isBlk ? "disabled style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: not-allowed; opacity: 0.5;' title='Deletion disabled: Account blocked'" : "style='padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;'";
+
           events.forEach((ev) => {
             const tr = document.createElement("tr");
             tr.setAttribute("data-id", ev.id);
@@ -3951,8 +3955,8 @@
               <td style="font-size: 0.8rem; color: var(--text-secondary);" title="${submitter}">${submitter.length > 20 ? submitter.substring(0, 18) + "..." : submitter}</td>
               <td style="font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap;">${submittedAtStr}</td>
               <td style="white-space: nowrap;" onclick="event.stopPropagation();">
-                <button class="btn btn-secondary btn-edit-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); cursor: pointer; margin-right: 0.25rem;">Edit</button>
-                <button class="btn-danger btn-delete-all-event" data-id="${ev.id}" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer;">Delete</button>
+                <button class="btn btn-secondary btn-edit-all-event" data-id="${ev.id}" ${btnEditAttrs}>Edit</button>
+                <button class="btn-danger btn-delete-all-event" data-id="${ev.id}" ${btnDelAttrs}>Delete</button>
               </td>
             `;
             allEventsTbody.appendChild(tr);
@@ -4582,20 +4586,38 @@
               singleSubmitBtn.innerText = "🚫 Submissions & Edits Disabled (Account Blocked)";
             }
 
-            // Disable spreadsheet upload buttons
+            // Disable spreadsheet upload buttons & other inputs
             const uploadBtn = document.getElementById("btn-upload-spreadsheet") || document.getElementById("upload-btn");
             if (uploadBtn) {
               uploadBtn.disabled = true;
               uploadBtn.style.opacity = "0.6";
               uploadBtn.style.cursor = "not-allowed";
             }
+            const uploadPdfBtn = document.getElementById("upload-pdf-btn");
+            if (uploadPdfBtn) {
+              uploadPdfBtn.disabled = true;
+              uploadPdfBtn.style.opacity = "0.6";
+              uploadPdfBtn.style.cursor = "not-allowed";
+            }
+            const scrapeUrlBtn = document.getElementById("scrape-url-btn");
+            if (scrapeUrlBtn) {
+              scrapeUrlBtn.disabled = true;
+              scrapeUrlBtn.style.opacity = "0.6";
+              scrapeUrlBtn.style.cursor = "not-allowed";
+            }
+            const excelFileInput = document.getElementById("excel-file");
+            if (excelFileInput) excelFileInput.disabled = true;
+            const pdfFileInput = document.getElementById("pdf-file");
+            if (pdfFileInput) pdfFileInput.disabled = true;
+            const knowledgeUrlInput = document.getElementById("knowledge-url");
+            if (knowledgeUrlInput) knowledgeUrlInput.disabled = true;
 
-            // Disable all edit buttons in My Events list
-            document.querySelectorAll(".btn-edit-event, .btn-edit-all-event").forEach((btn) => {
+            // Disable all edit/delete buttons in lists
+            document.querySelectorAll(".btn-edit-event, .btn-edit-all-event, .btn-delete-all-event").forEach((btn) => {
               btn.disabled = true;
               btn.style.opacity = "0.5";
               btn.style.cursor = "not-allowed";
-              btn.title = "Editing disabled: Account blocked";
+              btn.title = "Action disabled: Account blocked";
             });
 
             return true;
