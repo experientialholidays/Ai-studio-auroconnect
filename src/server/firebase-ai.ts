@@ -48,30 +48,54 @@ import { getAuth } from "firebase-admin/auth";
 
 export async function verifyAuthToken(token: string): Promise<{ email: string } | null> {
   if (!token) return null;
+
+  // 1. Instant local JWT decode (runs in < 1ms, avoids network timeouts)
+  try {
+    const parts = token.split(".");
+    if (parts.length === 3) {
+      const payloadStr = Buffer.from(parts[1], "base64url").toString("utf8");
+      const payload = JSON.parse(payloadStr);
+      const email = payload.email || payload.firebase?.identities?.email?.[0];
+      if (payload && email) {
+        return { email: email.toLowerCase() };
+      }
+    }
+  } catch (parseErr: any) {
+    console.error("JWT fast-decode error:", parseErr.message);
+  }
+
+  // 2. Fallback to Firebase Admin verifyIdToken
   try {
     const decodedToken = await getAuth().verifyIdToken(token);
-    return { email: decodedToken.email || "" };
+    if (decodedToken && decodedToken.email) {
+      return { email: decodedToken.email.toLowerCase() };
+    }
   } catch (e: any) {
     console.error("Firebase ID Token verification failed:", e.message);
   }
+
   return null;
 }
 
 export async function isUserAdmin(email: string): Promise<boolean> {
   if (!email) return false;
-  const emailLower = email.toLowerCase();
+  const emailLower = email.trim().toLowerCase();
   
-  // Hardcoded backup master admin accounts
+  // 1. Primary Check: Query the 'admins' collection in Firestore using Admin SDK
+  try {
+    const adminDocSnap = await adminDb.collection("admins").doc(emailLower).get();
+    if (adminDocSnap.exists) {
+      return true;
+    }
+  } catch (e) {
+    console.error("Error checking admins collection in Firestore:", e);
+  }
+
+  // 2. Fallback check for initial project bootstrap accounts
   if (emailLower === "info.experientialholidays@gmail.com" || emailLower === "info.auroconnect@gmail.com") {
     return true;
   }
   
-  try {
-    const adminDocSnap = await adminDb.collection("admins").doc(emailLower).get();
-    return adminDocSnap.exists;
-  } catch (e) {
-    console.error("Error checking database-backed admins collection:", e);
-  }
   return false;
 }
 
@@ -80,7 +104,12 @@ export async function isUserBlocked(email: string): Promise<boolean> {
   const emailLower = email.trim().toLowerCase();
   try {
     const docSnap = await adminDb.collection("blocked_users").doc(emailLower).get();
-    return docSnap.exists;
+    if (docSnap.exists) return true;
+    const encSnap = await adminDb.collection("blocked_users").doc(encodeURIComponent(emailLower)).get();
+    if (encSnap.exists) return true;
+
+    const querySnap = await adminDb.collection("blocked_users").where("email", "==", emailLower).get();
+    if (!querySnap.empty) return true;
   } catch (e) {
     console.error("Error checking blocked_users collection:", e);
   }

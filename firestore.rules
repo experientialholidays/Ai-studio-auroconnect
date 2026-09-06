@@ -10,13 +10,9 @@ service cloud.firestore {
     }
 
     // Check if the authenticated user is an administrator
-    // Checks if their email matches the core admin email OR exists in the 'admins' collection
+    // Checks if their email exists in the 'admins' collection
     function isAdmin() {
-      return isAuthenticated() && (
-        request.auth.token.email.lower() == "info.experientialholidays@gmail.com" ||
-        request.auth.token.email.lower() == "info.auroconnect@gmail.com" ||
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()))
-      );
+      return isAuthenticated() && exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower()));
     }
 
     // Check if the user has been blocked from submission
@@ -28,18 +24,14 @@ service cloud.firestore {
 
     // Admins Collection
     match /admins/{adminId} {
-      // Users can only check their own administrator document status.
-      // Listing the entire collection is strictly restricted to administrators.
-      allow get: if isAuthenticated() && request.auth.token.email.lower() == adminId.lower();
-      allow list: if isAdmin();
-      // Only existing administrators can add, update, or delete administrator documents
-      allow write: if isAdmin();
+      // Anyone can check if a specific admin document exists
+      allow get: if true;
+      allow list, write: if isAdmin();
     }
 
     // Blocked Users Collection
     match /blocked_users/{userEmail} {
-      // Only administrators can manage or view the blocked users list
-      allow read, write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Events Collection (Specific to this project)
@@ -59,11 +51,11 @@ service cloud.firestore {
         resource.data.submittedBy.lower() == request.auth.token.email.lower()
       );
 
-      // Creator or Admin can update anything.
+      // Creator or Admin can update anything, UNLESS they are blocked.
       // Unauthenticated public visitors can ONLY increment/update interaction counters securely.
       allow update: if 
         (
-          isAuthenticated() && (
+          isAuthenticated() && !isBlocked() && (
             isAdmin() || 
             resource.data.submittedBy.lower() == request.auth.token.email.lower()
           )

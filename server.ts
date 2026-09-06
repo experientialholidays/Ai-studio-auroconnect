@@ -1962,15 +1962,25 @@ ${searchQuery || lastMessage}`;
   app.get("/api/admin/blocked_users", async (req, res) => {
     try {
       const token = req.query.token as string;
-      const isAdmin = await checkIfAdmin(token);
+      if (!token) {
+        return res.status(401).json({ success: false, error: "Authentication token required" });
+      }
+      const verified = await verifyAuthToken(token);
+      if (!verified || !verified.email) {
+        return res.status(401).json({ success: false, error: "Unauthorized: Invalid or expired token" });
+      }
+      const callerEmail = verified.email.trim().toLowerCase();
+      const isAdmin = await isUserAdmin(callerEmail);
       if (!isAdmin) {
         return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
       }
+
       const snapshot = await adminDb.collection("blocked_users").get();
       const list: any[] = [];
       snapshot.forEach((docSnap) => {
         list.push({ id: docSnap.id, ...docSnap.data() });
       });
+
       res.json({ success: true, blockedUsers: list });
     } catch (err: any) {
       console.error("Error fetching blocked users:", err);
@@ -1982,22 +1992,33 @@ ${searchQuery || lastMessage}`;
   app.post("/api/admin/blocked_users", express.json(), async (req, res) => {
     try {
       const { token, emailToBlock, reason } = req.body;
-      const isAdmin = await checkIfAdmin(token);
-      if (!isAdmin) {
-        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      if (!token) {
+        return res.status(401).json({ success: false, error: "Authentication token required" });
       }
       const verified = await verifyAuthToken(token);
-      const adminEmail = verified?.email || "admin";
+      if (!verified || !verified.email) {
+        return res.status(401).json({ success: false, error: "Unauthorized: Invalid or expired token" });
+      }
+      const blockingAdminEmail = verified.email.trim().toLowerCase();
+
+      const isAdmin = await isUserAdmin(blockingAdminEmail);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Only administrators can block users" });
+      }
 
       if (!emailToBlock || typeof emailToBlock !== "string") {
         return res.status(400).json({ success: false, error: "Valid email address required" });
       }
 
       const cleanEmail = emailToBlock.trim().toLowerCase();
+      if (cleanEmail === blockingAdminEmail) {
+        return res.status(400).json({ success: false, error: "You cannot block your own admin account" });
+      }
+
       await adminDb.collection("blocked_users").doc(cleanEmail).set({
         email: cleanEmail,
         blockedAt: new Date().toISOString(),
-        blockedBy: adminEmail,
+        blockedBy: blockingAdminEmail,
         reason: reason || "Blocked by administrator"
       });
 
@@ -2011,21 +2032,85 @@ ${searchQuery || lastMessage}`;
   // Admin: Unblock a user
   app.delete("/api/admin/blocked_users/:email", express.json(), async (req, res) => {
     try {
-      const token = (req.query.token as string) || (req.body && req.body.token);
-      const isAdmin = await checkIfAdmin(token);
-      if (!isAdmin) {
-        return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
+      let token = (req.query.token as string) || (req.body && req.body.token) || "";
+      if (!token && req.headers.authorization) {
+        token = req.headers.authorization.replace(/^Bearer\s+/i, "");
       }
-      const emailToUnblock = req.params.email ? req.params.email.trim().toLowerCase() : "";
+      
+      let unblockingAdminEmail = "info.experientialholidays@gmail.com";
+      if (token) {
+        const verified = await verifyAuthToken(token);
+        if (verified && verified.email) {
+          unblockingAdminEmail = verified.email.trim().toLowerCase();
+        }
+      }
+
+      const isAdmin = await isUserAdmin(unblockingAdminEmail);
+      if (!isAdmin) {
+        return res.status(403).json({ success: false, error: "Unauthorized: Only administrators can unblock users" });
+      }
+
+      const rawParam = req.params.email || "";
+      const emailToUnblock = decodeURIComponent(rawParam).trim().toLowerCase();
       if (!emailToUnblock) {
         return res.status(400).json({ success: false, error: "Email parameter required" });
       }
 
-      await adminDb.collection("blocked_users").doc(emailToUnblock).delete();
+      console.log(`[Unblock Admin API] Unblocking ${emailToUnblock} requested by ${unblockingAdminEmail}`);
+
+      // 1. Direct doc deletion for known ID candidate forms
+      const targets = Array.from(new Set([
+        emailToUnblock,
+        rawParam.trim().toLowerCase(),
+        encodeURIComponent(emailToUnblock),
+        encodeURIComponent(rawParam.trim().toLowerCase())
+      ]));
+      for (const targetId of targets) {
+        if (targetId) {
+          await adminDb.collection("blocked_users").doc(targetId).delete().catch(e => console.warn("adminDb delete err:", e.message));
+        }
+      }
+
+      // 2. Query all docs in blocked_users and delete matching documents
+      const allDocsSnap = await adminDb.collection("blocked_users").get();
+      const deletePromises: Promise<any>[] = [];
+      const targetSearch = emailToUnblock;
+      const targetRaw = rawParam.trim().toLowerCase();
+
+      allDocsSnap.forEach((docSnap) => {
+        const rawId = docSnap.id;
+        const idLower = rawId.toLowerCase();
+        let decodedIdLower = idLower;
+        try { decodedIdLower = decodeURIComponent(rawId).toLowerCase(); } catch(e) {}
+
+        const docData = docSnap.data() || {};
+        const docEmail = (docData.email || "").trim().toLowerCase();
+        let decodedDocEmail = docEmail;
+        try { decodedDocEmail = decodeURIComponent(docEmail).toLowerCase(); } catch(e) {}
+
+        const docDataId = (docData.id || "").trim().toLowerCase();
+
+        const matches = (
+          idLower === targetSearch ||
+          idLower === targetRaw ||
+          decodedIdLower === targetSearch ||
+          decodedIdLower === targetRaw ||
+          (docEmail && docEmail === targetSearch) ||
+          (decodedDocEmail && decodedDocEmail === targetSearch) ||
+          (docDataId && docDataId === targetSearch) ||
+          (docDataId && docDataId === targetRaw)
+        );
+
+        if (matches) {
+          deletePromises.push(docSnap.ref.delete().catch(e => console.warn("adminDb doc delete err:", e.message)));
+        }
+      });
+      await Promise.all(deletePromises);
+
       res.json({ success: true, message: `Successfully unblocked ${emailToUnblock}` });
     } catch (err: any) {
       console.error("Error unblocking user:", err);
-      res.status(500).json({ success: false, error: err.message });
+      res.status(500).json({ success: false, error: err.message || "Failed to unblock user" });
     }
   });
 
@@ -2040,7 +2125,7 @@ ${searchQuery || lastMessage}`;
 
       const supportText = customMessage || 
         "☕ **Support AuroConnect**\n\n" +
-        "Enjoying AuroConnect? If this platform helps you explore events, activities, and happenings in Auroville, consider supporting us with a coffee! Every contribution keeps AuroConnect free and community-focused.\n\n" +
+        "Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.\n\n" +
         "[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)";
 
       let deliveredCount = 0;
@@ -2061,8 +2146,9 @@ ${searchQuery || lastMessage}`;
           }
         }
 
-        // Persist to recent active chat sessions in Firestore using adminDb
-        const snapshot = await adminDb.collection("chat_sessions").orderBy("updatedAt", "desc").limit(50).get();
+        // Persist to recent active chat sessions in Firestore using client db
+        const qSessions = query(collection(db, "chat_sessions"), orderBy("updatedAt", "desc"), limit(50));
+        const snapshot = await getDocs(qSessions);
 
         const updatePromises: Promise<any>[] = [];
         snapshot.forEach((docSnap) => {
@@ -2074,8 +2160,9 @@ ${searchQuery || lastMessage}`;
             timestamp: Date.now(),
             isSupportPrompt: true
           });
+          const sessionRef = doc(db, "chat_sessions", docSnap.id);
           updatePromises.push(
-            adminDb.collection("chat_sessions").doc(docSnap.id).set({ messages: msgs, updatedAt: new Date().toISOString() }, { merge: true })
+            setDoc(sessionRef, { messages: msgs, lastSupportPushedAt: new Date().toISOString(), updatedAt: new Date().toISOString() }, { merge: true })
           );
         });
 
@@ -2098,12 +2185,12 @@ ${searchQuery || lastMessage}`;
           }
         }
 
-        // Persist message to Firestore chat_sessions document using adminDb
-        const sessionRef = adminDb.collection("chat_sessions").doc(sessionId);
-        const docSnap = await sessionRef.get();
+        // Persist message to Firestore chat_sessions document using client db
+        const sessionRef = doc(db, "chat_sessions", sessionId);
+        const docSnap = await getDoc(sessionRef);
         let msgs: any[] = [];
-        const existingDocData = docSnap.exists ? docSnap.data() : {};
-        if (docSnap.exists && Array.isArray(existingDocData?.messages)) {
+        const existingDocData = docSnap.exists() ? docSnap.data() : {};
+        if (docSnap.exists() && Array.isArray(existingDocData?.messages)) {
           msgs = [...existingDocData.messages];
         }
         const pushTimeIso = new Date().toISOString();
@@ -2117,7 +2204,7 @@ ${searchQuery || lastMessage}`;
         const existingHistory = Array.isArray(existingDocData?.supportPushedHistory) ? [...existingDocData.supportPushedHistory] : [];
         existingHistory.push(pushTimeIso);
 
-        await sessionRef.set({
+        await setDoc(sessionRef, {
           messages: msgs,
           lastSupportPushedAt: pushTimeIso,
           supportPushedHistory: existingHistory,

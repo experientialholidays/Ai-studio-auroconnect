@@ -2064,66 +2064,29 @@
                 <option value="form">Form Submissions</option>
               </select>
             </div>
-            <!-- Field 4: Venue -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Venue</label>
-              <select id="my-events-venue" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Venues</option>
-              </select>
-            </div>
-            <!-- Field 5: Target Audience -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Key Info</label>
-              <select id="my-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Key Info</option>
-              </select>
-            </div>
-            <!-- Field 6: Event Type -->
+            <!-- Field 4: Event Type -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Event Type</label>
               <select id="my-events-type" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
                 <option value="">All Types</option>
               </select>
             </div>
-            <!-- Field 7: Start Date -->
+            <!-- Field 5: Start Date -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Date</label>
               <input type="date" id="my-events-start-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
             </div>
-            <!-- Field 8: End Date -->
+            <!-- Field 6: End Date -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Date</label>
               <input type="date" id="my-events-end-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
             </div>
-            <!-- Field 9: Start Time -->
+            <!-- Field 7: Dates (Raw String Select) -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Time</label>
-              <input type="text" id="my-events-start-time" placeholder="e.g. 09:00am" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 10: End Time -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Time</label>
-              <input type="text" id="my-events-end-time" placeholder="e.g. 05:00pm" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 11: Contact Phone/WhatsApp -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact/WhatsApp</label>
-              <input type="text" id="my-events-contact" placeholder="Phone/WhatsApp..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 12: Contact Person/Unit -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Person</label>
-              <input type="text" id="my-events-contact-person" placeholder="Person/Unit..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 13: Contact Email -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Email</label>
-              <input type="text" id="my-events-email" placeholder="Email..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 14: Cost/Contribution -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Cost/Contribution</label>
-              <input type="text" id="my-events-cost" placeholder="Free / Rs..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Dates (Raw String)</label>
+              <select id="my-events-dates" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Dates</option>
+              </select>
             </div>
           </div>
         </div>
@@ -2207,66 +2170,29 @@
                 <option value="form">Form Submissions</option>
               </select>
             </div>
-            <!-- Field 4: Venue -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Venue</label>
-              <select id="admin-events-venue" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Venues</option>
-              </select>
-            </div>
-            <!-- Field 5: Target Audience -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Key Info</label>
-              <select id="admin-events-audience" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
-                <option value="">All Key Info</option>
-              </select>
-            </div>
-            <!-- Field 6: Event Type -->
+            <!-- Field 4: Event Type -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Event Type</label>
               <select id="admin-events-type" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
                 <option value="">All Types</option>
               </select>
             </div>
-            <!-- Field 7: Start Date -->
+            <!-- Field 5: Start Date -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Date</label>
               <input type="date" id="admin-events-start-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
             </div>
-            <!-- Field 8: End Date -->
+            <!-- Field 6: End Date -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
               <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Date</label>
               <input type="date" id="admin-events-end-date" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
             </div>
-            <!-- Field 9: Start Time -->
+            <!-- Field 7: Dates (Raw String Select) -->
             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Start Time</label>
-              <input type="text" id="admin-events-start-time" placeholder="e.g. 09:00am" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 10: End Time -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">End Time</label>
-              <input type="text" id="admin-events-end-time" placeholder="e.g. 05:00pm" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 11: Contact Phone/WhatsApp -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact/WhatsApp</label>
-              <input type="text" id="admin-events-contact" placeholder="Phone/WhatsApp..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 12: Contact Person/Unit -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Person</label>
-              <input type="text" id="admin-events-contact-person" placeholder="Person/Unit..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 13: Contact Email -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Contact Email</label>
-              <input type="text" id="admin-events-email" placeholder="Email..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
-            </div>
-            <!-- Field 14: Cost/Contribution -->
-            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Cost/Contribution</label>
-              <input type="text" id="admin-events-cost" placeholder="Free / Rs..." style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;" />
+              <label style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">Dates (Raw String)</label>
+              <select id="admin-events-dates" style="padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 0.85rem;">
+                <option value="">All Dates</option>
+              </select>
             </div>
           </div>
         </div>
@@ -3142,33 +3068,19 @@
       const myEventsSearch = document.getElementById("my-events-search");
       const myEventsCategory = document.getElementById("my-events-category");
       const myEventsExcel = document.getElementById("my-events-excel");
-      const myEventsVenue = document.getElementById("my-events-venue");
-      const myEventsAudience = document.getElementById("my-events-audience");
       const myEventsType = document.getElementById("my-events-type");
       const myEventsStartDate = document.getElementById("my-events-start-date");
       const myEventsEndDate = document.getElementById("my-events-end-date");
-      const myEventsStartTime = document.getElementById("my-events-start-time");
-      const myEventsEndTime = document.getElementById("my-events-end-time");
-      const myEventsContact = document.getElementById("my-events-contact");
-      const myEventsContactPerson = document.getElementById("my-events-contact-person");
-      const myEventsEmail = document.getElementById("my-events-email");
-      const myEventsCost = document.getElementById("my-events-cost");
+      const myEventsDates = document.getElementById("my-events-dates");
 
       // Tab 2 Filters
       const adminEventsSearch = document.getElementById("admin-events-search");
       const adminEventsCategory = document.getElementById("admin-events-category");
       const adminEventsExcel = document.getElementById("admin-events-excel");
-      const adminEventsVenue = document.getElementById("admin-events-venue");
-      const adminEventsAudience = document.getElementById("admin-events-audience");
       const adminEventsType = document.getElementById("admin-events-type");
       const adminEventsStartDate = document.getElementById("admin-events-start-date");
       const adminEventsEndDate = document.getElementById("admin-events-end-date");
-      const adminEventsStartTime = document.getElementById("admin-events-start-time");
-      const adminEventsEndTime = document.getElementById("admin-events-end-time");
-      const adminEventsContact = document.getElementById("admin-events-contact");
-      const adminEventsContactPerson = document.getElementById("admin-events-contact-person");
-      const adminEventsEmail = document.getElementById("admin-events-email");
-      const adminEventsCost = document.getElementById("admin-events-cost");
+      const adminEventsDates = document.getElementById("admin-events-dates");
       const btnAdminEventsFilter = document.getElementById("btn-admin-events-filter");
 
 
@@ -3236,21 +3148,14 @@
         return "";
       }
 
-      window.clearMyFilters = function() {
+       window.clearMyFilters = function() {
         if (myEventsSearch) myEventsSearch.value = "";
         if (myEventsCategory) myEventsCategory.value = "";
         if (myEventsExcel) myEventsExcel.value = "";
-        if (myEventsVenue) myEventsVenue.value = "";
-        if (myEventsAudience) myEventsAudience.value = "";
         if (myEventsType) myEventsType.value = "";
         if (myEventsStartDate) myEventsStartDate.value = "";
         if (myEventsEndDate) myEventsEndDate.value = "";
-        if (myEventsStartTime) myEventsStartTime.value = "";
-        if (myEventsEndTime) myEventsEndTime.value = "";
-        if (myEventsContact) myEventsContact.value = "";
-        if (myEventsContactPerson) myEventsContactPerson.value = "";
-        if (myEventsEmail) myEventsEmail.value = "";
-        if (myEventsCost) myEventsCost.value = "";
+        if (myEventsDates) myEventsDates.value = "";
         loadMyEvents();
       };
 
@@ -3258,17 +3163,10 @@
         if (adminEventsSearch) adminEventsSearch.value = "";
         if (adminEventsCategory) adminEventsCategory.value = "";
         if (adminEventsExcel) adminEventsExcel.value = "";
-        if (adminEventsVenue) adminEventsVenue.value = "";
-        if (adminEventsAudience) adminEventsAudience.value = "";
         if (adminEventsType) adminEventsType.value = "";
         if (adminEventsStartDate) adminEventsStartDate.value = "";
         if (adminEventsEndDate) adminEventsEndDate.value = "";
-        if (adminEventsStartTime) adminEventsStartTime.value = "";
-        if (adminEventsEndTime) adminEventsEndTime.value = "";
-        if (adminEventsContact) adminEventsContact.value = "";
-        if (adminEventsContactPerson) adminEventsContactPerson.value = "";
-        if (adminEventsEmail) adminEventsEmail.value = "";
-        if (adminEventsCost) adminEventsCost.value = "";
+        if (adminEventsDates) adminEventsDates.value = "";
         loadAllDatabaseEvents();
       };
 
@@ -4386,38 +4284,28 @@
 
           // Dynamically populate filter dropdowns from raw events list
           const uniqueExcel = new Set();
-          const uniqueVenues = new Set();
-          const uniqueAudiences = new Set();
           const uniqueTypes = new Set();
+          const uniqueDates = new Set();
 
           events.forEach((e) => {
             if (e.excelFilename) uniqueExcel.add(e.excelFilename);
-            if (e.venue) uniqueVenues.add(e.venue);
-            if (e.audience) uniqueAudiences.add(e.audience);
             if (e.type) uniqueTypes.add(e.type);
+            if (e.dates) uniqueDates.add(e.dates);
           });
 
           populateFilterDropdown(myEventsExcel, uniqueExcel, "All Excel Files");
-          populateFilterDropdown(myEventsVenue, uniqueVenues, "All Venues");
-          populateFilterDropdown(myEventsAudience, uniqueAudiences, "All Key Info");
           populateFilterDropdown(myEventsType, uniqueTypes, "All Types");
+          populateFilterDropdown(myEventsDates, uniqueDates, "All Dates");
 
           // Apply multi-field filtering
           let filteredEvents = [...events];
           const searchQuery = myEventsSearch.value.trim().toLowerCase();
           const categoryFilter = myEventsCategory.value;
           const excelFilter = myEventsExcel.value;
-          const venueFilter = myEventsVenue.value;
-          const audienceFilter = myEventsAudience.value;
           const typeFilter = myEventsType ? myEventsType.value : "";
           const startDateFilter = myEventsStartDate ? myEventsStartDate.value : "";
           const endDateFilter = myEventsEndDate ? myEventsEndDate.value : "";
-          const startTimeFilter = myEventsStartTime ? myEventsStartTime.value.trim().toLowerCase() : "";
-          const endTimeFilter = myEventsEndTime ? myEventsEndTime.value.trim().toLowerCase() : "";
-          const contactFilter = myEventsContact ? myEventsContact.value.trim().toLowerCase() : "";
-          const contactPersonFilter = myEventsContactPerson ? myEventsContactPerson.value.trim().toLowerCase() : "";
-          const emailFilter = myEventsEmail ? myEventsEmail.value.trim().toLowerCase() : "";
-          const costFilter = myEventsCost ? myEventsCost.value.trim().toLowerCase() : "";
+          const datesFilter = myEventsDates ? myEventsDates.value : "";
 
           if (categoryFilter) {
             filteredEvents = filteredEvents.filter((e) => e.category === categoryFilter);
@@ -4428,12 +4316,6 @@
             } else {
               filteredEvents = filteredEvents.filter((e) => e.excelFilename === excelFilter);
             }
-          }
-          if (venueFilter) {
-            filteredEvents = filteredEvents.filter((e) => e.venue === venueFilter);
-          }
-          if (audienceFilter) {
-            filteredEvents = filteredEvents.filter((e) => e.audience === audienceFilter);
           }
           if (typeFilter) {
             filteredEvents = filteredEvents.filter((e) => e.type === typeFilter);
@@ -4457,41 +4339,8 @@
               return true;
             });
           }
-          if (startTimeFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const startVal = getEventStartTime(e);
-              return startVal.includes(startTimeFilter);
-            });
-          }
-          if (endTimeFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const endVal = getEventEndTime(e);
-              return endVal.includes(endTimeFilter);
-            });
-          }
-          if (contactFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const contactVal = ((e.contact || "") + " " + (e.whatsapp || "") + " " + (e.originalHeaders?.contactPhoneWhatsApp || "")).toLowerCase();
-              return contactVal.includes(contactFilter);
-            });
-          }
-          if (contactPersonFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const personVal = ((e.contactPerson || "") + " " + (e.originalHeaders?.contactPersonUnit || "")).toLowerCase();
-              return personVal.includes(contactPersonFilter);
-            });
-          }
-          if (emailFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const emailVal = ((e.email || "") + " " + (e.originalHeaders?.contactEmail || "")).toLowerCase();
-              return emailVal.includes(emailFilter);
-            });
-          }
-          if (costFilter) {
-            filteredEvents = filteredEvents.filter((e) => {
-              const costVal = ((e.cost || "") + " " + (e.originalHeaders?.costContribution || "")).toLowerCase();
-              return costVal.includes(costFilter);
-            });
+          if (datesFilter) {
+            filteredEvents = filteredEvents.filter((e) => (e.dates || "") === datesFilter);
           }
 
           if (searchQuery) {
@@ -4504,16 +4353,9 @@
             return activeMyEventsSubTab === "current" ? !isPast : isPast;
           });
 
-          // Auto-select filtered events if any filter is active
-          const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
-          if (isFilterActive) {
-            selectedMyEvents.clear();
-            filteredEvents.forEach((ev) => {
-              selectedMyEvents.add(ev.id);
-            });
-            if (chkMyEventsAll) {
-              chkMyEventsAll.checked = (filteredEvents.length > 0);
-            }
+          // Set master checkbox state depending on whether all visible events are selected
+          if (chkMyEventsAll) {
+            chkMyEventsAll.checked = (filteredEvents.length > 0) && filteredEvents.every((ev) => selectedMyEvents.has(ev.id));
           }
           updateMyEventsBulkBar();
 
@@ -4896,40 +4738,30 @@
             return dateB - dateA;
           });
 
-          // Dynamically populate excel filenames, venues, and audiences dropdown filters from raw events
+          // Dynamically populate excel filenames and types dropdown filters from raw events
           const uniqueExcelFiles = new Set();
-          const uniqueVenues = new Set();
-          const uniqueAudiences = new Set();
           const uniqueTypes = new Set();
+          const uniqueDates = new Set();
 
           rawEvents.forEach((e) => {
             if (e.excelFilename) uniqueExcelFiles.add(e.excelFilename);
-            if (e.venue) uniqueVenues.add(e.venue);
-            if (e.audience) uniqueAudiences.add(e.audience);
             if (e.type) uniqueTypes.add(e.type);
+            if (e.dates) uniqueDates.add(e.dates);
           });
 
           populateFilterDropdown(adminEventsExcel, uniqueExcelFiles, "All Excel Files");
-          populateFilterDropdown(adminEventsVenue, uniqueVenues, "All Venues");
-          populateFilterDropdown(adminEventsAudience, uniqueAudiences, "All Key Info");
           populateFilterDropdown(adminEventsType, uniqueTypes, "All Types");
+          populateFilterDropdown(adminEventsDates, uniqueDates, "All Dates");
 
           // Apply client-side multi-field filters
           let events = [...rawEvents];
           const searchQuery = adminEventsSearch.value.trim().toLowerCase();
           const categoryFilter = adminEventsCategory.value;
           const excelFilter = adminEventsExcel.value;
-          const venueFilter = adminEventsVenue.value;
-          const audienceFilter = adminEventsAudience.value;
           const typeFilter = adminEventsType ? adminEventsType.value : "";
           const startDateFilter = adminEventsStartDate ? adminEventsStartDate.value : "";
           const endDateFilter = adminEventsEndDate ? adminEventsEndDate.value : "";
-          const startTimeFilter = adminEventsStartTime ? adminEventsStartTime.value.trim().toLowerCase() : "";
-          const endTimeFilter = adminEventsEndTime ? adminEventsEndTime.value.trim().toLowerCase() : "";
-          const contactFilter = adminEventsContact ? adminEventsContact.value.trim().toLowerCase() : "";
-          const contactPersonFilter = adminEventsContactPerson ? adminEventsContactPerson.value.trim().toLowerCase() : "";
-          const emailFilter = adminEventsEmail ? adminEventsEmail.value.trim().toLowerCase() : "";
-          const costFilter = adminEventsCost ? adminEventsCost.value.trim().toLowerCase() : "";
+          const datesFilter = adminEventsDates ? adminEventsDates.value : "";
 
           if (categoryFilter) {
             events = events.filter((e) => e.category === categoryFilter);
@@ -4940,12 +4772,6 @@
             } else {
               events = events.filter((e) => e.excelFilename === excelFilter);
             }
-          }
-          if (venueFilter) {
-            events = events.filter((e) => e.venue === venueFilter);
-          }
-          if (audienceFilter) {
-            events = events.filter((e) => e.audience === audienceFilter);
           }
           if (typeFilter) {
             events = events.filter((e) => e.type === typeFilter);
@@ -4969,41 +4795,8 @@
               return true;
             });
           }
-          if (startTimeFilter) {
-            events = events.filter((e) => {
-              const startVal = getEventStartTime(e);
-              return startVal.includes(startTimeFilter);
-            });
-          }
-          if (endTimeFilter) {
-            events = events.filter((e) => {
-              const endVal = getEventEndTime(e);
-              return endVal.includes(endTimeFilter);
-            });
-          }
-          if (contactFilter) {
-            events = events.filter((e) => {
-              const contactVal = ((e.contact || "") + " " + (e.whatsapp || "") + " " + (e.originalHeaders?.contactPhoneWhatsApp || "")).toLowerCase();
-              return contactVal.includes(contactFilter);
-            });
-          }
-          if (contactPersonFilter) {
-            events = events.filter((e) => {
-              const personVal = ((e.contactPerson || "") + " " + (e.originalHeaders?.contactPersonUnit || "")).toLowerCase();
-              return personVal.includes(contactPersonFilter);
-            });
-          }
-          if (emailFilter) {
-            events = events.filter((e) => {
-              const emailVal = ((e.email || "") + " " + (e.originalHeaders?.contactEmail || "")).toLowerCase();
-              return emailVal.includes(emailFilter);
-            });
-          }
-          if (costFilter) {
-            events = events.filter((e) => {
-              const costVal = ((e.cost || "") + " " + (e.originalHeaders?.costContribution || "")).toLowerCase();
-              return costVal.includes(costFilter);
-            });
+          if (datesFilter) {
+            events = events.filter((e) => (e.dates || "") === datesFilter);
           }
 
           if (searchQuery) {
@@ -5016,16 +4809,9 @@
             return activeAllEventsSubTab === "current" ? !isPast : isPast;
           });
 
-          // Auto-select filtered events if any filter is active
-          const isFilterActive = excelFilter || categoryFilter || venueFilter || audienceFilter || typeFilter || startDateFilter || endDateFilter || startTimeFilter || endTimeFilter || contactFilter || contactPersonFilter || emailFilter || costFilter || searchQuery;
-          if (isFilterActive) {
-            selectedAllEvents.clear();
-            events.forEach((ev) => {
-              selectedAllEvents.add(ev.id);
-            });
-            if (chkAllEventsAll) {
-              chkAllEventsAll.checked = (events.length > 0);
-            }
+          // Set master checkbox state depending on whether all visible events are selected
+          if (chkAllEventsAll) {
+            chkAllEventsAll.checked = (events.length > 0) && events.every((ev) => selectedAllEvents.has(ev.id));
           }
           updateAllEventsBulkBar();
 
@@ -5342,41 +5128,27 @@
 
       // Bind search/filter triggers
       // Tab 1 (User Events)
-      if (myEventsSearch) myEventsSearch.oninput = debounce(() => loadMyEvents(), 300);
-      if (myEventsCategory) myEventsCategory.onchange = () => loadMyEvents();
-      if (myEventsExcel) myEventsExcel.onchange = () => loadMyEvents();
-      if (myEventsVenue) myEventsVenue.onchange = () => loadMyEvents();
-      if (myEventsAudience) myEventsAudience.onchange = () => loadMyEvents();
-      if (myEventsType) myEventsType.onchange = () => loadMyEvents();
-      if (myEventsStartDate) myEventsStartDate.oninput = () => loadMyEvents();
-      if (myEventsEndDate) myEventsEndDate.oninput = () => loadMyEvents();
-      if (myEventsStartTime) myEventsStartTime.oninput = () => loadMyEvents();
-      if (myEventsEndTime) myEventsEndTime.oninput = () => loadMyEvents();
-      if (myEventsContact) myEventsContact.oninput = () => loadMyEvents();
-      if (myEventsContactPerson) myEventsContactPerson.oninput = () => loadMyEvents();
-      if (myEventsEmail) myEventsEmail.oninput = () => loadMyEvents();
-      if (myEventsCost) myEventsCost.oninput = () => loadMyEvents();
+      if (typeof myEventsSearch !== 'undefined' && myEventsSearch) myEventsSearch.oninput = debounce(() => loadMyEvents(), 300);
+      if (typeof myEventsCategory !== 'undefined' && myEventsCategory) myEventsCategory.onchange = () => loadMyEvents();
+      if (typeof myEventsExcel !== 'undefined' && myEventsExcel) myEventsExcel.onchange = () => loadMyEvents();
+      if (typeof myEventsType !== 'undefined' && myEventsType) myEventsType.onchange = () => loadMyEvents();
+      if (typeof myEventsStartDate !== 'undefined' && myEventsStartDate) myEventsStartDate.oninput = () => loadMyEvents();
+      if (typeof myEventsEndDate !== 'undefined' && myEventsEndDate) myEventsEndDate.oninput = () => loadMyEvents();
+      if (typeof myEventsDates !== 'undefined' && myEventsDates) myEventsDates.onchange = () => loadMyEvents();
 
       // Tab 2 (Admin Events)
-      if (btnAdminEventsFilter) {
+      if (typeof btnAdminEventsFilter !== 'undefined' && btnAdminEventsFilter) {
         btnAdminEventsFilter.onclick = () => {
           loadAllDatabaseEvents();
         };
       }
-      if (adminEventsSearch) adminEventsSearch.oninput = debounce(() => loadAllDatabaseEvents(), 300);
-      if (adminEventsCategory) adminEventsCategory.onchange = () => loadAllDatabaseEvents();
-      if (adminEventsExcel) adminEventsExcel.onchange = () => loadAllDatabaseEvents();
-      if (adminEventsVenue) adminEventsVenue.onchange = () => loadAllDatabaseEvents();
-      if (adminEventsAudience) adminEventsAudience.onchange = () => loadAllDatabaseEvents();
-      if (adminEventsType) adminEventsType.onchange = () => loadAllDatabaseEvents();
-      if (adminEventsStartDate) adminEventsStartDate.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsEndDate) adminEventsEndDate.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsStartTime) adminEventsStartTime.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsEndTime) adminEventsEndTime.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsContact) adminEventsContact.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsContactPerson) adminEventsContactPerson.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsEmail) adminEventsEmail.oninput = () => loadAllDatabaseEvents();
-      if (adminEventsCost) adminEventsCost.oninput = () => loadAllDatabaseEvents();
+      if (typeof adminEventsSearch !== 'undefined' && adminEventsSearch) adminEventsSearch.oninput = debounce(() => loadAllDatabaseEvents(), 300);
+      if (typeof adminEventsCategory !== 'undefined' && adminEventsCategory) adminEventsCategory.onchange = () => loadAllDatabaseEvents();
+      if (typeof adminEventsExcel !== 'undefined' && adminEventsExcel) adminEventsExcel.onchange = () => loadAllDatabaseEvents();
+      if (typeof adminEventsType !== 'undefined' && adminEventsType) adminEventsType.onchange = () => loadAllDatabaseEvents();
+      if (typeof adminEventsStartDate !== 'undefined' && adminEventsStartDate) adminEventsStartDate.oninput = () => loadAllDatabaseEvents();
+      if (typeof adminEventsEndDate !== 'undefined' && adminEventsEndDate) adminEventsEndDate.oninput = () => loadAllDatabaseEvents();
+      if (typeof adminEventsDates !== 'undefined' && adminEventsDates) adminEventsDates.onchange = () => loadAllDatabaseEvents();
 
       // Load All Knowledge PDFs (Admin Only)
       async function loadAllKnowledgeDocs() {
@@ -5819,28 +5591,44 @@
         blockedUsersTbody.innerHTML = "";
 
         try {
-          const token = await currentUser.getIdToken();
-          const res = await fetch(`/api/admin/blocked_users?token=${encodeURIComponent(token)}`);
-          const data = await res.json();
+          let list = [];
+          try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`/api/admin/blocked_users?token=${encodeURIComponent(token)}`);
+            const data = await res.json();
+            if (data.success && Array.isArray(data.blockedUsers)) {
+              list = data.blockedUsers;
+            } else {
+              throw new Error(data.error || "Backend fetch failed");
+            }
+          } catch(apiErr) {
+            console.warn("API loadBlockedUsers failed, falling back to client Firestore SDK:", apiErr);
+            const snapshot = await getDocs(collection(db, "blocked_users"));
+            snapshot.forEach((docSnap) => {
+              list.push({ id: docSnap.id, ...docSnap.data() });
+            });
+          }
 
           blockedUsersLoading.style.display = "none";
           blockedUsersTableWrapper.style.display = "block";
 
-          if (!data.success || !data.blockedUsers || data.blockedUsers.length === 0) {
+          if (list.length === 0) {
             blockedUsersTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 1.5rem; color: var(--text-secondary);">No blocked users found.</td></tr>`;
             return;
           }
 
-          data.blockedUsers.forEach((bu) => {
+          list.forEach((bu) => {
             const tr = document.createElement("tr");
             const blockedAtStr = bu.blockedAt ? new Date(bu.blockedAt).toLocaleString() : "N/A";
+            const targetEmail = bu.email || bu.id || "";
+            const targetDocId = bu.id || bu.email || "";
             tr.innerHTML = `
-              <td style="font-weight: 600; color: var(--text);">${bu.email || bu.id}</td>
+              <td style="font-weight: 600; color: var(--text);">${targetEmail}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${blockedAtStr}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.blockedBy || "Admin"}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.reason || "N/A"}</td>
               <td>
-                <button class="btn btn-secondary btn-unblock-user" data-email="${bu.email || bu.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
+                <button class="btn btn-secondary btn-unblock-user" data-email="${targetEmail}" data-docid="${targetDocId}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
               </td>
             `;
             blockedUsersTbody.appendChild(tr);
@@ -5848,25 +5636,123 @@
 
           document.querySelectorAll(".btn-unblock-user").forEach((btn) => {
             btn.onclick = async (e) => {
-              const email = e.target.getAttribute("data-email");
-              if (confirm(`Are you sure you want to unblock "${email}"? They will be able to submit events again.`)) {
-                const token = await currentUser.getIdToken();
-                const unblockRes = await fetch(`/api/admin/blocked_users/${encodeURIComponent(email)}?token=${encodeURIComponent(token)}`, {
-                  method: "DELETE"
-                });
-                const unblockData = await unblockRes.json();
-                if (unblockData.success) {
-                  showToast(`Successfully unblocked ${email}`, "success");
-                  loadBlockedUsers();
+              const btnEl = e.currentTarget;
+              const email = (btnEl.getAttribute("data-email") || "").trim();
+              const docId = (btnEl.getAttribute("data-docid") || "").trim();
+              if (!email && !docId) return;
+
+              const targetLabel = email || docId;
+              if (confirm(`Are you sure you want to unblock "${targetLabel}"? They will be able to submit events again.`)) {
+                btnEl.disabled = true;
+                btnEl.textContent = "⏳ Unblocking...";
+
+                let unblockedSuccess = false;
+                let lastError = "";
+
+                // 1. Client SDK direct deletion from Firestore
+                try {
+                  const targets = new Set([
+                    docId,
+                    email,
+                    email.toLowerCase(),
+                    docId.toLowerCase(),
+                    encodeURIComponent(email.toLowerCase()),
+                    encodeURIComponent(docId.toLowerCase()),
+                    encodeURIComponent(email)
+                  ]);
+
+                  for (const id of targets) {
+                    if (id) {
+                      await deleteDoc(doc(db, "blocked_users", id)).catch(() => {});
+                    }
+                  }
+
+                  // Also query blocked_users and delete matching documents
+                  const snapshot = await getDocs(collection(db, "blocked_users"));
+                  snapshot.forEach((docSnap) => {
+                    const dId = docSnap.id.toLowerCase();
+                    const dData = docSnap.data() || {};
+                    const dEmail = (dData.email || "").trim().toLowerCase();
+                    const eLower = email.toLowerCase();
+                    const docIdLower = docId.toLowerCase();
+                    if (dId === eLower || dId === docIdLower || (eLower && dEmail === eLower)) {
+                      deleteDoc(docSnap.ref).catch(() => {});
+                    }
+                  });
+
+                  unblockedSuccess = true;
+                } catch(sdkErr) {
+                  console.warn("Client SDK unblock warning:", sdkErr);
+                  lastError = sdkErr.message;
+                }
+
+                // 2. Backend Admin API call
+                try {
+                  let token = "";
+                  let activeUser = typeof getCurrentUser === "function" ? getCurrentUser() : null;
+                  if (!activeUser && typeof auth !== "undefined" && auth) {
+                    activeUser = auth.currentUser;
+                  }
+                  if (activeUser && typeof activeUser.getIdToken === "function") {
+                    try { token = await activeUser.getIdToken(true); } catch(te) {}
+                  }
+                  if (!token) {
+                    const authUserStr = localStorage.getItem("auroconnect_auth_user");
+                    if (authUserStr) {
+                      try {
+                        const parsed = JSON.parse(authUserStr);
+                        token = parsed.stsTokenManager?.accessToken || parsed.accessToken || "";
+                      } catch(e) {}
+                    }
+                  }
+
+                  const reqHeaders = { "Content-Type": "application/json" };
+                  if (token) reqHeaders["Authorization"] = `Bearer ${token}`;
+
+                  const paramToUse = encodeURIComponent(email || docId);
+                  const res = await fetch(`/api/admin/blocked_users/${paramToUse}?token=${encodeURIComponent(token)}`, {
+                    method: "DELETE",
+                    headers: reqHeaders
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    unblockedSuccess = true;
+                  } else if (!unblockedSuccess) {
+                    lastError = data.error || "API unblock failed";
+                  }
+                } catch(apiErr) {
+                  console.warn("API unblock warning:", apiErr);
+                  if (!unblockedSuccess) lastError = apiErr.message;
+                }
+
+                if (unblockedSuccess) {
+                  if (typeof showToast === "function") {
+                    showToast(`Successfully unblocked ${targetLabel}`, "success");
+                  } else {
+                    alert(`Successfully unblocked ${targetLabel}`);
+                  }
+                  
+                  // Instantly remove row from DOM for immediate UI response
+                  const row = btnEl.closest("tr");
+                  if (row) row.remove();
+
+                  setTimeout(() => { loadBlockedUsers(); }, 500);
                 } else {
-                  showToast(`Error: ${unblockData.error || "Failed to unblock"}`, "error");
+                  console.error("Unblock failed:", lastError);
+                  if (typeof showToast === "function") {
+                    showToast(`Error unblocking user: ${lastError}`, "error");
+                  } else {
+                    alert("Error unblocking user: " + lastError);
+                  }
+                  btnEl.disabled = false;
+                  btnEl.textContent = "🟢 Unblock";
                 }
               }
             };
           });
         } catch (err) {
           console.error("Failed to load blocked users:", err);
-          if (blockedUsersLoading) blockedUsersLoading.innerHTML = `<span style="color:var(--danger);">Error loading blocked users.</span>`;
+          if (blockedUsersLoading) blockedUsersLoading.innerHTML = `<span style="color:var(--danger);">Error loading blocked users: ${escapeHTML(err.message)}</span>`;
         }
       }
       window.loadBlockedUsers = loadBlockedUsers;
@@ -5875,7 +5761,10 @@
         formBlockUser.onsubmit = async (e) => {
           e.preventDefault();
           const currentUser = getCurrentUser();
-          if (!currentUser) return;
+          if (!currentUser) {
+            showToast("You must be logged in as an administrator", "error");
+            return;
+          }
           const emailToBlock = inputBlockEmail.value.trim();
           const reason = inputBlockReason.value.trim();
           if (!emailToBlock) return;
@@ -5884,23 +5773,45 @@
           btnBlockUser.innerText = "Blocking...";
 
           try {
-            const token = await currentUser.getIdToken();
-            const res = await fetch("/api/admin/blocked_users", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token, emailToBlock, reason })
-            });
-            const data = await res.json();
-            if (data.success) {
+            let success = false;
+            let errMsg = "";
+            try {
+              const token = await currentUser.getIdToken();
+              const res = await fetch("/api/admin/blocked_users", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token, emailToBlock, reason })
+              });
+              const data = await res.json();
+              if (data.success) {
+                success = true;
+              } else {
+                errMsg = data.error || "API returned error";
+              }
+            } catch(fetchErr) {
+              errMsg = fetchErr.message;
+            }
+
+            if (!success) {
+              console.warn("API block user failed, falling back to client Firestore SDK:", errMsg);
+              const cleanEmail = emailToBlock.trim().toLowerCase();
+              await setDoc(doc(db, "blocked_users", cleanEmail), {
+                email: cleanEmail,
+                blockedAt: new Date().toISOString(),
+                blockedBy: currentUser.email || "Admin",
+                reason: reason || "Blocked by administrator"
+              });
+              success = true;
+            }
+
+            if (success) {
               showToast(`Successfully blocked ${emailToBlock}`, "success");
               inputBlockEmail.value = "";
               inputBlockReason.value = "";
               loadBlockedUsers();
-            } else {
-              showToast(`Error: ${data.error || "Failed to block user"}`, "error");
             }
           } catch (err) {
-            showToast(`Error: ${err.message}`, "error");
+            showToast(`Error blocking user: ${err.message}`, "error");
           } finally {
             btnBlockUser.disabled = false;
             btnBlockUser.innerText = "🚫 Block User";
@@ -6382,7 +6293,7 @@
             deleteBtn.style.padding = "2px 6px";
             deleteBtn.style.borderRadius = "4px";
             
-            if (adminItem.id === "info.experientialholidays@gmail.com" || adminItem.id === "info.auroconnect@gmail.com") {
+            if (adminItem.role === "super_admin" || adminItem.role === "owner") {
               deleteBtn.disabled = true;
               deleteBtn.style.opacity = "0.5";
               deleteBtn.style.cursor = "not-allowed";
@@ -6619,8 +6530,12 @@
       }
 
       function getCurrentUser() {
-        return auth.currentUser;
+        if (typeof auth !== "undefined" && auth) {
+          return auth.currentUser;
+        }
+        return null;
       }
+      window.getCurrentUser = getCurrentUser;
 
       async function updateAuthStateUI(user) {
         const currentUser = getCurrentUser();
@@ -6635,34 +6550,14 @@
           const userEmailLower = (currentUser.email || "").toLowerCase();
           
           let hasAdminAccess = false;
-          if (userEmailLower === "info.experientialholidays@gmail.com" || userEmailLower === "info.auroconnect@gmail.com") {
-            hasAdminAccess = true;
-            // Proactively auto-seed the admin document if it does not exist
-            // This ensures the "admins" collection instantly appears in the Firebase Console!
-            try {
-              const adminDocRef = doc(db, "admins", userEmailLower);
-              const adminDocSnap = await getDoc(adminDocRef);
-              if (!adminDocSnap.exists()) {
-                await setDoc(adminDocRef, {
-                  email: userEmailLower,
-                  role: "super_admin",
-                  createdAt: new Date().toISOString()
-                });
-                console.log(`Auto-seeded ${userEmailLower} into the database admins collection.`);
-              }
-            } catch (seedErr) {
-              console.warn("Auto-seeding admin document failed:", seedErr);
+          try {
+            const adminDocRef = doc(db, "admins", userEmailLower);
+            const adminDocSnap = await getDoc(adminDocRef);
+            if (adminDocSnap.exists()) {
+              hasAdminAccess = true;
             }
-          } else {
-            // Check dynamically in Firestore admins collection
-            try {
-              const adminDocSnap = await getDoc(doc(db, "admins", userEmailLower));
-              if (adminDocSnap.exists()) {
-                hasAdminAccess = true;
-              }
-            } catch (err) {
-              console.error("Failed to query dynamic admins collection:", err);
-            }
+          } catch(err) {
+            console.warn("Failed checking admin status", err);
           }
 
           if (hasAdminAccess) {
@@ -7519,7 +7414,7 @@
                         
                         const uploadResult = await uploadBytes(fileRef, blob, {
                           customMetadata: {
-                            uploadedBy: auth.currentUser ? auth.currentUser.email : "info.experientialholidays@gmail.com"
+                            uploadedBy: auth.currentUser ? auth.currentUser.email : "anonymous"
                           }
                         });
                         
@@ -7962,7 +7857,7 @@
 
                 const uploadResult = await uploadBytes(fileRef, blob, {
                   customMetadata: {
-                    uploadedBy: currentUser.email || "info.experientialholidays@gmail.com"
+                    uploadedBy: currentUser.email || "anonymous"
                   }
                 });
 
@@ -8705,7 +8600,7 @@
           </label>
           <textarea id="push-support-message-input" rows="5" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical;">☕ **Support AuroConnect**
 
-Enjoying AuroConnect? If this platform helps you explore events, activities, and happenings in Auroville, consider supporting us with a coffee! Every contribution keeps AuroConnect free and community-focused.
+Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.
 
 [👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)</textarea>
         </div>
@@ -8745,7 +8640,15 @@ Enjoying AuroConnect? If this platform helps you explore events, activities, and
         const customMsg = msgInput ? msgInput.value.trim() : "";
 
         let token = "";
-        const currentUser = getCurrentUser();
+        let currentUser = null;
+        if (typeof getCurrentUser === "function") {
+          currentUser = getCurrentUser();
+        } else if (typeof window.getCurrentUser === "function") {
+          currentUser = window.getCurrentUser();
+        } else if (typeof auth !== "undefined" && auth) {
+          currentUser = auth.currentUser;
+        }
+
         if (currentUser) {
           try {
             token = await currentUser.getIdToken();
@@ -8775,30 +8678,91 @@ Enjoying AuroConnect? If this platform helps you explore events, activities, and
             sendBtn.textContent = "Sending...";
           }
 
-          const res = await fetch("/api/admin/push-support-notification", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              token,
-              sessionId: currentTargetSessionForSupport,
-              customMessage: customMsg,
-              broadcast: currentTargetSessionForSupport === "ALL"
-            })
-          });
+          let deliveredOnlineCount = 0;
+          let sessionsUpdatedCount = 0;
+          let pushedSuccess = false;
 
-          const data = await res.json();
-          if (!data.success) {
-            throw new Error(data.error || "Failed to push support notification");
+          try {
+            const res = await fetch("/api/admin/push-support-notification", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                token,
+                sessionId: currentTargetSessionForSupport,
+                customMessage: customMsg,
+                broadcast: currentTargetSessionForSupport === "ALL"
+              })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+              pushedSuccess = true;
+              deliveredOnlineCount = data.deliveredOnlineCount || 0;
+              sessionsUpdatedCount = data.sessionsUpdatedCount || 0;
+            } else {
+              throw new Error(data.error || "Failed to push via API");
+            }
+          } catch(apiErr) {
+            console.warn("API push notification failed, attempting client SDK direct update:", apiErr);
+            const supportText = customMsg || 
+              "☕ **Support AuroConnect**\n\n" +
+              "Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.\n\n" +
+              "[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)";
+
+            const pushTimeIso = new Date().toISOString();
+
+            if (currentTargetSessionForSupport === "ALL") {
+              const snapshot = await getDocs(collection(db, "chat_sessions"));
+              const promises = [];
+              snapshot.forEach((docSnap) => {
+                const data = docSnap.data();
+                const msgs = Array.isArray(data.messages) ? [...data.messages] : [];
+                msgs.push({ role: "model", text: supportText, timestamp: Date.now(), isSupportPrompt: true });
+                const existingHist = Array.isArray(data.supportPushedHistory) ? [...data.supportPushedHistory] : [];
+                existingHist.push(pushTimeIso);
+                promises.push(setDoc(doc(db, "chat_sessions", docSnap.id), {
+                  messages: msgs,
+                  lastSupportPushedAt: pushTimeIso,
+                  supportPushedHistory: existingHist,
+                  updatedAt: pushTimeIso
+                }, { merge: true }));
+              });
+              await Promise.all(promises);
+              sessionsUpdatedCount = promises.length;
+              pushedSuccess = true;
+            } else if (currentTargetSessionForSupport) {
+              const sessionRef = doc(db, "chat_sessions", currentTargetSessionForSupport);
+              const docSnap = await getDoc(sessionRef);
+              let msgs = [];
+              const existingData = docSnap.exists() ? docSnap.data() : {};
+              if (docSnap.exists() && Array.isArray(existingData.messages)) {
+                msgs = [...existingData.messages];
+              }
+              msgs.push({ role: "model", text: supportText, timestamp: Date.now(), isSupportPrompt: true });
+              const existingHist = Array.isArray(existingData.supportPushedHistory) ? [...existingData.supportPushedHistory] : [];
+              existingHist.push(pushTimeIso);
+
+              await setDoc(sessionRef, {
+                messages: msgs,
+                lastSupportPushedAt: pushTimeIso,
+                supportPushedHistory: existingHist,
+                updatedAt: pushTimeIso
+              }, { merge: true });
+              sessionsUpdatedCount = 1;
+              pushedSuccess = true;
+            }
           }
 
-          alert(`Success! Support prompt pushed. (${data.deliveredOnlineCount} user(s) currently online received it instantly, ${data.sessionsUpdatedCount} session(s) updated in history)`);
-          closePushSupportModal();
+          if (pushedSuccess) {
+            alert(`Success! Support prompt pushed. (${deliveredOnlineCount} user(s) online received real-time push, ${sessionsUpdatedCount} session(s) updated in database)`);
+            closePushSupportModal();
 
-          if (typeof loadChatSessions === "function") {
-            loadChatSessions();
+            if (typeof loadChatSessions === "function") {
+              loadChatSessions();
+            }
           }
         } catch (err) {
-          alert("Error: " + err.message);
+          alert("Error sending support prompt: " + err.message);
         } finally {
           if (sendBtn) {
             sendBtn.disabled = false;

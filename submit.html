@@ -2912,6 +2912,10 @@
       window.toggleCustomTime = toggleCustomTime;
 
       function startEditEvent(ev) {
+        if (window.isCurrentUserBlocked) {
+          alert("⛔ Account Blocked: Your account has been restricted by an administrator from editing events.");
+          return;
+        }
         editingEventId = ev.id;
         
         // Change button text and show cancel button
@@ -4442,13 +4446,15 @@
           data.blockedUsers.forEach((bu) => {
             const tr = document.createElement("tr");
             const blockedAtStr = bu.blockedAt ? new Date(bu.blockedAt).toLocaleString() : "N/A";
+            const targetEmail = bu.email || bu.id || "";
+            const targetDocId = bu.id || bu.email || "";
             tr.innerHTML = `
-              <td style="font-weight: 600; color: var(--text);">${bu.email || bu.id}</td>
+              <td style="font-weight: 600; color: var(--text);">${targetEmail}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${blockedAtStr}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.blockedBy || "Admin"}</td>
               <td style="font-size: 0.85rem; color: var(--text-secondary);">${bu.reason || "N/A"}</td>
               <td>
-                <button class="btn btn-secondary btn-unblock-user" data-email="${bu.email || bu.id}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
+                <button class="btn btn-secondary btn-unblock-user" data-email="${targetEmail}" data-docid="${targetDocId}" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 4px; cursor: pointer; color: #2e7d32; border: 1px solid #2e7d32; background: rgba(46,125,50,0.05);">🟢 Unblock</button>
               </td>
             `;
             blockedUsersTbody.appendChild(tr);
@@ -4456,19 +4462,86 @@
 
           document.querySelectorAll(".btn-unblock-user").forEach((btn) => {
             btn.onclick = async (e) => {
-              const email = e.target.getAttribute("data-email");
-              if (confirm(`Are you sure you want to unblock "${email}"? They will be able to submit events again.`)) {
-                const token = await currentUser.getIdToken();
-                const unblockRes = await fetch(`/api/admin/blocked_users/${encodeURIComponent(email)}?token=${encodeURIComponent(token)}`, {
-                  method: "DELETE"
-                });
-                const unblockData = await unblockRes.json();
-                if (unblockData.success) {
-                  alert(`Successfully unblocked ${email}.`);
-                  loadBlockedUsers();
-                  checkCurrentUserBlockedStatus();
+              const btnEl = e.currentTarget;
+              const email = (btnEl.getAttribute("data-email") || "").trim();
+              const docId = (btnEl.getAttribute("data-docid") || "").trim();
+              if (!email && !docId) return;
+
+              const targetLabel = email || docId;
+              if (confirm(`Are you sure you want to unblock "${targetLabel}"? They will be able to submit events again.`)) {
+                btnEl.disabled = true;
+                btnEl.textContent = "⏳ Unblocking...";
+
+                let unblockedSuccess = false;
+                let lastError = "";
+
+                // 1. Client SDK direct deletion
+                try {
+                  const targets = new Set([
+                    docId,
+                    email,
+                    email.toLowerCase(),
+                    docId.toLowerCase(),
+                    encodeURIComponent(email.toLowerCase()),
+                    encodeURIComponent(docId.toLowerCase()),
+                    encodeURIComponent(email)
+                  ]);
+
+                  for (const id of targets) {
+                    if (id) {
+                      await deleteDoc(doc(db, "blocked_users", id)).catch(() => {});
+                    }
+                  }
+
+                  const snapshot = await getDocs(collection(db, "blocked_users"));
+                  snapshot.forEach((docSnap) => {
+                    const dId = docSnap.id.toLowerCase();
+                    const dData = docSnap.data() || {};
+                    const dEmail = (dData.email || "").trim().toLowerCase();
+                    const eLower = email.toLowerCase();
+                    const docIdLower = docId.toLowerCase();
+                    if (dId === eLower || dId === docIdLower || (eLower && dEmail === eLower)) {
+                      deleteDoc(docSnap.ref).catch(() => {});
+                    }
+                  });
+
+                  unblockedSuccess = true;
+                } catch(sdkErr) {
+                  console.warn("Client SDK unblock warning:", sdkErr);
+                  lastError = sdkErr.message;
+                }
+
+                // 2. Backend Admin API call
+                try {
+                  const token = await currentUser.getIdToken();
+                  const paramToUse = encodeURIComponent(email || docId);
+                  const unblockRes = await fetch(`/api/admin/blocked_users/${paramToUse}?token=${encodeURIComponent(token)}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                  });
+                  const unblockData = await unblockRes.json();
+                  if (unblockData.success) {
+                    unblockedSuccess = true;
+                  } else if (!unblockedSuccess) {
+                    lastError = unblockData.error || "Failed to unblock via API";
+                  }
+                } catch(apiErr) {
+                  console.warn("API unblock warning:", apiErr);
+                  if (!unblockedSuccess) lastError = apiErr.message;
+                }
+
+                if (unblockedSuccess) {
+                  alert(`Successfully unblocked ${targetLabel}.`);
+                  const row = btnEl.closest("tr");
+                  if (row) row.remove();
+                  setTimeout(() => {
+                    loadBlockedUsers();
+                    if (typeof checkCurrentUserBlockedStatus === "function") checkCurrentUserBlockedStatus();
+                  }, 500);
                 } else {
-                  alert(`Error: ${unblockData.error || "Failed to unblock"}`);
+                  alert(`Error unblocking user: ${lastError}`);
+                  btnEl.disabled = false;
+                  btnEl.textContent = "🟢 Unblock";
                 }
               }
             };
@@ -4521,24 +4594,27 @@
       async function checkCurrentUserBlockedStatus() {
         const currentUser = getCurrentUser();
         const banner = document.getElementById("user-blocked-banner");
-        const singleSubmitBtn = document.getElementById("btn-single-submit");
+        const singleSubmitBtn = document.getElementById("submit-event-btn") || document.getElementById("btn-single-submit");
 
         if (!currentUser) {
           if (banner) banner.style.display = "none";
+          window.isCurrentUserBlocked = false;
           return false;
         }
 
         try {
           const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(currentUser.email)}`);
           const data = await res.json();
+          window.isCurrentUserBlocked = !!data.isBlocked;
+
           if (data.isBlocked) {
             if (!banner) {
               const formContainer = document.querySelector(".form-container") || document.getElementById("single-event-section");
               if (formContainer) {
                 const div = document.createElement("div");
                 div.id = "user-blocked-banner";
-                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
-                div.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${currentUser.email}) has been blocked by an administrator from submitting events or uploading spreadsheets.</span>`;
+                div.style.cssText = "background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box;";
+                div.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${escapeHTML(currentUser.email)}) has been blocked by an administrator. You are not allowed to submit new events, upload spreadsheets, or edit past events.</span>`;
                 formContainer.insertBefore(div, formContainer.firstChild);
               }
             } else {
@@ -4547,14 +4623,35 @@
 
             if (singleSubmitBtn) {
               singleSubmitBtn.disabled = true;
-              singleSubmitBtn.innerText = "🚫 Submissions Disabled (Account Blocked)";
+              singleSubmitBtn.style.opacity = "0.6";
+              singleSubmitBtn.style.cursor = "not-allowed";
+              singleSubmitBtn.innerText = "🚫 Submissions & Edits Disabled (Account Blocked)";
             }
+
+            // Disable spreadsheet upload buttons
+            const uploadBtn = document.getElementById("btn-upload-spreadsheet") || document.getElementById("upload-btn");
+            if (uploadBtn) {
+              uploadBtn.disabled = true;
+              uploadBtn.style.opacity = "0.6";
+              uploadBtn.style.cursor = "not-allowed";
+            }
+
+            // Disable all edit buttons in My Events list
+            document.querySelectorAll(".btn-edit-event, .btn-edit-all-event").forEach((btn) => {
+              btn.disabled = true;
+              btn.style.opacity = "0.5";
+              btn.style.cursor = "not-allowed";
+              btn.title = "Editing disabled: Account blocked";
+            });
+
             return true;
           } else {
             if (banner) banner.style.display = "none";
             if (singleSubmitBtn) {
               singleSubmitBtn.disabled = false;
-              singleSubmitBtn.innerText = "Submit Event";
+              singleSubmitBtn.style.opacity = "1";
+              singleSubmitBtn.style.cursor = "pointer";
+              singleSubmitBtn.innerText = editingEventId ? "Update Event" : "Submit Event";
             }
             return false;
           }
@@ -4624,34 +4721,14 @@
           const userEmailLower = (currentUser.email || "").toLowerCase();
           
           let hasAdminAccess = false;
-          if (userEmailLower === "info.experientialholidays@gmail.com" || userEmailLower === "info.auroconnect@gmail.com") {
-            hasAdminAccess = true;
-            // Proactively auto-seed the admin document if it does not exist
-            // This ensures the "admins" collection instantly appears in the Firebase Console!
-            try {
-              const adminDocRef = doc(db, "admins", userEmailLower);
-              const adminDocSnap = await getDoc(adminDocRef);
-              if (!adminDocSnap.exists()) {
-                await setDoc(adminDocRef, {
-                  email: userEmailLower,
-                  role: "super_admin",
-                  createdAt: new Date().toISOString()
-                });
-                console.log(`Auto-seeded ${userEmailLower} into the database admins collection.`);
-              }
-            } catch (seedErr) {
-              console.warn("Auto-seeding admin document failed:", seedErr);
+          try {
+            const adminDocRef = doc(db, "admins", userEmailLower);
+            const adminDocSnap = await getDoc(adminDocRef);
+            if (adminDocSnap.exists()) {
+              hasAdminAccess = true;
             }
-          } else {
-            // Check dynamically in Firestore admins collection
-            try {
-              const adminDocSnap = await getDoc(doc(db, "admins", userEmailLower));
-              if (adminDocSnap.exists()) {
-                hasAdminAccess = true;
-              }
-            } catch (err) {
-              console.error("Failed to query dynamic admins collection:", err);
-            }
+          } catch(err) {
+            console.warn("Failed checking admin status", err);
           }
 
           if (hasAdminAccess) {
@@ -5519,7 +5596,7 @@
                         
                         const uploadResult = await uploadBytes(fileRef, blob, {
                           customMetadata: {
-                            uploadedBy: auth.currentUser ? auth.currentUser.email : "info.experientialholidays@gmail.com"
+                            uploadedBy: auth.currentUser ? auth.currentUser.email : "anonymous"
                           }
                         });
                         

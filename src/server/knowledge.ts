@@ -193,7 +193,7 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
           filename,
           text: item.text,
           uploadedAt: serverTimestamp(),
-          uploadedBy: uploadedBy || "info.experientialholidays@gmail.com",
+          uploadedBy: uploadedBy || "anonymous@auroconnect.com",
           chunkIndex: chunkCount,
           embeddingVector: item.embeddingVector && Array.isArray(item.embeddingVector)
             ? vector(item.embeddingVector)
