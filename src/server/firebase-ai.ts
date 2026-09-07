@@ -3,7 +3,7 @@ import path from "path";
 import { initializeApp as initAdminApp, getApp, getApps } from "firebase-admin/app";
 import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 import { initializeApp } from "firebase/app";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
@@ -122,6 +122,10 @@ export async function isUserBlocked(email: string): Promise<boolean> {
     const encDocRef = doc(db, "blocked_users", encodeURIComponent(emailLower));
     const encSnapClient = await getDoc(encDocRef);
     if (encSnapClient.exists()) return true;
+
+    const q = query(collection(db, "blocked_users"), where("email", "==", emailLower));
+    const qSnap = await getDocs(q);
+    if (!qSnap.empty) return true;
   } catch (clientErr) {
     console.error("Error checking blocked_users via Client SDK:", clientErr);
   }
