@@ -49,22 +49,7 @@ import { getAuth } from "firebase-admin/auth";
 export async function verifyAuthToken(token: string): Promise<{ email: string } | null> {
   if (!token) return null;
 
-  // 1. Instant local JWT decode (runs in < 1ms, avoids network timeouts)
-  try {
-    const parts = token.split(".");
-    if (parts.length === 3) {
-      const payloadStr = Buffer.from(parts[1], "base64url").toString("utf8");
-      const payload = JSON.parse(payloadStr);
-      const email = payload.email || payload.firebase?.identities?.email?.[0];
-      if (payload && email) {
-        return { email: email.toLowerCase() };
-      }
-    }
-  } catch (parseErr: any) {
-    console.error("JWT fast-decode error:", parseErr.message);
-  }
-
-  // 2. Fallback to Firebase Admin verifyIdToken
+  // 1. Primary: Cryptographic verification via Firebase Admin SDK
   try {
     const decodedToken = await getAuth().verifyIdToken(token);
     if (decodedToken && decodedToken.email) {
@@ -74,36 +59,49 @@ export async function verifyAuthToken(token: string): Promise<{ email: string } 
     console.error("Firebase ID Token verification failed:", e.message);
   }
 
+  // 2. Non-production development fallback if Firebase Admin certs are unavailable offline
+  if (process.env.NODE_ENV !== "production") {
+    try {
+      const parts = token.split(".");
+      if (parts.length === 3) {
+        const payloadStr = Buffer.from(parts[1], "base64url").toString("utf8");
+        const payload = JSON.parse(payloadStr);
+        const email = payload.email || payload.firebase?.identities?.email?.[0];
+        if (payload && email) {
+          console.warn("[DEV WARNING] Unverified token fallback used for local dev:", email);
+          return { email: email.toLowerCase() };
+        }
+      }
+    } catch (parseErr: any) {
+      console.error("JWT fast-decode error:", parseErr.message);
+    }
+  }
+
   return null;
 }
+
+import { isEmailBlocked } from "./blocked-users-store.js";
 
 export async function isUserAdmin(email: string): Promise<boolean> {
   if (!email) return false;
   const emailLower = email.trim().toLowerCase();
   
-  // 1. Primary Check: Query the 'admins' collection in Firestore using Admin SDK
-  try {
-    const adminDocSnap = await adminDb.collection("admins").doc(emailLower).get();
-    if (adminDocSnap.exists) {
-      return true;
-    }
-  } catch (e) {
-    console.error("Error checking admins collection in Firestore with Admin SDK:", e);
-    // Fallback to Client SDK DB check (which works via Client configuration API Key and is allowed by security rules)
-    try {
-      const docRef = doc(db, "admins", emailLower);
-      const docSnapClient = await getDoc(docRef);
-      if (docSnapClient.exists()) {
-        return true;
-      }
-    } catch (clientErr) {
-      console.error("Error checking admins collection in Firestore with Client SDK:", clientErr);
-    }
+  // 1. Check bootstrap administrator accounts
+  if (
+    emailLower === "info.experientialholidays@gmail.com" ||
+    emailLower === "info.auroconnect@gmail.com"
+  ) {
+    return true;
   }
 
-  // 2. Fallback check for initial project bootstrap accounts
-  if (emailLower === "info.experientialholidays@gmail.com" || emailLower === "info.auroconnect@gmail.com") {
-    return true;
+  // 2. Safe check for custom admins in Firestore Admin SDK
+  try {
+    const docSnapAdmin = await adminDb.collection("admins").doc(emailLower).get();
+    if (docSnapAdmin.exists) {
+      return true;
+    }
+  } catch (_e) {
+    // Non-blocking
   }
   
   return false;
@@ -112,35 +110,5 @@ export async function isUserAdmin(email: string): Promise<boolean> {
 export async function isUserBlocked(email: string): Promise<boolean> {
   if (!email) return false;
   const emailLower = email.trim().toLowerCase();
-  
-  // 1. Check blocked_users using Client SDK (highly reliable as it uses client API key and is allowed by security rules)
-  try {
-    const docRef = doc(db, "blocked_users", emailLower);
-    const docSnapClient = await getDoc(docRef);
-    if (docSnapClient.exists()) return true;
-
-    const encDocRef = doc(db, "blocked_users", encodeURIComponent(emailLower));
-    const encSnapClient = await getDoc(encDocRef);
-    if (encSnapClient.exists()) return true;
-
-    const q = query(collection(db, "blocked_users"), where("email", "==", emailLower));
-    const qSnap = await getDocs(q);
-    if (!qSnap.empty) return true;
-  } catch (clientErr) {
-    console.error("Error checking blocked_users via Client SDK:", clientErr);
-  }
-
-  // 2. Fallback check using Admin SDK
-  try {
-    const docSnap = await adminDb.collection("blocked_users").doc(emailLower).get();
-    if (docSnap.exists) return true;
-    const encSnap = await adminDb.collection("blocked_users").doc(encodeURIComponent(emailLower)).get();
-    if (encSnap.exists) return true;
-
-    const querySnap = await adminDb.collection("blocked_users").where("email", "==", emailLower).get();
-    if (!querySnap.empty) return true;
-  } catch (e) {
-    console.error("Error checking blocked_users collection via Admin SDK:", e);
-  }
-  return false;
+  return await isEmailBlocked(emailLower);
 }

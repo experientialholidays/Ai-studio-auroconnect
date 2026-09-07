@@ -884,7 +884,7 @@
                                window.location.hostname !== "localhost" &&
                                window.location.hostname !== "127.0.0.1";
 
-        const wsTarget = isCustomDomain ? prodCloudRunHost : window.location.host;
+        const wsTarget = isCustomDomain ? (prodCloudRunHost || currentHost) : currentHost;
 
         ws = new WebSocket(`${scheme}://${wsTarget}/ws/chat/${sessionId}?userId=${encodeURIComponent(userId)}`);
         

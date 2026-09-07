@@ -938,6 +938,29 @@
 
     <div class="header"></div>
 
+    <!-- Static Blocked Access Screen Container -->
+    <div class="container" id="blocked-access-screen" style="display: none; max-width: 600px; margin: 3rem auto; padding: 2.5rem; background: var(--surface); border: 2px solid #ef4444; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(239,68,68,0.15); width: 100%; box-sizing: border-box;">
+      <div style="font-size: 3.5rem; margin-bottom: 1rem;">⛔</div>
+      <h2 style="color: #c62828; margin-bottom: 0.75rem; font-size: 1.6rem; font-weight: 700;">Account Access Blocked</h2>
+      <p style="color: var(--text); font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem;">
+        Your account (<strong id="blocked-screen-email-display" style="word-break: break-all;"></strong>) has been restricted by an administrator.
+      </p>
+      <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 1.25rem; color: var(--text); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.75rem; text-align: left;">
+        <strong style="font-size: 1rem; color: #c62828;">Restrictions in effect for this account:</strong>
+        <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
+          <li>You cannot access the submission portal or form fields</li>
+          <li>You cannot submit new events or upload spreadsheet entries</li>
+          <li>You cannot view, edit, hide, or delete past event submissions</li>
+        </ul>
+      </div>
+      <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+        If you believe this is an error, please contact the AuroConnect administration.
+      </p>
+      <button id="btn-blocked-signout" class="btn btn-secondary" style="padding: 0.65rem 1.75rem; font-weight: 600; font-size: 0.95rem; cursor: pointer;">
+        Sign Out
+      </button>
+    </div>
+
     <!-- Login Section -->
     <div class="container" id="login-section">
       <h2>Admin Authentication</h2>
@@ -6576,35 +6599,13 @@
       }
 
       function renderBlockedAccessScreen(email) {
-        let screen = document.getElementById("blocked-access-screen");
-        if (!screen) {
-          screen = document.createElement("div");
-          screen.id = "blocked-access-screen";
-          screen.style.cssText = "max-width: 600px; margin: 3rem auto; padding: 2.5rem; background: #ffffff; border: 2px solid #ef9a9a; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(239,83,80,0.12); width: 100%; box-sizing: border-box;";
-          screen.innerHTML = `
-            <div style="font-size: 3.5rem; margin-bottom: 1rem;">⛔</div>
-            <h2 style="color: #c62828; margin-bottom: 0.75rem; font-size: 1.6rem; font-weight: 700;">Account Access Blocked</h2>
-            <p style="color: #424242; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem;">
-              Your account (<strong style="word-break: break-all;">${escapeHTML(email)}</strong>) has been restricted by an administrator.
-            </p>
-            <div style="background: #ffebee; border-radius: 8px; padding: 1.25rem; color: #b71c1c; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.75rem; text-align: left;">
-              <strong style="font-size: 1rem;">Restrictions in effect for this account:</strong>
-              <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
-                <li>You cannot access the submission portal or form fields</li>
-                <li>You cannot submit new events or upload spreadsheet entries</li>
-                <li>You cannot view, edit, hide, or delete past event submissions</li>
-              </ul>
-            </div>
-            <p style="font-size: 0.88rem; color: #757575; margin-bottom: 1.5rem;">
-              If you believe this is an error, please contact the AuroConnect administration.
-            </p>
-            <button id="btn-blocked-signout" class="btn btn-secondary" style="padding: 0.65rem 1.75rem; font-weight: 600; font-size: 0.95rem; cursor: pointer;">
-              Sign Out
-            </button>
-          `;
-          const mainContainer = document.querySelector(".container") || document.getElementById("main-content") || document.body;
-          mainContainer.appendChild(screen);
-
+        const screen = document.getElementById("blocked-access-screen");
+        const emailDisplay = document.getElementById("blocked-screen-email-display");
+        if (emailDisplay) {
+          emailDisplay.textContent = email || "Current User";
+        }
+        if (screen) {
+          screen.style.setProperty("display", "block", "important");
           const signoutBtn = document.getElementById("btn-blocked-signout");
           if (signoutBtn) {
             signoutBtn.onclick = () => {
@@ -6616,16 +6617,13 @@
             };
           }
         }
-        screen.style.display = "block";
       }
 
       async function checkCurrentUserBlockedStatus(providedUser) {
         const currentUser = providedUser || getCurrentUser();
-        const banner = document.getElementById("user-blocked-banner");
         const singleSubmitBtn = document.getElementById("submit-event-btn") || document.getElementById("btn-single-submit");
 
         if (!currentUser || !currentUser.email) {
-          if (banner) banner.style.display = "none";
           const blockedScreen = document.getElementById("blocked-access-screen");
           if (blockedScreen) blockedScreen.style.display = "none";
           window.isCurrentUserBlocked = false;
@@ -6635,44 +6633,44 @@
         const cleanEmail = currentUser.email.trim().toLowerCase();
         let isBlocked = false;
 
-        // Tier 1: Direct Client Firestore Document Check
+        // Tier 1 (Fastest, in-memory local store): Server API Check
         try {
-          const docSnap = await getDoc(doc(db, "blocked_users", cleanEmail));
-          if (docSnap.exists()) {
+          const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(cleanEmail)}`);
+          const data = await res.json();
+          if (data && data.isBlocked) {
             isBlocked = true;
-          } else {
-            const encDocSnap = await getDoc(doc(db, "blocked_users", encodeURIComponent(cleanEmail)));
-            if (encDocSnap.exists()) {
-              isBlocked = true;
-            }
           }
         } catch (err) {
-          console.warn("Direct client doc blocked check error:", err);
+          console.warn("Server API check_blocked error:", err);
         }
 
-        // Tier 2: Direct Client Firestore Collection Query Check
+        // Tier 2: Direct Client Firestore Document Check (if server did not already flag blocked)
+        if (!isBlocked) {
+          try {
+            const docSnap = await getDoc(doc(db, "blocked_users", cleanEmail));
+            if (docSnap && docSnap.exists()) {
+              isBlocked = true;
+            } else {
+              const encDocSnap = await getDoc(doc(db, "blocked_users", encodeURIComponent(cleanEmail)));
+              if (encDocSnap && encDocSnap.exists()) {
+                isBlocked = true;
+              }
+            }
+          } catch (err) {
+            console.warn("Direct client doc blocked check error:", err);
+          }
+        }
+
+        // Tier 3: Direct Client Firestore Collection Query Check
         if (!isBlocked) {
           try {
             const q = query(collection(db, "blocked_users"), where("email", "==", cleanEmail));
             const qSnap = await getDocs(q);
-            if (!qSnap.empty) {
+            if (qSnap && !qSnap.empty) {
               isBlocked = true;
             }
           } catch (err) {
             console.warn("Direct client query blocked check error:", err);
-          }
-        }
-
-        // Tier 3: Server API Check
-        if (!isBlocked) {
-          try {
-            const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(cleanEmail)}`);
-            const data = await res.json();
-            if (data && data.isBlocked) {
-              isBlocked = true;
-            }
-          } catch (err) {
-            console.warn("Server API check_blocked error:", err);
           }
         }
 
@@ -6701,7 +6699,6 @@
 
           return true;
         } else {
-          if (banner) banner.style.display = "none";
           const blockedScreen = document.getElementById("blocked-access-screen");
           if (blockedScreen) blockedScreen.style.display = "none";
           return false;
@@ -6722,6 +6719,15 @@
         if (currentUser) {
           loginSection.style.display = "none";
           uploadSection.style.display = "none";
+
+          // Immediate Fast Check: If user is blocked, stop immediately and render blocked screen
+          const isBlocked = await checkCurrentUserBlockedStatus(currentUser);
+          if (isBlocked) {
+            loginSection.style.setProperty("display", "none", "important");
+            if (uploadSection) uploadSection.style.setProperty("display", "none", "important");
+            if (dashboardSection) dashboardSection.style.setProperty("display", "none", "important");
+            return;
+          }
 
           // Show admin-only section for specific user
           const adminOnlySection = document.getElementById("admin-only-section");
@@ -6787,15 +6793,6 @@
           const categorySelect = document.getElementById("ev-category");
           if (categorySelect) {
             categorySelect.disabled = !dashboardIsAdmin;
-          }
-
-          // Check if current user is blocked first to avoid UI race conditions/flickering
-          const isBlocked = await checkCurrentUserBlockedStatus(currentUser);
-          if (isBlocked) {
-            loginSection.style.display = "none";
-            if (uploadSection) uploadSection.style.display = "none";
-            if (dashboardSection) dashboardSection.style.display = "none";
-            return;
           }
 
           // Now safely display dashboardSection

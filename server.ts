@@ -7,6 +7,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { read, utils } from "xlsx";
 import { db, adminDb, firebaseConfig, verifyAuthToken, isUserAdmin, isUserBlocked } from "./src/server/firebase-ai.js";
+import { getBlockedUsers, blockUser, unblockUser } from "./src/server/blocked-users-store.js";
 import { collection, doc, getDoc, getDocs, setDoc, addDoc, deleteDoc, updateDoc, query, orderBy, where, limit } from "firebase/firestore";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
@@ -63,6 +64,34 @@ app.get("/api/pdf-proxy", async (req, res) => {
         if (!fileUrl) {
             return res.status(400).send("Missing url parameter");
         }
+        
+        // Validate URL and prevent Server-Side Request Forgery (SSRF)
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(fileUrl);
+        } catch (_err) {
+            return res.status(400).send("Invalid URL format");
+        }
+
+        if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+            return res.status(400).send("Only http and https protocols are supported");
+        }
+
+        const hostname = parsedUrl.hostname.toLowerCase();
+        const isForbiddenHost = 
+            hostname === "localhost" || 
+            hostname === "127.0.0.1" || 
+            hostname === "169.254.169.254" || 
+            hostname === "0.0.0.0" || 
+            hostname === "::1" ||
+            hostname.startsWith("10.") ||
+            hostname.startsWith("192.168.") ||
+            /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname);
+
+        if (isForbiddenHost) {
+            return res.status(403).send("Forbidden target address");
+        }
+
         const fetchRes = await fetch(fileUrl);
         if (!fetchRes.ok) {
             return res.status(fetchRes.status).send("Failed to fetch PDF resource");
@@ -1975,12 +2004,7 @@ ${searchQuery || lastMessage}`;
         return res.status(403).json({ success: false, error: "Unauthorized: Admins only" });
       }
 
-      const snapshot = await adminDb.collection("blocked_users").get();
-      const list: any[] = [];
-      snapshot.forEach((docSnap) => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-
+      const list = await getBlockedUsers();
       res.json({ success: true, blockedUsers: list });
     } catch (err: any) {
       console.error("Error fetching blocked users:", err);
@@ -2015,14 +2039,9 @@ ${searchQuery || lastMessage}`;
         return res.status(400).json({ success: false, error: "You cannot block your own admin account" });
       }
 
-      await adminDb.collection("blocked_users").doc(cleanEmail).set({
-        email: cleanEmail,
-        blockedAt: new Date().toISOString(),
-        blockedBy: blockingAdminEmail,
-        reason: reason || "Blocked by administrator"
-      });
+      const entry = await blockUser(cleanEmail, blockingAdminEmail, reason || "Blocked by administrator");
 
-      res.json({ success: true, message: `Successfully blocked ${cleanEmail}` });
+      res.json({ success: true, message: `Successfully blocked ${cleanEmail}`, blockedUser: entry });
     } catch (err: any) {
       console.error("Error blocking user:", err);
       res.status(500).json({ success: false, error: err.message });
@@ -2037,14 +2056,16 @@ ${searchQuery || lastMessage}`;
         token = req.headers.authorization.replace(/^Bearer\s+/i, "");
       }
       
-      let unblockingAdminEmail = "info.experientialholidays@gmail.com";
-      if (token) {
-        const verified = await verifyAuthToken(token);
-        if (verified && verified.email) {
-          unblockingAdminEmail = verified.email.trim().toLowerCase();
-        }
+      if (!token) {
+        return res.status(401).json({ success: false, error: "Authentication token required" });
       }
 
+      const verified = await verifyAuthToken(token);
+      if (!verified || !verified.email) {
+        return res.status(401).json({ success: false, error: "Unauthorized: Invalid or expired token" });
+      }
+
+      const unblockingAdminEmail = verified.email.trim().toLowerCase();
       const isAdmin = await isUserAdmin(unblockingAdminEmail);
       if (!isAdmin) {
         return res.status(403).json({ success: false, error: "Unauthorized: Only administrators can unblock users" });
@@ -2057,37 +2078,7 @@ ${searchQuery || lastMessage}`;
       }
 
       console.log(`[Unblock Admin API] Unblocking ${emailToUnblock} requested by ${unblockingAdminEmail}`);
-
-      // 1. Direct doc deletion for known ID candidate forms
-      const targets = Array.from(new Set([
-        emailToUnblock,
-        rawParam.trim().toLowerCase(),
-        encodeURIComponent(emailToUnblock),
-        encodeURIComponent(rawParam.trim().toLowerCase())
-      ]));
-      for (const targetId of targets) {
-        if (targetId) {
-          await adminDb.collection("blocked_users").doc(targetId).delete().catch(e => console.warn("adminDb delete err:", e.message));
-        }
-      }
-
-      // 2. Query all docs in blocked_users and delete matching documents
-      const allDocsSnap = await adminDb.collection("blocked_users").get();
-      const deletePromises: Promise<any>[] = [];
-      allDocsSnap.forEach((docSnap) => {
-        const docIdLower = docSnap.id.toLowerCase();
-        const docData = docSnap.data() || {};
-        const docEmailLower = (docData.email || "").trim().toLowerCase();
-        if (
-          docIdLower === emailToUnblock ||
-          docIdLower === rawParam.trim().toLowerCase() ||
-          docIdLower === encodeURIComponent(emailToUnblock).toLowerCase() ||
-          (emailToUnblock && docEmailLower === emailToUnblock)
-        ) {
-          deletePromises.push(docSnap.ref.delete().catch(e => console.warn("adminDb doc delete err:", e.message)));
-        }
-      });
-      await Promise.all(deletePromises);
+      await unblockUser(emailToUnblock);
 
       res.json({ success: true, message: `Successfully unblocked ${emailToUnblock}` });
     } catch (err: any) {
@@ -2210,61 +2201,76 @@ ${searchQuery || lastMessage}`;
 
   // Load Savitri lines directly from Firestore database using REST API
   let savitriLines: any[] = [];
-  const loadSavitriLinesFromFirestore = async () => {
-    try {
-      console.log("Loading Savitri lines dataset directly from Firestore database using REST API...");
-      const metaRes = await fetch("https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_meta");
-      if (!metaRes.ok) {
-        throw new Error(`Failed to fetch Savitri meta: ${metaRes.statusText}`);
-      }
-      const metaData: any = await metaRes.json();
-      let totalChunks = 0;
-      if (metaData?.fields?.totalChunks?.integerValue) {
-        totalChunks = parseInt(metaData.fields.totalChunks.integerValue, 10);
-      }
+  let savitriLoadPromise: Promise<void> | null = null;
 
-      const allLines: any[] = [];
-      const fetchChunk = async (i: number) => {
-        const chunkRes = await fetch(`https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_chunk_${i}`);
-        if (!chunkRes.ok) {
-          throw new Error(`Failed to fetch Savitri chunk ${i}: ${chunkRes.statusText}`);
-        }
-        const chunkData: any = await chunkRes.json();
-        const rawLines = chunkData?.fields?.lines?.arrayValue?.values || [];
-        const parsedLines = rawLines.map((val: any) => {
-          const fields = val?.mapValue?.fields || {};
-          return {
-            bookTitle: fields.bookTitle?.stringValue || "",
-            text: fields.text?.stringValue || "",
-            book: fields.book?.stringValue || "",
-            canto: fields.canto?.stringValue || "",
-            cantoTitle: fields.cantoTitle?.stringValue || "",
-            lineIndex: fields.lineIndex?.integerValue ? parseInt(fields.lineIndex.integerValue, 10) : 0
-          };
-        });
-        return parsedLines;
-      };
+  const loadSavitriLinesFromFirestore = async (): Promise<void> => {
+    if (savitriLines.length > 0) return;
+    if (savitriLoadPromise) return savitriLoadPromise;
 
-      // Fetch chunks in parallel batches of 10 to speed up and prevent connection exhaustion
-      const batchSize = 10;
-      for (let i = 0; i < totalChunks; i += batchSize) {
-        const batchPromises = [];
-        for (let j = 0; j < batchSize && (i + j) < totalChunks; j++) {
-          batchPromises.push(fetchChunk(i + j));
+    savitriLoadPromise = (async () => {
+      try {
+        console.log("Loading Savitri lines dataset directly from Firestore database using REST API...");
+        const metaRes = await fetch("https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_meta");
+        if (!metaRes.ok) {
+          throw new Error(`Failed to fetch Savitri meta: ${metaRes.statusText}`);
         }
-        const results = await Promise.all(batchPromises);
-        for (const res of results) {
-          allLines.push(...res);
+        const metaData: any = await metaRes.json();
+        let totalChunks = 0;
+        if (metaData?.fields?.totalChunks?.integerValue) {
+          totalChunks = parseInt(metaData.fields.totalChunks.integerValue, 10);
         }
-      }
 
-      if (allLines.length > 0) {
-        savitriLines = allLines;
-        console.log(`Successfully loaded ${savitriLines.length} Savitri lines directly from Firestore database.`);
+        const allLines: any[] = [];
+        const fetchChunk = async (i: number) => {
+          try {
+            const chunkRes = await fetch(`https://firestore.googleapis.com/v1/projects/auro-connect/databases/(default)/documents/presets/savitri_chunk_${i}`);
+            if (!chunkRes.ok) {
+              console.warn(`Savitri chunk ${i} warning: ${chunkRes.statusText}`);
+              return [];
+            }
+            const chunkData: any = await chunkRes.json();
+            const rawLines = chunkData?.fields?.lines?.arrayValue?.values || [];
+            return rawLines.map((val: any) => {
+              const fields = val?.mapValue?.fields || {};
+              return {
+                bookTitle: fields.bookTitle?.stringValue || "",
+                text: fields.text?.stringValue || "",
+                book: fields.book?.stringValue || "",
+                canto: fields.canto?.stringValue || "",
+                cantoTitle: fields.cantoTitle?.stringValue || "",
+                lineIndex: fields.lineIndex?.integerValue ? parseInt(fields.lineIndex.integerValue, 10) : 0
+              };
+            });
+          } catch (chunkErr: any) {
+            console.warn(`Savitri chunk ${i} fetch error:`, chunkErr.message);
+            return [];
+          }
+        };
+
+        const batchSize = 10;
+        for (let i = 0; i < totalChunks; i += batchSize) {
+          const batchPromises = [];
+          for (let j = 0; j < batchSize && (i + j) < totalChunks; j++) {
+            batchPromises.push(fetchChunk(i + j));
+          }
+          const results = await Promise.all(batchPromises);
+          for (const res of results) {
+            if (Array.isArray(res)) allLines.push(...res);
+          }
+        }
+
+        if (allLines.length > 0) {
+          savitriLines = allLines;
+          console.log(`Successfully loaded ${savitriLines.length} Savitri lines directly from Firestore database.`);
+        }
+      } catch (e: any) {
+        console.error("Error loading Savitri lines from Firestore (REST API):", e.message || e);
+      } finally {
+        savitriLoadPromise = null;
       }
-    } catch (e: any) {
-      console.error("Error loading Savitri lines from Firestore (REST API):", e.message || e);
-    }
+    })();
+
+    return savitriLoadPromise;
   };
   loadSavitriLinesFromFirestore();
 

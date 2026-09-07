@@ -35,7 +35,10 @@ service cloud.firestore {
 
     // Blocked Users Collection
     match /blocked_users/{userEmail} {
-      allow read, write: if true;
+      // Anyone (public visitors, logged-in users, or app clients) can check/read the blocked list
+      allow get, list: if true;
+      // Only verified administrators can add, modify, or delete entries on the blocked list
+      allow create, update, delete: if isAdmin();
     }
 
     // Events Collection (Specific to this project)

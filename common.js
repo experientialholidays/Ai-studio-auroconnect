@@ -77,6 +77,7 @@
         width: 100% !important;
         text-align: left !important;
         position: relative !important;
+        z-index: 1000 !important;
     }
     
     .header-title-group {
@@ -183,9 +184,9 @@
         }
     }
 
-    .dropdown { position: relative; display: inline-block; }
+    .dropdown { position: relative; display: inline-block; z-index: 1001; }
     .three-dots { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); padding: 0 0.5rem; }
-    .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--surface); min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1); border: 1px solid var(--border); border-radius: 8px; z-index: 1000; padding: 0.5rem 0; }
+    .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--surface); min-width: 160px; box-shadow: 0px 10px 25px rgba(0,0,0,0.18); border: 1px solid var(--border); border-radius: 8px; z-index: 99999 !important; padding: 0.5rem 0; }
     .dropdown-content a, .dropdown-content button { color: var(--text); padding: 0.5rem 1rem; text-decoration: none; display: block; background: none; border: none; width: 100%; text-align: left; font-family: inherit; font-size: 0.9rem; cursor: pointer; }
     .dropdown-content a:hover, .dropdown-content button:hover { background-color: var(--bg); }
     .show-menu { display: block; }
@@ -256,6 +257,17 @@
   `;
   document.head.appendChild(styleEl);
 
+  function escapeHTML(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+  window.escapeHTML = window.escapeHTML || escapeHTML;
+
   const firebaseConfig = {
     apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
     authDomain: "auro-connect.firebaseapp.com",
@@ -304,7 +316,7 @@
     menuHtml += `
       <a href="#" id="common-menu-new-session" style="${isIndex ? "font-weight: bold;" : ""}">New Session</a>
       <a href="/about.html" style="${isAbout ? "font-weight: bold;" : ""}">About</a>
-      <a href="/submit.html" style="${isSubmit ? "font-weight: bold;" : ""}">Submit</a>
+      <a href="/submit.html" id="common-menu-submit-link" style="${isSubmit ? "font-weight: bold;" : ""}">Submit</a>
       <a href="/dashboard.html" style="${isDashboard ? "font-weight: bold;" : ""}">Dashboard</a>
       <a href="https://rzp.io/rzp/AuroConnect" target="_blank">Contribute</a>
       <a href="/contact.html" style="${isContact ? "font-weight: bold;" : ""}">Contact</a>
@@ -386,6 +398,13 @@
       };
     }
     
+    const submitLink = document.getElementById("common-menu-submit-link");
+    if (submitLink) {
+      submitLink.onclick = function() {
+        dropdownContent.classList.remove("show-menu");
+      };
+    }
+
     const authBtn = document.getElementById("common-menu-auth-btn");
     if (authBtn) {
       authBtn.onclick = async function(e) {
@@ -601,7 +620,17 @@
   renderHeader(null);
   
   if (authInstance && firebaseAuth) {
-    firebaseAuth.onAuthStateChanged(authInstance, (user) => {
+    firebaseAuth.onAuthStateChanged(authInstance, async (user) => {
+      window._commonUserIsBlocked = false;
+      if (user && user.email) {
+        try {
+          const res = await fetch(`/api/check_blocked?email=${encodeURIComponent(user.email.trim().toLowerCase())}`);
+          const data = await res.json();
+          if (data && data.isBlocked) {
+            window._commonUserIsBlocked = true;
+          }
+        } catch (_e) {}
+      }
       renderHeader(user);
     });
   }
