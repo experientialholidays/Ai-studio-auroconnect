@@ -3289,6 +3289,10 @@
 
       // Tab switching logic
       function switchTab(activeTabId) {
+        if (window.isCurrentUserBlocked) {
+          console.warn("Tab switch blocked: user is blocked.");
+          return;
+        }
         // Exit edit mode if user is editing
         exitEditMode();
 
@@ -4551,6 +4555,50 @@
         };
       }
 
+      function renderBlockedAccessScreen(email) {
+        let screen = document.getElementById("blocked-access-screen");
+        if (!screen) {
+          screen = document.createElement("div");
+          screen.id = "blocked-access-screen";
+          screen.style.cssText = "max-width: 600px; margin: 3rem auto; padding: 2.5rem; background: #ffffff; border: 2px solid #ef9a9a; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(239,83,80,0.12); width: 100%; box-sizing: border-box;";
+          screen.innerHTML = `
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">⛔</div>
+            <h2 style="color: #c62828; margin-bottom: 0.75rem; font-size: 1.6rem; font-weight: 700;">Account Access Blocked</h2>
+            <p style="color: #424242; font-size: 1.05rem; line-height: 1.6; margin-bottom: 1.5rem;">
+              Your account (<strong style="word-break: break-all;">${escapeHTML(email)}</strong>) has been restricted by an administrator.
+            </p>
+            <div style="background: #ffebee; border-radius: 8px; padding: 1.25rem; color: #b71c1c; font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.75rem; text-align: left;">
+              <strong style="font-size: 1rem;">Restrictions in effect for this account:</strong>
+              <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
+                <li>You cannot access the submission portal or form fields</li>
+                <li>You cannot submit new events or upload spreadsheet entries</li>
+                <li>You cannot view, edit, hide, or delete past event submissions</li>
+              </ul>
+            </div>
+            <p style="font-size: 0.88rem; color: #757575; margin-bottom: 1.5rem;">
+              If you believe this is an error, please contact the AuroConnect administration.
+            </p>
+            <button id="btn-blocked-signout" class="btn btn-secondary" style="padding: 0.65rem 1.75rem; font-weight: 600; font-size: 0.95rem; cursor: pointer;">
+              Sign Out
+            </button>
+          `;
+          const mainContainer = document.querySelector(".container") || document.getElementById("main-content") || document.body;
+          mainContainer.appendChild(screen);
+
+          const signoutBtn = document.getElementById("btn-blocked-signout");
+          if (signoutBtn) {
+            signoutBtn.onclick = () => {
+              if (typeof auth !== "undefined" && auth) {
+                auth.signOut().then(() => window.location.reload());
+              } else {
+                window.location.reload();
+              }
+            };
+          }
+        }
+        screen.style.display = "block";
+      }
+
       async function checkCurrentUserBlockedStatus(providedUser) {
         const currentUser = providedUser || getCurrentUser();
         const banner = document.getElementById("user-blocked-banner");
@@ -4558,6 +4606,8 @@
 
         if (!currentUser || !currentUser.email) {
           if (banner) banner.style.display = "none";
+          const blockedScreen = document.getElementById("blocked-access-screen");
+          if (blockedScreen) blockedScreen.style.display = "none";
           window.isCurrentUserBlocked = false;
           return false;
         }
@@ -4611,78 +4661,29 @@
         if (isBlocked) {
           console.log(`[SECURITY LOCKDOWN] Account ${cleanEmail} is BLOCKED.`);
 
-          // Render locked alert banner
-          const isDashboard = window.location.pathname.endsWith("dashboard.html");
-          const container = isDashboard ? document.getElementById("dashboard-section") : document.getElementById("upload-section");
+          // Hide all main portal interface sections completely
+          const uploadSection = document.getElementById("upload-section");
+          if (uploadSection) uploadSection.style.setProperty("display", "none", "important");
 
-          if (container) {
-            let existingBanner = document.getElementById("user-blocked-banner");
-            if (!existingBanner) {
-              existingBanner = document.createElement("div");
-              existingBanner.id = "user-blocked-banner";
-              existingBanner.style.cssText = "background: #ffebee; color: #c62828; border: 2px solid #ef9a9a; border-radius: 8px; padding: 1.25rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.75rem; box-shadow: 0 4px 6px rgba(0,0,0,0.08); width: 100%; box-sizing: border-box; text-align: left; line-height: 1.5; font-size: 1rem;";
-              existingBanner.innerHTML = `<span>⛔ <strong>Account Blocked:</strong> Your account (${escapeHTML(currentUser.email)}) has been blocked by an administrator. You are not allowed to submit new events, upload spreadsheets, or edit past events.</span>`;
-              container.insertBefore(existingBanner, container.firstChild);
-            } else {
-              existingBanner.style.display = "flex";
-            }
-          }
+          const dashboardSection = document.getElementById("dashboard-section");
+          if (dashboardSection) dashboardSection.style.setProperty("display", "none", "important");
 
-          // Hide all submission forms and controls
-          const singleEventForm = document.getElementById("single-event-form");
-          if (singleEventForm) {
-            singleEventForm.style.setProperty("display", "none", "important");
-          }
-          const singleEventFormBody = document.getElementById("single-event-form-body");
-          if (singleEventFormBody) {
-            singleEventFormBody.style.setProperty("display", "none", "important");
-          }
-          const submitHeading = document.getElementById("submit-heading") || document.querySelector("#upload-section h2");
-          if (submitHeading) {
-            submitHeading.style.setProperty("display", "none", "important");
-          }
-          const presetRow = document.getElementById("preset-selector-row");
-          if (presetRow) {
-            presetRow.style.setProperty("display", "none", "important");
-          }
-          const bulkUploadCard = document.getElementById("bulk-upload-box") || document.querySelector(".bulk-upload-card");
-          if (bulkUploadCard) {
-            bulkUploadCard.style.setProperty("display", "none", "important");
-          }
+          const adminOnlySection = document.getElementById("admin-only-section");
+          if (adminOnlySection) adminOnlySection.style.setProperty("display", "none", "important");
 
-          if (singleSubmitBtn) {
-            singleSubmitBtn.disabled = true;
-            singleSubmitBtn.style.opacity = "0.5";
-            singleSubmitBtn.style.cursor = "not-allowed";
-            singleSubmitBtn.innerText = "🚫 Submissions & Edits Disabled (Account Blocked)";
-          }
+          const dashboardTabsRow = document.getElementById("dashboard-tabs-row");
+          if (dashboardTabsRow) dashboardTabsRow.style.setProperty("display", "none", "important");
 
-          // Disable spreadsheet upload buttons & other inputs
-          const uploadBtn = document.getElementById("btn-upload-spreadsheet") || document.getElementById("upload-btn");
-          if (uploadBtn) { uploadBtn.disabled = true; uploadBtn.style.opacity = "0.5"; uploadBtn.style.cursor = "not-allowed"; }
-          const uploadPdfBtn = document.getElementById("upload-pdf-btn");
-          if (uploadPdfBtn) { uploadPdfBtn.disabled = true; uploadPdfBtn.style.opacity = "0.5"; uploadPdfBtn.style.cursor = "not-allowed"; }
-          const scrapeUrlBtn = document.getElementById("scrape-url-btn");
-          if (scrapeUrlBtn) { scrapeUrlBtn.disabled = true; scrapeUrlBtn.style.opacity = "0.5"; scrapeUrlBtn.style.cursor = "not-allowed"; }
-          const excelFileInput = document.getElementById("excel-file");
-          if (excelFileInput) excelFileInput.disabled = true;
-          const pdfFileInput = document.getElementById("pdf-file");
-          if (pdfFileInput) pdfFileInput.disabled = true;
-          const knowledgeUrlInput = document.getElementById("knowledge-url");
-          if (knowledgeUrlInput) knowledgeUrlInput.disabled = true;
+          const loginSection = document.getElementById("login-section");
+          if (loginSection) loginSection.style.setProperty("display", "none", "important");
 
-          // Disable all edit/delete buttons in lists
-          document.querySelectorAll(".btn-edit-event, .btn-edit-all-event, .btn-delete-event, .btn-delete-all-event, .btn-hide-event").forEach((btn) => {
-            btn.disabled = true;
-            btn.style.opacity = "0.3";
-            btn.style.cursor = "not-allowed";
-            btn.style.pointerEvents = "none";
-            btn.title = "Action disabled: Account blocked";
-          });
+          renderBlockedAccessScreen(currentUser.email);
 
           return true;
         } else {
           if (banner) banner.style.display = "none";
+          const blockedScreen = document.getElementById("blocked-access-screen");
+          if (blockedScreen) blockedScreen.style.display = "none";
           return false;
         }
       }
@@ -4805,7 +4806,13 @@
           }
 
           // Check if current user is blocked first to avoid UI race conditions/flickering
-          await checkCurrentUserBlockedStatus(currentUser);
+          const isBlocked = await checkCurrentUserBlockedStatus(currentUser);
+          if (isBlocked) {
+            loginSection.style.display = "none";
+            if (uploadSection) uploadSection.style.display = "none";
+            if (dashboardSection) dashboardSection.style.display = "none";
+            return;
+          }
 
           // Now safely display uploadSection
           uploadSection.style.display = "flex";
