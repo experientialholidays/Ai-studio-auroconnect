@@ -273,27 +273,69 @@
       </form>
     </div>
 
+    <!-- Firebase SDKs and Firestore Submission Logic -->
     <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+      import { getFirestore, setLogLevel, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore.js";
+      setLogLevel("silent");
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDZ87VkavGphOCIOfD3a-nhOSxI2wcpuMg",
+        authDomain: "auro-connect.firebaseapp.com",
+        projectId: "auro-connect",
+        storageBucket: "auro-connect.firebasestorage.app",
+        messagingSenderId: "913005987760",
+        appId: "1:913005987760:web:57d4210ef370a817e33875",
+        measurementId: "G-S4L4Z530CS"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
       const contactForm = document.getElementById("contact-form");
       const submitBtn = document.getElementById("submit-btn");
       const statusMsg = document.getElementById("status-message");
 
-      contactForm.onsubmit = (e) => {
+      contactForm.onsubmit = async (e) => {
         e.preventDefault();
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Sending...";
+        statusMsg.style.display = "none";
+        statusMsg.className = "";
 
-        // Show thank you message and make it explicitly visible
-        statusMsg.innerText = "Thank you! Your message has been sent. We will get back to you soon.";
-        statusMsg.className = "success";
-        statusMsg.style.display = "block";
+        const name = document.getElementById("contact-name").value.trim();
+        const email = document.getElementById("contact-email").value.trim();
+        const phone = document.getElementById("contact-country-code").value + " " + document.getElementById("contact-phone").value.trim();
+        const subject = document.getElementById("contact-subject").value.trim();
+        const message = document.getElementById("contact-message").value.trim();
 
-        // Reset form inputs
-        contactForm.reset();
-        submitBtn.disabled = false;
-        submitBtn.innerText = "Send Message";
+        try {
+          await addDoc(collection(db, "contact_messages"), {
+            name,
+            email,
+            phone,
+            subject,
+            message,
+            timestamp: serverTimestamp()
+          });
+
+          statusMsg.innerText = "Thank you! Your message has been sent successfully. We'll get back to you soon.";
+          statusMsg.className = "success";
+          statusMsg.style.display = "block"; // <--- ADDED HERE: Makes error message visible
+          contactForm.reset();
+        } catch (err) {
+          console.error("Firestore submission error:", err);
+          statusMsg.innerText = "Failed to send message: " + err.message;
+          statusMsg.className = "error";
+          statusMsg.style.display = "block"; // <--- ADDED HERE: Makes error message visible
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Send Message";
+        }
       };
     </script>
 
     <!-- Injected header and footer script -->
     <script src="/common.js" type="module"></script>
   </body>
-  </html>
+            </html>
