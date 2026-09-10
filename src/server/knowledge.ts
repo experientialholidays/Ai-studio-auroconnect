@@ -3,8 +3,7 @@ import multer from "multer";
 import { getAuth } from "firebase-admin/auth";
 import mammoth from "mammoth";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
-import { FieldValue } from "firebase-admin/firestore";
-import { ai, verifyAuthToken, adminDb, isUserAdmin } from "./firebase-ai.js";
+import { ai, verifyAuthToken, isUserAdmin } from "./firebase-ai.js";
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -120,7 +119,7 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
     sendProgress(35, `Split complete: ${chunks.length} chunks generated.`, "Starting chunk embedding generation...");
 
     const embeddedChunks = [];
-    const batchSize = 15; // Embedding batch size to stay within token & rate limits
+    const batchSize = 15;
     
     for (let i = 0; i < chunks.length; i += batchSize) {
       const batch = chunks.slice(i, i + batchSize);
@@ -141,7 +140,7 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
         );
         
         const results = await Promise.all(batchPromises);
-        await new Promise(r => setTimeout(r, 1000)); // Sleep 1 second to avoid rate limits
+        await new Promise(r => setTimeout(r, 1000));
         
         for (let j = 0; j < batch.length; j++) {
           const vector = results[j]?.embeddings?.[0]?.values;
@@ -151,11 +150,10 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
         }
       } catch (err: any) {
         console.warn(`Batch embedding failed, trying individual fallback for batch starting at index ${i}:`, err);
-        // Fallback: individual embedding
         for (let j = 0; j < batch.length; j++) {
           const chunk = batch[j];
           try {
-            await new Promise(r => setTimeout(r, 200)); // Sleep 200ms
+            await new Promise(r => setTimeout(r, 200));
             const embedRes = await ai.models.embedContent({
               model: "gemini-embedding-2",
               contents: chunk,
@@ -176,35 +174,18 @@ router.post("/api/upload_knowledge", upload.single("file"), async (req, res) => 
       return sendError(500, "Failed to generate any embeddings for the document.");
     }
 
-    sendProgress(85, `Saving ${embeddedChunks.length} chunks to knowledge base...`, "Saving chunks directly to Firestore from server-side");
-    const uploadedBy = decodedToken.email;
+    sendProgress(85, `Generated embeddings for ${embeddedChunks.length} chunks. Streaming to browser...`, "Streaming chunks to client for database saving");
+    const uploadedBy = decodedToken.email || "info.experientialholidays@gmail.com";
     
-    const dbBatchSize = 100;
-    let chunkCount = 0;
-    
-    
-    for (let i = 0; i < embeddedChunks.length; i += dbBatchSize) {
-      const chunkBatch = embeddedChunks.slice(i, i + dbBatchSize);
-      const firestoreBatch = adminDb.batch();
-  
-      for (const item of chunkBatch) {
-        const newDocRef = adminDb.collection("knowledge").doc();
-        const docData: any = {
-          filename,
-          text: item.text,
-          uploadedAt: FieldValue.serverTimestamp(),
-          uploadedBy: uploadedBy || "info.experientialholidays@gmail.com",
-          chunkIndex: chunkCount,
-          embeddingVector: item.embeddingVector && Array.isArray(item.embeddingVector)
-            ? FieldValue.vector(item.embeddingVector)
-            : null
-        };
-        firestoreBatch.set(newDocRef, docData);
-      }
+    // Stream chunks to client browser so the client's Firebase Auth saves to Firestore securely
+    res.write(JSON.stringify({
+      type: "knowledge_chunks",
+      chunks: embeddedChunks,
+      filename,
+      uploadedBy
+    }) + "\n");
 
-  await firestoreBatch.commit();
-    }
-    sendSuccess(`Successfully uploaded and indexed knowledge document: ${filename}`, "All chunks saved to database successfully.");
+    sendSuccess(`Successfully processed and embedded knowledge document: ${filename}`, "All chunks sent to browser for database saving.");
 
   } catch (e: any) {
     console.error("upload_knowledge error:", e);
