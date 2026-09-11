@@ -6218,15 +6218,33 @@
                 }
               }
 
-              bubblesHTML += `
-                <div class="chat-log-bubble ${roleClass}">
-                  <div class="chat-log-bubble-header ${roleClass}">
-                    <span>${roleLabel}</span>
-                    <span style="font-size: 0.78rem; opacity: 0.85; font-weight: 500;">📅 ${escapeHTML(timestampLabel)}</span>
-                  </div>
+              if (isUser) {
+                 // User messages stay fully visible
+                 bubblesHTML += `
+                   <div class="chat-log-bubble user">
+                     <div class="chat-log-bubble-header user">
+                       <span>👤 User Query</span>
+                       <span style="font-size: 0.78rem; opacity: 0.85;">📅 ${escapeHTML(timestampLabel)}</span>
+                     </div>
                   <div class="chat-log-text">${renderedBody}</div>
-                </div>
+               </div>
               `;
+          } else {
+           // Bot responses are collapsed by default behind an HTML <details> tag
+           bubblesHTML += `
+             <div class="chat-log-bubble bot">
+               <details style="cursor: pointer;">
+                  <summary style="font-weight: 600; color: var(--accent); padding: 0.25rem 0; user-select: none;">
+                  🤖 AuroConnect Assistant Response (Click to Expand / Collapse)
+                  <span style="font-size: 0.75rem; float: right; color: var(--text-secondary);">📅 ${escapeHTML(timestampLabel)}</span>
+                  </summary>
+                  <div class="chat-log-text" style="margin-top: 0.5rem; border-top: 1px dashed var(--border); padding-top: 0.5rem;">
+                  ${renderedBody}
+               </div>
+             </details>
+           </div>
+          `;
+         }
             });
           } else {
             bubblesHTML = `<div class="chat-log-empty-msg">No conversation messages recorded in this session.</div>`;
@@ -6263,6 +6281,14 @@
             if (currentDisplay === "none") {
               trDetails.style.display = "table-row";
               trMain.style.backgroundColor = "var(--bg)";
+              // --- ADD THIS AUTO-SCROLL CODE ---
+              const flowContainer = trDetails.querySelector('.chat-log-flow');
+                if (flowContainer) {
+                  setTimeout(() => {
+                    flowContainer.scrollTop = flowContainer.scrollHeight;
+                 }, 50);
+               }
+    // ----------------------------------
             } else {
               trDetails.style.display = "none";
               trMain.style.backgroundColor = "";
