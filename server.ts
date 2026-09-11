@@ -601,9 +601,9 @@ function formatEventMarkdown(data) {
     }
   }
   const idEsc = escapeAttr(data.uuid || data.id || "");
-  const displayType = data.type ? escapeAttr(data.type) : (categoryType === "daily" ? "Daily Event" : categoryType === "weekly" ? "Weekly Event" : "Event");
-  const topBar = `<span class="ec-topbar"><span class="ec-type">*${displayType}*</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
-  const header = `${topBar}**[${data.title || "Event"}](#DETAILS::${idEsc})**`;
+  const displayType = (data.type ? escapeAttr(data.type) : (categoryType === "daily" ? "Daily Event" : categoryType === "weekly" ? "Weekly Event" : "Event")).trim();
+  const topBar = `<span class="ec-topbar"><span class="ec-type">${displayType}</span><span class="ec-date">${datesDisplay ? escapeAttr(datesDisplay) : ""}</span></span>`;
+  const header = `${topBar}\n**[${(data.title || "Event").trim()}](#DETAILS::${idEsc})**`;
   const row1Parts = [];
   if (timeDisplay) {
     row1Parts.push(`⏰ ${timeDisplay}`);
