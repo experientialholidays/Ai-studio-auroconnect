@@ -1828,21 +1828,7 @@ ${searchQuery || lastMessage}`;
             }
         });
 
-        // Seed default presets if none exist after filtering
-        if (presets.length === 0) {
-            const defaultPresets = [
-                { text: "What's happening today? 📅", query: "What's happening today?", order: 1 },
-                { text: "Savitri Reading Circle 📖", query: "Savitri reading circle", order: 2 },
-                { text: "Yoga & Healing 🧘", query: "Water yoga and meditation", order: 3 },
-                { text: "Bamboo workshop 🎋", query: "bamboo workshop", order: 4 },
-                { text: "Horse therapy 🐴", query: "Horse assisted therapy", order: 5 }
-            ];
-            const promises = defaultPresets.map(async (preset) => {
-                const docRef = await addDoc(collection(db, "presets"), preset);
-                return { id: docRef.id, ...preset };
-            });
-            presets = await Promise.all(promises);
-        }
+
 
         // Sort presets by custom order property
         presets.sort((a, b) => {
