@@ -3235,6 +3235,7 @@
       };
 
       function exitEditMode() {
+        if (!editingEventId) return; // 👈 ADD THIS LINE HERE
         editingEventId = null;
         existingMediaUrls = [];
         
