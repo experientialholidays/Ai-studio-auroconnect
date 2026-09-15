@@ -818,6 +818,9 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     const colRef = collection(db, "events");
     const snapshot = await getDocs(colRef);
     let events = snapshot.docs.map((docSnap) => ({ uuid: docSnap.id, ...docSnap.data() } as any));
+      
+    // Filter out hidden events (hidden by admin)
+    events = events.filter((data) => data.hidden !== true && data.hidden !== "true");
 
     // Filter out past events for public search and chat (display of events for users)
     const todayStr = timeInfo.dateStr; // "YYYY-MM-DD"
