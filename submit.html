@@ -5275,6 +5275,11 @@
 
       window.saveFormAutosave = function() {
         try {
+          const titleVal = document.getElementById("ev-title")?.value || "";
+          const descVal = document.getElementById("ev-desc")?.value || "";
+          const venueVal = document.getElementById("ev-venue")?.value || "";
+          if (!titleVal && !descVal && !venueVal) return; // Prevent wiping valid draft on refresh
+
           const regionInput = document.querySelector('input[name="ev-region"]:checked');
           const scheduleTypeInput = document.querySelector('input[name="ev-schedule-type"]:checked');
           const checkedWeekdays = Array.from(
@@ -5447,8 +5452,7 @@
       };
 
       // Unload & Disconnect listeners to guarantee autosave on page close / refresh
-      window.addEventListener("beforeunload", saveFormAutosave);
-      window.addEventListener("pagehide", saveFormAutosave);
+      
       document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "hidden") {
           saveFormAutosave();
