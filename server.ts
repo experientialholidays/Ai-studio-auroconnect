@@ -688,35 +688,29 @@ function getMinutesFromTimeString(t) {
   }
   return 9999;
 }
-// Replace lines 691–700 in server.ts:
 function compareDateAndTime(a, b) {
-  // 1. Compare Start Dates first (e.g. "2026-09-21" vs "2026-09-22")
   const dateA = a.startDate || (a.originalHeaders && a.originalHeaders.startDate) || a.dates || "";
   const dateB = b.startDate || (b.originalHeaders && b.originalHeaders.startDate) || b.dates || "";
-  
   if (dateA && dateB && dateA !== dateB) {
     return dateA.localeCompare(dateB);
   }
-
-  // 2. If dates are equal (or missing), compare Times second
   const timeA = getEventTimeString(a);
   const timeB = getEventTimeString(b);
   const minsA = getMinutesFromTimeString(timeA);
   const minsB = getMinutesFromTimeString(timeB);
-  
   if (minsA !== minsB) {
     return minsA - minsB;
   }
-
-  // 3. Alphabetical title fallback
   return (a.title || "").localeCompare(b.title || "");
 }
+const compareStartTime = compareDateAndTime;
 function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
     return "No upcoming events match the requested criteria.";
   }
-  rawEvents.forEach((ev) => {
-  // ✅ CORRECT CODE:
+  const dateSpecific = [];
+  const weekly = [];
+  const daily = [];
   rawEvents.forEach((ev) => {
     const catType = getEventCategoryType(ev);
     if (catType === "daily") {
@@ -727,8 +721,6 @@ function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
       dateSpecific.push(ev);
     }
   });
-
-  // Sort after populating the arrays
   dateSpecific.sort(compareDateAndTime);
   weekly.sort(compareDateAndTime);
   daily.sort(compareDateAndTime);
@@ -832,7 +824,7 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
     const colRef = collection(db, "events");
     const snapshot = await getDocs(colRef);
     let events = snapshot.docs.map((docSnap) => ({ uuid: docSnap.id, ...docSnap.data() } as any));
-      
+
     // Filter out hidden events (hidden by admin)
     events = events.filter((data) => data.hidden !== true && data.hidden !== "true");
 
@@ -902,21 +894,18 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
         const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || evStart;
 
-        // Daily/Recurring events are always active during the week
         const categoryType = getEventCategoryType(data);
         if (categoryType === "daily") return true;
 
-        // One-time / Weekly events: check if event date overlaps with the range
         if (evStart) {
           return evStart <= filterEndDate && evEnd >= filterStartDate;
         }
         return true;
       });
     }
+
     if (filterDate) {
       const targetDay = getWeekdayFromDateStr(filterDate);
-
-    
       const targetDayShortMap: Record<string, string> = {
         "Monday": "mon", "Tuesday": "tue", "Wednesday": "wed", "Thursday": "thu", "Friday": "fri", "Saturday": "sat", "Sunday": "sun"
       };
@@ -1196,7 +1185,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
             "filter_start_date": "YYYY-MM-DD. CRITICAL: Populate start date if a date range (like 'next week', 'this weekend', 'next 5 days') is requested.",
             "filter_end_date": "YYYY-MM-DD. CRITICAL: Populate end date if a date range (like 'next week', 'this weekend', 'next 5 days') is requested.",
             "filter_day": "Monday, Tuesday, etc. CRITICAL: Only populate if a single specific day of the week is explicitly requested.",
-           "filter_time_after": "HH:MM (e.g., 17:00).CRITICAL: Only populate if a specific time of day is explicitly requested. Otherwise, leave empty."
+            "filter_time_after": "HH:MM (e.g., 17:00)."
         }`;
     const classRes = await ai.models.generateContent({
       model: MODEL,
@@ -1224,12 +1213,12 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
     console.log(`\n=================== [CHAT WS REQUEST] ===================`);
     console.log(`User Query: "${message}"`);
     console.log(`Selected Bucket: "${bucket}"`);
-    console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterDay, filterTimeAfter })}`);
+    console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterStartDate, filterEndDate, filterDay, filterTimeAfter })}`);
 
     if (bucket === "A") {
       ws.send(JSON.stringify({ type: "status", status: "Searching events" }));
       const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterStartDate, filterEndDate, filterTimeAfter, true, timeZone);
-        
+
       let botReply = "";
       if (Array.isArray(rawEvents)) {
         console.log(`[Bucket A] Matched ${rawEvents.length} events:`);
@@ -1615,21 +1604,23 @@ async function createServer() {
             }
         });
         
-        let bucket = "C", searchQuery = lastMessage, introText = "", filterDate = "", filterDay = "", filterTimeAfter = "";
+        let bucket = "C", searchQuery = lastMessage, introText = "", filterDate = "", filterStartDate = "", filterEndDate = "", filterDay = "", filterTimeAfter = "";
         try {
             const parsed = JSON.parse(classRes.text || "{}");
             bucket = parsed.bucket || "C";
             searchQuery = parsed.search_query || lastMessage;
             introText = parsed.intro_text || "";
-            filterDate = parsed.filter_date;
-            filterDay = parsed.filter_day;
-            filterTimeAfter = parsed.filter_time_after;
+            filterDate = parsed.filter_date || "";
+            filterStartDate = parsed.filter_start_date || "";
+            filterEndDate = parsed.filter_end_date || "";
+            filterDay = parsed.filter_day || "";
+            filterTimeAfter = parsed.filter_time_after || "";
         } catch { }
 
         console.log(`\n=================== [CHAT HTTP REQUEST] ===================`);
         console.log(`User Query: "${lastMessage}"`);
         console.log(`Selected Bucket: "${bucket}"`);
-        console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterDay, filterTimeAfter })}`);
+        console.log(`Search Query / Parameters: ${JSON.stringify({ searchQuery, filterDate, filterStartDate, filterEndDate, filterDay, filterTimeAfter })}`);
 
         if (bucket === "A") {
              res.write(`data: ${JSON.stringify({ status: "Searching events" })}\n\n`);
@@ -1649,8 +1640,8 @@ async function createServer() {
         }
         else if (bucket === "B") {
              res.write(`data: ${JSON.stringify({ status: "Extracting top matches" })}\n\n`);
+             const rawEventsArray = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterStartDate, filterEndDate, filterTimeAfter, true, tz);
              
-             const rawEvents = await searchAurovilleEvents(searchQuery, "specific", filterDay, filterDate, filterStartDate, filterEndDate, filterTimeAfter, true, tz);
              let rawEventsMarkdown = "";
              if (Array.isArray(rawEventsArray) && rawEventsArray.length > 0) {
                  console.log(`[Bucket B] Chunks or events sent to AI:`);
@@ -1869,8 +1860,6 @@ ${searchQuery || lastMessage}`;
                 presets.push({ id: docSnap.id, ...data });
             }
         });
-
-
 
         // Sort presets by custom order property
         presets.sort((a, b) => {
