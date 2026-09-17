@@ -688,23 +688,36 @@ function getMinutesFromTimeString(t) {
   }
   return 9999;
 }
-function compareStartTime(a, b) {
+// Replace lines 691–700 in server.ts:
+function compareDateAndTime(a, b) {
+  // 1. Compare Start Dates first (e.g. "2026-09-21" vs "2026-09-22")
+  const dateA = a.startDate || (a.originalHeaders && a.originalHeaders.startDate) || a.dates || "";
+  const dateB = b.startDate || (b.originalHeaders && b.originalHeaders.startDate) || b.dates || "";
+  
+  if (dateA && dateB && dateA !== dateB) {
+    return dateA.localeCompare(dateB);
+  }
+
+  // 2. If dates are equal (or missing), compare Times second
   const timeA = getEventTimeString(a);
   const timeB = getEventTimeString(b);
   const minsA = getMinutesFromTimeString(timeA);
   const minsB = getMinutesFromTimeString(timeB);
+  
   if (minsA !== minsB) {
     return minsA - minsB;
   }
+
+  // 3. Alphabetical title fallback
   return (a.title || "").localeCompare(b.title || "");
 }
 function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
     return "No upcoming events match the requested criteria.";
   }
-  const dateSpecific = [];
-  const weekly = [];
-  const daily = [];
+  dateSpecific.sort(compareDateAndTime);
+  weekly.sort(compareDateAndTime);
+  daily.sort(compareDateAndTime);
   rawEvents.forEach((ev) => {
     const catType = getEventCategoryType(ev);
     if (catType === "daily") {
@@ -812,7 +825,7 @@ function getUpcomingDateForWeekday(weekdayName: string, todayDateStr: string): s
   return "";
 }
 
-async function searchAurovilleEvents(searchQuery, specificity, filterDay, filterDate, filterTimeAfter, returnRaw, timeZone) {
+async function searchAurovilleEvents(searchQuery, specificity, filterDay, filterDate, filterStartDate, filterEndDate, filterTimeAfter, returnRaw, timeZone) {
   const timeInfo = getCurrentTimeInfo(timeZone);
   try {
     const colRef = collection(db, "events");
@@ -882,8 +895,27 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
       filterDate = getUpcomingDateForWeekday(filterDay, timeInfo.dateStr);
     }
 
+    // 2a. Apply Multi-Day Date Range Filter (e.g. Next Week / This Weekend)
+    if (filterStartDate && filterEndDate) {
+      events = events.filter((data) => {
+        const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
+        const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || evStart;
+
+        // Daily/Recurring events are always active during the week
+        const categoryType = getEventCategoryType(data);
+        if (categoryType === "daily") return true;
+
+        // One-time / Weekly events: check if event date overlaps with the range
+        if (evStart) {
+          return evStart <= filterEndDate && evEnd >= filterStartDate;
+        }
+        return true;
+      });
+    }
     if (filterDate) {
       const targetDay = getWeekdayFromDateStr(filterDate);
+
+    
       const targetDayShortMap: Record<string, string> = {
         "Monday": "mon", "Tuesday": "tue", "Wednesday": "wed", "Thursday": "thu", "Friday": "fri", "Saturday": "sat", "Sunday": "sun"
       };
@@ -1159,9 +1191,11 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
             "bucket": "A", 
             "search_query": "Cleaned, expanded query for semantic DB search. Combine context from chat history and the current query to make a detailed search string (REQUIRED for all buckets).",
             "intro_text": "A strictly objective, direct, and factual one-sentence introduction (e.g., 'Here are the upcoming sound healing events:' or 'Here are the events for tomorrow:'). DO NOT include any conversational fluff, polite fillers, greeting words, or open-ended questions. Keep it direct and factual.",
-            "filter_date": "YYYY-MM-DD. CRITICAL: Only populate if a specific date or relative term (like 'today', 'tomorrow') is explicitly requested. Otherwise, leave empty.",
-            "filter_day": "Monday, Tuesday, etc. CRITICAL: Only populate if a specific day of the week is explicitly requested or resolved from relative terms. Otherwise, leave empty.",
-            "filter_time_after": "HH:MM (e.g., 17:00). CRITICAL: Only populate if a specific time of day is explicitly requested. Otherwise, leave empty."
+            "filter_date": "YYYY-MM-DD. CRITICAL: Only populate if a single specific date (like 'today', 'tomorrow', '18 Sep') is requested.",
+            "filter_start_date": "YYYY-MM-DD. CRITICAL: Populate start date if a date range (like 'next week', 'this weekend', 'next 5 days') is requested.",
+            "filter_end_date": "YYYY-MM-DD. CRITICAL: Populate end date if a date range (like 'next week', 'this weekend', 'next 5 days') is requested.",
+            "filter_day": "Monday, Tuesday, etc. CRITICAL: Only populate if a single specific day of the week is explicitly requested.",
+           "filter_time_after": "HH:MM (e.g., 17:00)."
         }`;
     const classRes = await ai.models.generateContent({
       model: MODEL,
@@ -1172,13 +1206,15 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         responseMimeType: "application/json"
       }
     });
-    let bucket = "C", searchQuery = message, introText = "Here is what I found:", filterDate = "", filterDay = "", filterTimeAfter = "";
+    let bucket = "C", searchQuery = message, introText = "Here is what I found:", filterDate = "", filterStartDate = "", filterEndDate = "", filterDay = "", filterTimeAfter = "";
     try {
       const parsed = JSON.parse(classRes.text || "{}");
       bucket = parsed.bucket || "C";
       searchQuery = parsed.search_query || message;
       introText = parsed.intro_text || "";
       filterDate = parsed.filter_date || "";
+      filterStartDate = parsed.filter_start_date || "";
+      filterEndDate = parsed.filter_end_date || "";
       filterDay = parsed.filter_day || "";
       filterTimeAfter = parsed.filter_time_after || "";
     } catch {
@@ -1191,7 +1227,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
 
     if (bucket === "A") {
       ws.send(JSON.stringify({ type: "status", status: "Searching events" }));
-      const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterTimeAfter, true, timeZone);
+      const rawEvents = await searchAurovilleEvents(searchQuery, "broad", filterDay, filterDate, filterStartDate, filterEndDate, filterTimeAfter, true, timeZone);
 
       let botReply = "";
       if (Array.isArray(rawEvents)) {
