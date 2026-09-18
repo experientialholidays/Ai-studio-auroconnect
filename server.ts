@@ -704,7 +704,54 @@ function compareDateAndTime(a, b) {
   return (a.title || "").localeCompare(b.title || "");
 }
 const compareStartTime = compareDateAndTime;
-function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
+
+function getStartWeekday(startDayOrDate?: string): string {
+  if (!startDayOrDate) return "mon";
+  const s = startDayOrDate.trim().toLowerCase();
+  const weekdays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const fullWeekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  for (let i = 0; i < 7; i++) {
+    if (s === weekdays[i] || s === fullWeekdays[i]) return weekdays[i];
+  }
+  const parts = s.split("-");
+  if (parts.length === 3) {
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      const d = new Date(year, month, day);
+      return weekdays[d.getDay()];
+    }
+  }
+  return "mon";
+}
+
+function getFirstDayIndex(daysVal: any, startDayOrDate: string = "mon"): number {
+  const daysStr = (Array.isArray(daysVal) ? daysVal.join(" ") : String(daysVal || "")).toLowerCase();
+  const allDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const startWDay = getStartWeekday(startDayOrDate);
+  const startIdx = allDays.indexOf(startWDay);
+  const baseIdx = startIdx >= 0 ? startIdx : 1;
+  const dynamicDayOrder: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    dynamicDayOrder.push(allDays[(baseIdx + i) % 7]);
+  }
+  for (let i = 0; i < dynamicDayOrder.length; i++) {
+    if (daysStr.includes(dynamicDayOrder[i])) return i;
+  }
+  return 99;
+}
+
+function compareWeeklyEvents(a: any, b: any, startDayOrDate: string = "mon"): number {
+  const dayIndexA = getFirstDayIndex(a.days, startDayOrDate);
+  const dayIndexB = getFirstDayIndex(b.days, startDayOrDate);
+  if (dayIndexA !== dayIndexB) {
+    return dayIndexA - dayIndexB;
+  }
+  return compareDateAndTime(a, b);
+}
+
+function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true, startDayOrDate = "mon") {
   if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
     return "No upcoming events match the requested criteria.";
   }
@@ -722,7 +769,7 @@ function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true) {
     }
   });
   dateSpecific.sort(compareDateAndTime);
-  weekly.sort(compareDateAndTime);
+  weekly.sort((a, b) => compareWeeklyEvents(a, b, startDayOrDate));
   daily.sort(compareDateAndTime);
   const formatEvent = formatEventMarkdown;
   let resultChunks = [];
@@ -890,6 +937,20 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
 
     // 2a. Apply Multi-Day Date Range Filter (e.g. Next Week / This Weekend)
     if (filterStartDate && filterEndDate) {
+      // Build array of all matching weekdays within the start/end date range
+      const rangeWeekdays: string[] = [];
+      try {
+        const dStart = new Date(filterStartDate);
+        const dEnd = new Date(filterEndDate);
+        const daysMap = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+        const fullDaysMap = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+        
+        for (let d = new Date(dStart); d <= dEnd; d.setDate(d.getDate() + 1)) {
+          rangeWeekdays.push(daysMap[d.getDay()]);
+          rangeWeekdays.push(fullDaysMap[d.getDay()]);
+        }
+      } catch (e) {}
+
       events = events.filter((data) => {
         const evStart = data.startDate || (data.originalHeaders && data.originalHeaders.startDate) || "";
         const evEnd = data.endDate || (data.originalHeaders && data.originalHeaders.endDate) || evStart;
@@ -897,9 +958,22 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
         const categoryType = getEventCategoryType(data);
         if (categoryType === "daily") return true;
 
-        if (evStart) {
-          return evStart <= filterEndDate && evEnd >= filterStartDate;
+        // 1. Check overall date range window
+        if (evStart && !(evStart <= filterEndDate && evEnd >= filterStartDate)) {
+          return false;
         }
+
+        // 2. For weekly/recurring events, verify their 'days' match the weekdays in the range
+        const daysLower = (Array.isArray(data.days) ? data.days.join(" ") : String(data.days || "")).toLowerCase();
+        if (categoryType === "weekly" || (daysLower && daysLower.trim() !== "")) {
+          if (rangeWeekdays.length > 0) {
+            const matchesDayInRange = rangeWeekdays.some((wDay) => daysLower.includes(wDay));
+            if (!matchesDayInRange) {
+              return false; // Skip events (e.g., Monday-only events) that don't occur on Sat/Sun
+            }
+          }
+        }
+
         return true;
       });
     }
@@ -1225,7 +1299,7 @@ async function handleStreamingChat(message, ws, chatHistory, timeZone) {
         rawEvents.forEach((ev, i) => {
           console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
         });
-        const output = formatCategorizedEvents(rawEvents, introText);
+        const output = formatCategorizedEvents(rawEvents, introText, true, filterStartDate || filterDate || filterDay);
         botReply = output;
       } else {
         botReply = "No upcoming events match the requested criteria.";
@@ -1631,7 +1705,7 @@ async function createServer() {
                  rawEvents.forEach((ev, i) => {
                      console.log(`  ${i+1}. Title: "${ev.title || 'Untitled'}", Start Date: ${ev.startDate || 'N/A'}, End Date: ${ev.endDate || 'N/A'}, Time: ${ev.times || ev.startTime || 'N/A'}`);
                  });
-                 output = formatCategorizedEvents(rawEvents, introText);
+                 output = formatCategorizedEvents(rawEvents, introText, true, filterStartDate || filterDate || filterDay);
              } else {
                  output = "No upcoming events match the requested criteria.";
              }

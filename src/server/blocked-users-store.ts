@@ -47,19 +47,26 @@ export async function getBlockedUsers(): Promise<BlockedUserEntry[]> {
 export async function isEmailBlocked(email: string): Promise<boolean> {
   if (!email) return false;
   const clean = email.trim().toLowerCase();
-  try {
-    if (adminDb) {
+
+  // Try Admin SDK first if available
+  if (adminDb) {
+    try {
       const docSnapAdmin = await adminDb.collection("blocked_users").doc(clean).get();
       if (docSnapAdmin.exists) return true;
       const docSnapEnc = await adminDb.collection("blocked_users").doc(encodeURIComponent(clean)).get();
-      return docSnapEnc.exists;
+      if (docSnapEnc.exists) return true;
+    } catch (_adminErr) {
+      // Admin SDK lacks service account credentials; fallback silently to Client SDK below
     }
+  }
+
+  // Fallback to Client SDK (utilizes public read permission from firestore.rules)
+  try {
     const docSnap = await getDoc(doc(db, "blocked_users", clean));
     if (docSnap.exists()) return true;
     const encSnap = await getDoc(doc(db, "blocked_users", encodeURIComponent(clean)));
     return encSnap.exists();
-  } catch (err: any) {
-    console.error("Error checking blocked status in Firestore:", err.message || err);
+  } catch (_err) {
     return false;
   }
 }

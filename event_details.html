@@ -1833,9 +1833,9 @@
                 const dateOrDay = formattedDate || formattedDays || '';
                 const locationStr = event.venue || '';
                 
-                let datePart = dateOrDay ? ` on "${dateOrDay}"` : '';
+                let datePart = dateOrDay ? `"${dateOrDay}"` : '';
                 let locationPart = locationStr ? ` at ${locationStr}` : '';
-                const draftMessage = `Hi! I came across the "${eventTitle}" event to be held${datePart}${locationPart} on auroconnect.info. Could I please get more details?`;
+                const draftMessage = `Hi! I came across the "${eventTitle}" event${datePart ? ` scheduled for ${datePart}` : ''}${locationPart} on auroconnect.info. Could you please share more details about the event?`;
                 
                 if (hasValidWhatsapp) {
                     let waHref = "";
