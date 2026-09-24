@@ -1613,7 +1613,7 @@ async function createServer() {
             lowerText.includes("show daily")
         ) {
             res.write(`data: ${JSON.stringify({ chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" })}\n\n`);
-            const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true, tz);
+            const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, undefined, undefined, true, tz);
             if (Array.isArray(rawEvents)) {
                 const output = formatDailyEventsOnly(rawEvents);
                 res.write(`data: ${JSON.stringify({ chunk: output })}\n\n`);
@@ -2441,7 +2441,7 @@ ${searchQuery || lastMessage}`;
         const day = (req.query.day || "") as string;
         const category = (req.query.category || "") as string;
         
-        let rawEvents = await searchAurovilleEvents(query, query ? "specific" : "broad", day || undefined, undefined, undefined, true, undefined);
+        let rawEvents = await searchAurovilleEvents(query, query ? "specific" : "broad", day || undefined, undefined, undefined, undefined, undefined, true, undefined);
         
         let eventsList = Array.isArray(rawEvents) ? rawEvents : [];
         if (category && category.toLowerCase() !== "all") {
@@ -2839,7 +2839,7 @@ ${searchQuery || lastMessage}`;
             ) {
                 ws.send(JSON.stringify({ type: "start_stream" }));
                 ws.send(JSON.stringify({ type: "stream_chunk", chunk: "<i>☀️ Pulling down all daily events...</i>\n\n" }));
-                const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, true, timeZone);
+                const rawEvents = await searchAurovilleEvents("", "broad", undefined, undefined, undefined, undefined, undefined, true, timeZone);
                 let botReply = "";
                 if (Array.isArray(rawEvents)) {
                     const output = formatDailyEventsOnly(rawEvents);
