@@ -1607,7 +1607,6 @@ async function createServer() {
         
         if (
             lowerText.includes("show daily events") || 
-            lowerText === "yes" || 
             lowerText.includes("pull down all diary events") || 
             lowerText.includes("pull down all daily events") || 
             lowerText.includes("show daily")
@@ -2854,7 +2853,6 @@ ${searchQuery || lastMessage}`;
             const lowerText = text.toLowerCase().trim();
             if (
                 lowerText.includes("show daily events") || 
-                lowerText === "yes" || 
                 lowerText.includes("pull down all diary events") || 
                 lowerText.includes("pull down all daily events") || 
                 lowerText.includes("show daily")
