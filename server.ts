@@ -2049,14 +2049,36 @@ ${searchQuery || lastMessage}`;
             console.error("Error during active chat sessions cleanup:", cleanupErr);
         }
 
-        const qSessions = query(collection(db, "chat_sessions"), orderBy("updatedAt", "desc"));
+        const pageSize = parseInt(req.query.limit as string) || 100;
+        const lastDocId = req.query.lastDocId as string;
+
+        let qSessions;
+        if (lastDocId) {
+            const lastDocSnap = await getDoc(doc(db, "chat_sessions", lastDocId));
+            qSessions = query(
+                collection(db, "chat_sessions"), 
+                orderBy("updatedAt", "desc"), 
+                startAfter(lastDocSnap), 
+                limit(pageSize)
+            );
+        } else {
+            qSessions = query(
+                collection(db, "chat_sessions"), 
+                orderBy("updatedAt", "desc"), 
+                limit(pageSize)
+            );
+        }
+
         const snapshot = await getDocs(qSessions);
         const sessions: any[] = [];
+        let nextCursor = null;
         snapshot.forEach((docSnap) => {
             sessions.push({ id: docSnap.id, ...docSnap.data() });
+            nextCursor = docSnap.id;
         });
-
-        res.json({ success: true, sessions });
+        const hasMore = sessions.length === pageSize;
+        res.json({ success: true, sessions, nextCursor: hasMore ? nextCursor : null });
+        
     } catch (err: any) {
         console.error("Error fetching chat sessions:", err);
         res.status(500).json({ success: false, error: err.message });
