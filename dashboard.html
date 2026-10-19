@@ -2612,6 +2612,15 @@
             </div>
           </div>
         </div>
+        <!-- Server-side Pagination / Load More Bar -->
+        <div id="chat-logs-pagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--card-bg, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 8px;">
+          <span id="chat-logs-pagination-info" style="font-size: 0.85rem; color: var(--text-secondary);">
+            Loaded 0 sessions
+          </span>
+          <button id="btn-load-more-chat-logs" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 1rem; cursor: pointer;">
+            Load Next 100 Sessions ⬇️
+          </button>
+        </div>
 
         <div id="chat-logs-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
         <div class="table-wrapper" id="chat-logs-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
@@ -5892,37 +5901,103 @@
       let cachedChatSessions = [];
       let chatLogsListenersBound = false;
 
-      async function loadChatLogs() {
+      let chatSessionsNextCursor = null;
+      let isLoadingMoreChatLogs = false;
+
+      async function loadChatLogs(isLoadMore = false) {
         if (!getCurrentUser()) return;
         
         const chatLogsLoading = document.getElementById("chat-logs-loading");
         const chatLogsTableWrapper = document.getElementById("chat-logs-table-wrapper");
         const chatLogsTbody = document.getElementById("chat-logs-tbody");
+        const btnLoadMore = document.getElementById("btn-load-more-chat-logs");
 
-        if (chatLogsLoading) chatLogsLoading.style.display = "block";
-        if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "none";
-        if (chatLogsTbody) chatLogsTbody.innerHTML = "";
+        // Initial load resets; "Load More" keeps current rows
+        if (!isLoadMore) {
+          chatSessionsNextCursor = null;
+          cachedChatSessions = [];
+          if (chatLogsLoading) {
+            chatLogsLoading.style.display = "block";
+            chatLogsLoading.innerHTML = "Loading chat sessions...";
+          }
+          if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "none";
+          if (chatLogsTbody) chatLogsTbody.innerHTML = "";
+        } else {
+          if (isLoadingMoreChatLogs || !chatSessionsNextCursor) return;
+          isLoadingMoreChatLogs = true;
+          if (btnLoadMore) {
+            btnLoadMore.disabled = true;
+            btnLoadMore.innerText = "⏳ Loading next 100...";
+          }
+        }
 
         try {
           const user = getCurrentUser();
           if (!user) throw new Error("Not logged in");
           const token = await user.getIdToken();
 
-          const res = await fetch(`/api/chat-sessions?token=${encodeURIComponent(token)}`);
+          // Fetch with limit=100 and cursor
+          let apiUrl = `/api/chat-sessions?token=${encodeURIComponent(token)}&limit=100`;
+          if (isLoadMore && chatSessionsNextCursor) {
+            apiUrl += `&lastDocId=${encodeURIComponent(chatSessionsNextCursor)}`;
+          }
+
+          const res = await fetch(apiUrl);
           const data = await res.json();
           if (!data.success) throw new Error(data.error || "Failed to load chat sessions");
 
-          cachedChatSessions = data.sessions || [];
+          const incomingSessions = data.sessions || [];
+          chatSessionsNextCursor = data.nextCursor || null;
+
+          if (isLoadMore) {
+            cachedChatSessions = cachedChatSessions.concat(incomingSessions);
+          } else {
+            cachedChatSessions = incomingSessions;
+          }
+
           renderChatLogs(cachedChatSessions);
+          updateChatLogsPaginationUI();
+
           if (chatLogsLoading) chatLogsLoading.style.display = "none";
+          if (chatLogsTableWrapper) chatLogsTableWrapper.style.display = "block";
 
           if (!chatLogsListenersBound) {
             setupChatLogsListeners();
           }
         } catch (error) {
           console.error("Error loading chat logs:", error);
-          if (chatLogsLoading) {
+          if (!isLoadMore && chatLogsLoading) {
             chatLogsLoading.innerHTML = `<span style="color: red;">Error loading chat logs: ${error.message}</span>`;
+          } else if (isLoadMore) {
+            alert("Error loading more sessions: " + error.message);
+          }
+        } finally {
+          isLoadingMoreChatLogs = false;
+          if (btnLoadMore) {
+            btnLoadMore.disabled = false;
+            btnLoadMore.innerText = "⬇️ Load Next 100 Sessions";
+          }
+        }
+      }
+
+      function updateChatLogsPaginationUI() {
+        const paginationBar = document.getElementById("chat-logs-pagination");
+        const countSpan = document.getElementById("chat-logs-loaded-count");
+        const btnLoadMore = document.getElementById("btn-load-more-chat-logs");
+
+        if (!paginationBar) return;
+        paginationBar.style.display = "flex";
+
+        if (countSpan) {
+          countSpan.innerText = `Loaded ${cachedChatSessions.length} sessions`;
+        }
+
+        if (btnLoadMore) {
+          if (chatSessionsNextCursor) {
+            btnLoadMore.style.display = "inline-flex";
+            btnLoadMore.disabled = false;
+          } else {
+            btnLoadMore.style.display = "none";
           }
         }
       }
@@ -5953,6 +6028,7 @@
       function setupChatLogsListeners() {
         const chatLogsSearch = document.getElementById("chat-logs-search");
         const btnClearChatLogsFilters = document.getElementById("btn-clear-chat-logs-filters");
+        const btnLoadMore = document.getElementById("btn-load-more-chat-logs");
 
         if (chatLogsSearch) {
           chatLogsSearch.addEventListener("input", debounce(() => {
@@ -5967,9 +6043,15 @@
           };
         }
 
+        if (btnLoadMore) {
+          btnLoadMore.onclick = () => {
+            loadChatLogs(true);
+          };
+        }
+
         chatLogsListenersBound = true;
       }
-
+      
       function filterChatLogs() {
         const chatLogsSearch = document.getElementById("chat-logs-search");
         const queryVal = chatLogsSearch ? chatLogsSearch.value.toLowerCase().trim() : "";
