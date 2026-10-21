@@ -2612,16 +2612,6 @@
             </div>
           </div>
         </div>
-        <!-- Server-side Pagination / Load More Bar -->
-        <div id="chat-logs-pagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--card-bg, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 8px;">
-          <span id="chat-logs-pagination-info" style="font-size: 0.85rem; color: var(--text-secondary);">
-            Loaded 0 sessions
-          </span>
-          <button id="btn-load-more-chat-logs" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 1rem; cursor: pointer;">
-            Load Next 100 Sessions ⬇️
-          </button>
-        </div>
-
         <div id="chat-logs-loading" style="color: var(--text-secondary); font-size: 0.9rem; font-style: italic;">Loading...</div>
         <div class="table-wrapper" id="chat-logs-table-wrapper" style="display: none; width: 100%; overflow-x: auto;">
           <table>
@@ -2638,6 +2628,16 @@
               <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+
+        <!-- Server-side Pagination / Load More Bar -->
+        <div id="chat-logs-pagination" style="display: none; align-items: center; justify-content: space-between; margin-top: 1rem; padding: 0.75rem 1rem; background: var(--card-bg, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 8px;">
+          <span id="chat-logs-pagination-info" style="font-size: 0.85rem; color: var(--text-secondary);">
+            Loaded 0 sessions
+          </span>
+          <button id="btn-load-more-chat-logs" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 1rem; cursor: pointer;">
+            ⬇️ Load Next 50 Sessions
+          </button>
         </div>
       </div>
 
@@ -5927,7 +5927,7 @@
           isLoadingMoreChatLogs = true;
           if (btnLoadMore) {
             btnLoadMore.disabled = true;
-            btnLoadMore.innerText = "⏳ Loading next 100...";
+            btnLoadMore.innerText = "⏳ Loading next 50...";
           }
         }
 
@@ -5936,8 +5936,8 @@
           if (!user) throw new Error("Not logged in");
           const token = await user.getIdToken();
 
-          // Fetch with limit=100 and cursor
-          let apiUrl = `/api/chat-sessions?token=${encodeURIComponent(token)}&limit=100`;
+          // Fetch with limit=50 and cursor
+          let apiUrl = `/api/chat-sessions?token=${encodeURIComponent(token)}&limit=50`;
           if (isLoadMore && chatSessionsNextCursor) {
             apiUrl += `&lastDocId=${encodeURIComponent(chatSessionsNextCursor)}`;
           }
@@ -5975,7 +5975,7 @@
           isLoadingMoreChatLogs = false;
           if (btnLoadMore) {
             btnLoadMore.disabled = false;
-            btnLoadMore.innerText = "⬇️ Load Next 100 Sessions";
+            btnLoadMore.innerText = "⬇️ Load Next 50 Sessions";
           }
         }
       }

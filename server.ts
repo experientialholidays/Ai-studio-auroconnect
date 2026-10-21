@@ -2048,18 +2048,26 @@ ${searchQuery || lastMessage}`;
             console.error("Error during active chat sessions cleanup:", cleanupErr);
         }
 
-        const pageSize = parseInt(req.query.limit as string) || 100;
+        const pageSize = parseInt(req.query.limit as string) || 50;
         const lastDocId = req.query.lastDocId as string;
 
         let qSessions;
         if (lastDocId) {
             const lastDocSnap = await getDoc(doc(db, "chat_sessions", lastDocId));
-            qSessions = query(
-                collection(db, "chat_sessions"), 
-                orderBy("updatedAt", "desc"), 
-                startAfter(lastDocSnap), 
-                limit(pageSize)
-            );
+            if (lastDocSnap.exists()) {
+                qSessions = query(
+                    collection(db, "chat_sessions"), 
+                    orderBy("updatedAt", "desc"), 
+                    startAfter(lastDocSnap), 
+                    limit(pageSize)
+                );
+            } else {
+                qSessions = query(
+                    collection(db, "chat_sessions"), 
+                    orderBy("updatedAt", "desc"), 
+                    limit(pageSize)
+                );
+            }
         } else {
             qSessions = query(
                 collection(db, "chat_sessions"), 
@@ -2070,9 +2078,9 @@ ${searchQuery || lastMessage}`;
 
         const snapshot = await getDocs(qSessions);
         const sessions: any[] = [];
-        let nextCursor = null;
+        let nextCursor: string | null = null;
         snapshot.forEach((docSnap) => {
-            sessions.push({ id: docSnap.id, ...docSnap.data() });
+            sessions.push({ id: docSnap.id, ...(docSnap.data() as any) });
             nextCursor = docSnap.id;
         });
         const hasMore = sessions.length === pageSize;
