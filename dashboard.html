@@ -2635,9 +2635,9 @@
           <span id="chat-logs-pagination-info" style="font-size: 0.85rem; color: var(--text-secondary);">
             Loaded 0 sessions
           </span>
-          <button id="btn-load-more-chat-logs" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.4rem 1rem; cursor: pointer;">
-            ⬇️ Load Next 50 Sessions
-          </button>
+          <a href="javascript:void(0)" id="btn-load-more-chat-logs" style="font-size: 0.85rem; color: var(--primary-color, #3b82f6); text-decoration: underline; cursor: pointer; font-weight: 500;">
+            Load next 50 sessions →
+          </a>
         </div>
       </div>
 
@@ -5926,8 +5926,9 @@
           if (isLoadingMoreChatLogs || !chatSessionsNextCursor) return;
           isLoadingMoreChatLogs = true;
           if (btnLoadMore) {
-            btnLoadMore.disabled = true;
-            btnLoadMore.innerText = "⏳ Loading next 50...";
+            btnLoadMore.style.pointerEvents = "none";
+            btnLoadMore.style.opacity = "0.6";
+            btnLoadMore.innerText = "Loading next 50...";
           }
         }
 
@@ -5974,8 +5975,9 @@
         } finally {
           isLoadingMoreChatLogs = false;
           if (btnLoadMore) {
-            btnLoadMore.disabled = false;
-            btnLoadMore.innerText = "⬇️ Load Next 50 Sessions";
+            btnLoadMore.style.pointerEvents = "auto";
+            btnLoadMore.style.opacity = "1";
+            btnLoadMore.innerText = "Load next 50 sessions →";
           }
         }
       }
@@ -5994,8 +5996,9 @@
 
         if (btnLoadMore) {
           if (chatSessionsNextCursor) {
-            btnLoadMore.style.display = "inline-flex";
-            btnLoadMore.disabled = false;
+            btnLoadMore.style.display = "inline";
+            btnLoadMore.style.pointerEvents = "auto";
+            btnLoadMore.style.opacity = "1";
           } else {
             btnLoadMore.style.display = "none";
           }
@@ -6044,7 +6047,8 @@
         }
 
         if (btnLoadMore) {
-          btnLoadMore.onclick = () => {
+          btnLoadMore.onclick = (e) => {
+            if (e) e.preventDefault();
             loadChatLogs(true);
           };
         }
