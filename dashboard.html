@@ -8927,9 +8927,13 @@
           <label style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text); margin-bottom: 0.35rem;">
             Custom Support Message / Prompt (Markdown supported):
           </label>
-          <textarea id="push-support-message-input" rows="5" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical;">☕ **Support AuroConnect**
+          <textarea id="push-support-message-input" rows="7" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-family: inherit; font-size: 0.85rem; resize: vertical;">☕ **Buy Me a Coffee**
 
-Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.
+If AuroConnect has been helpful in discovering activities, exploring events, or finding your way around Auroville, and you feel like supporting this little project, you’re welcome to buy us a coffee.
+
+Every contribution, big or small, is genuinely appreciated and helps us keep AuroConnect going.
+
+Thank you for being here and being part of the journey. 💛
 
 [👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)</textarea>
         </div>
@@ -9034,8 +9038,10 @@ Enjoying AuroConnect? If this platform helps you explore events, discover activi
           } catch(apiErr) {
             console.warn("API push notification failed, attempting client SDK direct update:", apiErr);
             const supportText = customMsg || 
-              "☕ **Support AuroConnect**\n\n" +
-              "Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.\n\n" +
+              "☕ **Buy Me a Coffee**\n\n" +
+              "If AuroConnect has been helpful in discovering activities, exploring events, or finding your way around Auroville, and you feel like supporting this little project, you’re welcome to buy us a coffee.\n\n" +
+              "Every contribution, big or small, is genuinely appreciated and helps us keep AuroConnect going.\n\n" +
+              "Thank you for being here and being part of the journey. 💛\n\n" +
               "[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)";
 
             const pushTimeIso = new Date().toISOString();
