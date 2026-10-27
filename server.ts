@@ -2217,8 +2217,10 @@ ${searchQuery || lastMessage}`;
       }
 
       const supportText = customMessage || 
-        "☕ **Support AuroConnect**\n\n" +
-        "Enjoying AuroConnect? If this platform helps you explore events, discover activities, and navigate Auroville, consider supporting us with a coffee! Any contribution is warmly welcome.\n\n" +
+        "☕ **Buy Me a Coffee**\n\n" +
+        "If AuroConnect has been helpful in discovering activities, exploring events, or finding your way around Auroville, and you feel like supporting this little project, you’re welcome to buy us a coffee.\n\n" +
+        "Every contribution, big or small, is genuinely appreciated and helps us keep AuroConnect going.\n\n" +
+        "Thank you for being here and being part of the journey. 💛\n\n" +
         "[👉 **Support AuroConnect with a Coffee**](https://rzp.io/rzp/AuroConnect)";
 
       let deliveredCount = 0;
@@ -2836,7 +2838,7 @@ ${searchQuery || lastMessage}`;
                      "Auroville is a place to experience yourself and the world differently—to grow, create, and connect.\n\n" +
                      "Whether you're visiting, volunteering, newly arrived, or have been part of the community for years, there's always something new to discover and learn.\n\n" +
                      "Curious about Auroville or looking for something specific? Just ask.\n\n" +
-                     "If you find AuroConnect helpful and would like to support this project, you’re warmly welcome to connect with us through the Contact and Contribute tabs in the main menu. Every connection, contribution, and bit of feedback helps us grow. 💚\n\n" +
+                     "If you find AuroConnect helpful and would like to support this project, you’re warmly welcome to connect with us through the Contact or Contribute tabs in the main menu. Every connection, contribution, and bit of feedback helps us grow. 💚\n\n" +
                      "Let's explore Auroville together. 💫" + savitriPart
         }));
       }
