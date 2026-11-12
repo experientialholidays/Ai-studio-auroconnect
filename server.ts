@@ -658,7 +658,7 @@ function getEventTimeString(ev) {
   return "";
 }
 function getMinutesFromTimeString(t) {
-  if (!t || t === "n/a" || t === "none" || t === "undefined") return 9999;
+  if (!t || t === "n/a" || t === "none" || t === "undefined" || t.toLowerCase().includes("appointment")) return 9999;
   const matchColon = t.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
   if (matchColon) {
     let hours = parseInt(matchColon[1], 10);
@@ -748,7 +748,14 @@ function compareWeeklyEvents(a: any, b: any, startDayOrDate: string = "mon"): nu
   if (dayIndexA !== dayIndexB) {
     return dayIndexA - dayIndexB;
   }
-  return compareDateAndTime(a, b);
+  const timeA = getEventTimeString(a);
+  const timeB = getEventTimeString(b);
+  const minsA = getMinutesFromTimeString(timeA);
+  const minsB = getMinutesFromTimeString(timeB);
+  if (minsA !== minsB) {
+    return minsA - minsB;
+  }
+  return (a.title || "").localeCompare(b.title || "");
 }
 
 function formatCategorizedEvents(rawEvents, introText, showDailyPrompt = true, startDayOrDate = "mon") {
@@ -924,9 +931,12 @@ async function searchAurovilleEvents(searchQuery, specificity, filterDay, filter
 
     // 1. Apply time filter
     if (filterTimeAfter) {
+      const targetMins = parseMinutesFromTimeStr(filterTimeAfter);
       events = events.filter((data) => {
-        if (!data.startTime) return true;
-        return data.startTime >= filterTimeAfter;
+        const timeStr = getEventTimeString(data);
+        if (!timeStr) return true;
+        const evMins = getMinutesFromTimeString(timeStr);
+        return evMins >= targetMins;
       });
     }
 
